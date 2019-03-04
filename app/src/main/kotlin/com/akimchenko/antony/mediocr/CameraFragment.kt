@@ -62,15 +62,6 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
         activity?.onBackPressed()
     }
 
-    private val captureCallbackListener: CameraCaptureSession.CaptureCallback =
-        object : CameraCaptureSession.CaptureCallback() {
-            override fun onCaptureCompleted(session: CameraCaptureSession, request: CaptureRequest, result: TotalCaptureResult) {
-                super.onCaptureCompleted(session, request, result)
-                Toast.makeText(activity, "Saved:$file", Toast.LENGTH_SHORT).show()
-                createCameraPreview()
-            }
-        }
-
     init {
         ORIENTATIONS.append(Surface.ROTATION_0, 90)
         ORIENTATIONS.append(Surface.ROTATION_90, 0)
@@ -101,7 +92,7 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
     }
 
     override fun onPause() {
-        //closeCamera();
+        closeCamera()
         stopBackgroundThread()
         super.onPause()
     }

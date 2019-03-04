@@ -1,6 +1,7 @@
 package com.akimchenko.antony.mediocr
 
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.util.SparseArray
@@ -66,5 +67,9 @@ class MainActivity : AppCompatActivity() {
         val callback: OnRequestPermissionCallback? = permissionCallbacks.get(requestCode, null)
         callback?.onPermissionReturned(allGranted)
         permissionCallbacks.remove(requestCode)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
     }
 }
