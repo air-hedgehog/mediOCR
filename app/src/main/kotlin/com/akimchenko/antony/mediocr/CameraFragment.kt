@@ -25,6 +25,10 @@ import java.util.*
 @SuppressLint("NewApi")
 class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceTextureListener {
 
+    companion object {
+        const val READ_WRITE_CAMERA_REQUEST_CODE = 101
+    }
+
     private val ORIENTATIONS: SparseIntArray = SparseIntArray()
     private var cameraId: String = ""
     private var cameraDevice: CameraDevice? = null
@@ -36,36 +40,6 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
     private var file: File? = null
     private var mBackgroundHandler: Handler? = null
     private var mBackgroundThread: HandlerThread? = null
-
-    private val readerListener: ImageReader.OnImageAvailableListener = object : ImageReader.OnImageAvailableListener {
-        override fun onImageAvailable(reader: ImageReader) {
-            var image: Image? = null
-            try {
-                image = reader.acquireLatestImage()
-                val buffer = image!!.planes[0].buffer
-                val bytes = ByteArray(buffer.capacity())
-                buffer.get(bytes)
-                save(bytes)
-            } catch (e: FileNotFoundException) {
-                e.printStackTrace()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            } finally {
-                image?.close()
-            }
-        }
-
-        @Throws(IOException::class)
-        private fun save(bytes: ByteArray) {
-            var output: OutputStream? = null
-            try {
-                output = FileOutputStream(file)
-                output?.write(bytes)
-            } finally {
-                output?.close()
-            }
-        }
-    }
 
     private val stateCallback = object : CameraDevice.StateCallback() {
         override fun onOpened(camera: CameraDevice) {
@@ -146,7 +120,7 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
     }
 
     override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
     }
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean = false
@@ -182,6 +156,36 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
             rotation ?: return
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation))
             val file = File("${Environment.getExternalStorageDirectory()}/pic.jpg")
+
+            val readerListener: ImageReader.OnImageAvailableListener = object : ImageReader.OnImageAvailableListener {
+                override fun onImageAvailable(reader: ImageReader) {
+                    var image: Image? = null
+                    try {
+                        image = reader.acquireLatestImage()
+                        val buffer = image!!.planes[0].buffer
+                        val bytes = ByteArray(buffer.capacity())
+                        buffer.get(bytes)
+                        save(bytes)
+                    } catch (e: FileNotFoundException) {
+                        e.printStackTrace()
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    } finally {
+                        image?.close()
+                    }
+                }
+
+                @Throws(IOException::class)
+                private fun save(bytes: ByteArray) {
+                    var output: OutputStream? = null
+                    try {
+                        output = FileOutputStream(file)
+                        output?.write(bytes)
+                    } finally {
+                        output?.close()
+                    }
+                }
+            }
 
             reader.setOnImageAvailableListener(readerListener, mBackgroundHandler)
             val captureListener = object : CameraCaptureSession.CaptureCallback() {
