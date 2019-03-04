@@ -6,6 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.fragment_main.*
 
@@ -20,6 +22,8 @@ class MainFragment : Fragment(), View.OnClickListener {
         val activity: MainActivity? = activity as MainActivity?
         activity ?: return
         //recycler_view.layoutManager = GridLayoutManager(activity, 2)
+        camera_button.setImageDrawable(Utils.makeSelector(activity, ContextCompat.getDrawable(activity, R.drawable.camera_button)!!.toBitmap()))
+        gallery_button.setImageDrawable(Utils.makeSelector(activity, ContextCompat.getDrawable(activity, R.drawable.gallery_button)!!.toBitmap()))
         camera_button.setOnClickListener(this)
         gallery_button.setOnClickListener(this)
     }

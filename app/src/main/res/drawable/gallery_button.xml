@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape xmlns:android="http://schemas.android.com/apk/res/android"
+            android:shape="rectangle">
+            <solid android:color="@color/colorAccent" />
+            <corners
+                android:bottomRightRadius="@dimen/default_button_edge"
+                android:topRightRadius="@dimen/default_button_edge" />
+            <size
+                android:width="@dimen/default_button_edge"
+                android:height="@dimen/default_button_edge" />
+        </shape>
+    </item>
+
+    <item android:drawable="@drawable/photo" />
+</layer-list>
