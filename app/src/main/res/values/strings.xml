@@ -1,5 +1,7 @@
 <resources>
-    <string name="app_name">MediOCR</string>
+    <string translatable="false" name="app_name">MediOCR</string>
+    <string translatable="false" name="default_folder_name">MediOCR_data</string>
+
     <string name="you_need_to_allow_permissions_read_write_camera">You need to grant READ/WRITE and CAMERA permissions
         to use camera feature
     </string>

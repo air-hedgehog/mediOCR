@@ -2,6 +2,7 @@ package com.akimchenko.antony.mediocr
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.ImageFormat
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
@@ -29,15 +30,13 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
         const val READ_WRITE_CAMERA_REQUEST_CODE = 101
     }
 
-    private val ORIENTATIONS: SparseIntArray = SparseIntArray()
+    private val orientations: SparseIntArray = SparseIntArray()
     private var cameraId: String = ""
     private var cameraDevice: CameraDevice? = null
     private var cameraCaptureSessions: CameraCaptureSession? = null
-    private var captureRequest: CaptureRequest? = null
     private var captureRequestBuilder: CaptureRequest.Builder? = null
     private var imageDimension: Size? = null
     private var imageReader: ImageReader? = null
-    private var file: File? = null
     private var mBackgroundHandler: Handler? = null
     private var mBackgroundThread: HandlerThread? = null
 
@@ -63,10 +62,10 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
     }
 
     init {
-        ORIENTATIONS.append(Surface.ROTATION_0, 90)
-        ORIENTATIONS.append(Surface.ROTATION_90, 0)
-        ORIENTATIONS.append(Surface.ROTATION_180, 270)
-        ORIENTATIONS.append(Surface.ROTATION_270, 180)
+        orientations.append(Surface.ROTATION_0, 90)
+        orientations.append(Surface.ROTATION_90, 0)
+        orientations.append(Surface.ROTATION_180, 270)
+        orientations.append(Surface.ROTATION_270, 180)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -130,6 +129,8 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
     }
 
     private fun takePicture() {
+        val activity: MainActivity? = activity as MainActivity?
+        activity ?: return
         cameraDevice ?: return
         try {
             var width = 640
@@ -147,10 +148,16 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
             captureBuilder.addTarget(reader.surface)
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
             // Orientation
-            val rotation = activity?.windowManager?.defaultDisplay?.rotation
+            val rotation = activity.windowManager?.defaultDisplay?.rotation
             rotation ?: return
-            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation))
-            val file = File("${Environment.getExternalStorageDirectory()}/pic.jpg")
+            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, orientations.get(rotation))
+
+            val defaultDirectory = File("${Environment.getExternalStorageDirectory()}/${activity.getString(R.string.default_folder_name)}")
+            if (!defaultDirectory.exists() || !defaultDirectory.isDirectory)
+                defaultDirectory.mkdir()
+
+            val file = File("$defaultDirectory/${Calendar.getInstance().timeInMillis}.jpg")
+            file.createNewFile()
 
             val readerListener: ImageReader.OnImageAvailableListener = object : ImageReader.OnImageAvailableListener {
                 override fun onImageAvailable(reader: ImageReader) {
@@ -175,7 +182,7 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
                     var output: OutputStream? = null
                     try {
                         output = FileOutputStream(file)
-                        output?.write(bytes)
+                        output.write(bytes)
                     } finally {
                         output?.close()
                     }
@@ -185,9 +192,9 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
             reader.setOnImageAvailableListener(readerListener, mBackgroundHandler)
             val captureListener = object : CameraCaptureSession.CaptureCallback() {
                 override fun onCaptureCompleted(
-                    session: CameraCaptureSession,
-                    request: CaptureRequest,
-                    result: TotalCaptureResult
+                        session: CameraCaptureSession,
+                        request: CaptureRequest,
+                        result: TotalCaptureResult
                 ) {
                     super.onCaptureCompleted(session, request, result)
                     Toast.makeText(activity, "Saved:$file", Toast.LENGTH_SHORT).show()
@@ -278,8 +285,20 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
         captureRequestBuilder ?: return
         captureRequestBuilder!!.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
         val widthHeight = getPictureWidthHeight()
-        if (widthHeight != null)
+        if (widthHeight != null) {
             texture_view.setAspectRatio(widthHeight.second, widthHeight.first)
+
+            val rotation = activity?.windowManager?.defaultDisplay?.rotation
+            rotation ?: return
+
+            texture_view.rotation = when (rotation) {
+                Surface.ROTATION_90 -> -90.0f
+                Surface.ROTATION_0 -> 0.0f
+                Surface.ROTATION_180 -> -180.0f
+                Surface.ROTATION_270 -> -270.0f
+                else -> 0.0f
+            }
+        }
         try {
             cameraCaptureSessions?.setRepeatingRequest(captureRequestBuilder!!.build(), null, mBackgroundHandler)
         } catch (e: CameraAccessException) {
@@ -287,7 +306,10 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
         }
     }
 
-
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        updatePreview()
+    }
 
     private fun closeCamera() {
         cameraDevice?.close()

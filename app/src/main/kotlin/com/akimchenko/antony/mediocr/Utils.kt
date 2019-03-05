@@ -6,6 +6,8 @@ import android.graphics.PorterDuff
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.StateListDrawable
 import androidx.core.content.ContextCompat
+import java.text.DateFormat
+import java.util.*
 
 object Utils {
 
@@ -21,4 +23,6 @@ object Utils {
         return stateList
     }
 
+    @JvmStatic
+    fun formatDate(date: Long) = DateFormat.getDateInstance(DateFormat.FULL, Locale.getDefault()).format(date)
 }
