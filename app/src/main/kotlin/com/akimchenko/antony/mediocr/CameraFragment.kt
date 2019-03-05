@@ -120,20 +120,24 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
         openCamera()
     }
 
+    private fun getPictureWidthHeight(): Pair<Int, Int>? {
+        val manager = activity?.getSystemService(Context.CAMERA_SERVICE) as CameraManager?
+        val characteristics = manager?.getCameraCharacteristics(cameraDevice!!.id)
+        val jpegSizes: Array<Size>? =
+                characteristics?.get<StreamConfigurationMap>(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!
+                        .getOutputSizes(ImageFormat.JPEG)
+        return if (jpegSizes == null || jpegSizes.isEmpty()) null else Pair(jpegSizes[0].width, jpegSizes[0].height)
+    }
+
     private fun takePicture() {
         cameraDevice ?: return
-
-        val manager = activity?.getSystemService(Context.CAMERA_SERVICE) as CameraManager?
         try {
-            val characteristics = manager?.getCameraCharacteristics(cameraDevice!!.id)
-            val jpegSizes: Array<Size>? =
-                characteristics?.get<StreamConfigurationMap>(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!
-                    .getOutputSizes(ImageFormat.JPEG)
             var width = 640
             var height = 480
-            if (jpegSizes != null && jpegSizes.isNotEmpty()) {
-                width = jpegSizes[0].width
-                height = jpegSizes[0].height
+            val widthHeight = getPictureWidthHeight()
+            if (widthHeight != null) {
+                width = widthHeight.first
+                height = widthHeight.second
             }
             val reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1)
             val outputSurfaces = ArrayList<Surface>(2)
@@ -273,13 +277,17 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
         cameraDevice ?: return
         captureRequestBuilder ?: return
         captureRequestBuilder!!.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
+        val widthHeight = getPictureWidthHeight()
+        if (widthHeight != null)
+            texture_view.setAspectRatio(widthHeight.second, widthHeight.first)
         try {
             cameraCaptureSessions?.setRepeatingRequest(captureRequestBuilder!!.build(), null, mBackgroundHandler)
         } catch (e: CameraAccessException) {
             e.printStackTrace()
         }
-
     }
+
+
 
     private fun closeCamera() {
         cameraDevice?.close()
