@@ -3,6 +3,7 @@ package com.akimchenko.antony.mediocr
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.graphics.ImageFormat
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
@@ -13,6 +14,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
+import android.util.DisplayMetrics
 import android.util.Size
 import android.util.SparseIntArray
 import android.view.*
@@ -250,6 +252,11 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
                     cameraDevice ?: return
                     // When the session is ready, we start displaying the preview.
                     cameraCaptureSessions = cameraCaptureSession
+
+
+                    val widthHeight = getPictureWidthHeight()
+                    if (widthHeight != null)
+                        texture_view.setAspectRatio(widthHeight.second, widthHeight.first)
                     updatePreview()
                 }
 
@@ -272,32 +279,28 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
             val characteristics = manager.getCameraCharacteristics(cameraId)
             val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!
             imageDimension = map.getOutputSizes(SurfaceTexture::class.java)[0]
-            // Add permission for camera and let user grant the permission
 
             manager.openCamera(cameraId, stateCallback, null)
         } catch (e: CameraAccessException) {
             e.printStackTrace()
         }
+
+
     }
 
     private fun updatePreview() {
         cameraDevice ?: return
         captureRequestBuilder ?: return
         captureRequestBuilder!!.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
-        val widthHeight = getPictureWidthHeight()
-        if (widthHeight != null) {
-            texture_view.setAspectRatio(widthHeight.second, widthHeight.first)
 
-            val rotation = activity?.windowManager?.defaultDisplay?.rotation
-            rotation ?: return
-
-            texture_view.rotation = when (rotation) {
-                Surface.ROTATION_90 -> -90.0f
-                Surface.ROTATION_0 -> 0.0f
-                Surface.ROTATION_180 -> -180.0f
-                Surface.ROTATION_270 -> -270.0f
-                else -> 0.0f
-            }
+        val rotation = activity?.windowManager?.defaultDisplay?.rotation
+        rotation ?: return
+        texture_view.rotation = when (rotation) {
+            Surface.ROTATION_90 -> -90.0f
+            Surface.ROTATION_0 -> 0.0f
+            Surface.ROTATION_180 -> -180.0f
+            Surface.ROTATION_270 -> -270.0f
+            else -> 0.0f
         }
         try {
             cameraCaptureSessions?.setRepeatingRequest(captureRequestBuilder!!.build(), null, mBackgroundHandler)

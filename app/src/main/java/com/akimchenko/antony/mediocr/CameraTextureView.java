@@ -6,8 +6,8 @@ import android.view.TextureView;
 
 public class CameraTextureView extends TextureView {
 
-    private int mRatioWidth = 0;
-    private int mRatioHeight = 0;
+    private int ratioWidth = 0;
+    private int ratioHeight = 0;
 
     public CameraTextureView(Context context) {
         super(context);
@@ -25,23 +25,14 @@ public class CameraTextureView extends TextureView {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    /**
-     * Sets the aspect ratio for this view. The size of the view will be measured based on the ratio
-     * calculated from the parameters. Note that the actual sizes of parameters don't matter, that
-     * is, calling setAspectRatio(2, 3) and setAspectRatio(4, 6) make the same result.
-     *
-     * @param width  Relative horizontal size
-     * @param height Relative vertical size
-     */
     public void setAspectRatio(int width, int height) {
-        if (width < 0 || height < 0) {
+        if (width < 0 || height < 0)
             throw new IllegalArgumentException("Size cannot be negative.");
-        }
-        if (mRatioWidth == width && mRatioHeight == height) {
-            return;
-        }
-        mRatioWidth = width;
-        mRatioHeight = height;
+
+        if (ratioWidth == width && ratioHeight == height) return;
+
+        ratioWidth = width;
+        ratioHeight = height;
         requestLayout();
     }
 
@@ -50,15 +41,13 @@ public class CameraTextureView extends TextureView {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         int width = MeasureSpec.getSize(widthMeasureSpec);
         int height = MeasureSpec.getSize(heightMeasureSpec);
-        if (0 == mRatioWidth || 0 == mRatioHeight) {
+        if (ratioWidth == 0 || ratioHeight == 0) {
             setMeasuredDimension(width, height);
         } else {
-            if (width < height * mRatioWidth / mRatioHeight) {
-                setMeasuredDimension(width, width * mRatioHeight / mRatioWidth);
-            } else {
-                setMeasuredDimension(height * mRatioWidth / mRatioHeight, height);
-            }
+            if (width < height * ratioWidth / ratioHeight)
+                setMeasuredDimension(width, width * ratioHeight / ratioWidth);
+            else
+                setMeasuredDimension(width * ratioWidth / ratioHeight, width);
         }
     }
-
 }
