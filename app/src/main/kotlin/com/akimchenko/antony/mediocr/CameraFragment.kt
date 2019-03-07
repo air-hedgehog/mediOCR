@@ -34,12 +34,13 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
 
     companion object {
         const val READ_WRITE_CAMERA_REQUEST_CODE = 101
-        const val SENSOR_THRESHOLD = 5.0f
+        const val SENSOR_THRESHOLD = 7.0f
     }
 
     private lateinit var sensorManager: SensorManager
     private lateinit var accelerometer: Sensor
     private val orientations: SparseIntArray = SparseIntArray()
+    private var currentRotation: Int = Surface.ROTATION_0
 
     private var cameraId: String = ""
     private var cameraDevice: CameraDevice? = null
@@ -175,9 +176,7 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
             captureBuilder.addTarget(reader.surface)
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
             // Orientation
-            val rotation: Int? = activity.windowManager?.defaultDisplay?.rotation
-            rotation ?: return
-            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, orientations.get(rotation))
+            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, orientations.get(currentRotation))
 
             val defaultDirectory =
                 File("${Environment.getExternalStorageDirectory()}/${activity.getString(R.string.default_folder_name)}")
@@ -348,12 +347,29 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type != Sensor.TYPE_ACCELEROMETER) return
-        val sensorX = event.values[0].absoluteValue
-        val sensorY = event.values[1].absoluteValue
-        if (sensorY > SENSOR_THRESHOLD && sensorY > sensorX)
-            println("portrait")
-        else if (sensorX > SENSOR_THRESHOLD && sensorX > sensorY)
-            println("landscape")
+        val sensorX = event.values[0]
+        val sensorY = event.values[1]
+        //println("x: $sensorX, y: $sensorY")
+        onNewSensorValues(sensorX, sensorY)
+    }
+
+    private var previousX = 0.0f
+    private val previousY = 0.0f
+
+    private fun onNewSensorValues(sensorX: Float, sensorY: Float) {
+        if (sensorX > 0 && sensorY > 0 && 10.0f - sensorX.absoluteValue < SENSOR_THRESHOLD)
+            setCurrentRotation(Surface.ROTATION_90)
+        else if (sensorX < 0 && sensorY > 0 && 10.0f - sensorX.absoluteValue < SENSOR_THRESHOLD)
+            setCurrentRotation(Surface.ROTATION_270)
+        else if (sensorY < 0 && 10.0f - sensorY.absoluteValue < SENSOR_THRESHOLD)
+            setCurrentRotation(Surface.ROTATION_180)
+        else
+            setCurrentRotation(Surface.ROTATION_0)
+    }
+
+    private fun setCurrentRotation(rotation: Int) {
+        if (currentRotation != rotation)
+            currentRotation = rotation
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
