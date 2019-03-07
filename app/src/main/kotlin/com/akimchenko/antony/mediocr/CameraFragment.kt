@@ -4,9 +4,12 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
-import android.content.res.Resources
 import android.graphics.ImageFormat
 import android.graphics.SurfaceTexture
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.hardware.camera2.*
 import android.hardware.camera2.params.StreamConfigurationMap
 import android.media.Image
@@ -15,7 +18,6 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
-import android.util.DisplayMetrics
 import android.util.Size
 import android.util.SparseIntArray
 import android.view.*
@@ -24,16 +26,21 @@ import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.fragment_camera.*
 import java.io.*
 import java.util.*
+import kotlin.math.absoluteValue
 
 
 @SuppressLint("NewApi")
-class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceTextureListener {
+class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceTextureListener, SensorEventListener {
 
     companion object {
         const val READ_WRITE_CAMERA_REQUEST_CODE = 101
+        const val SENSOR_THRESHOLD = 5.0f
     }
 
+    private lateinit var sensorManager: SensorManager
+    private lateinit var accelerometer: Sensor
     private val orientations: SparseIntArray = SparseIntArray()
+
     private var cameraId: String = ""
     private var cameraDevice: CameraDevice? = null
     private var cameraCaptureSessions: CameraCaptureSession? = null
@@ -65,10 +72,20 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
     }
 
     init {
-        orientations.append(Surface.ROTATION_0, 90)
-        orientations.append(Surface.ROTATION_90, 0)
-        orientations.append(Surface.ROTATION_180, 270)
-        orientations.append(Surface.ROTATION_270, 180)
+        val activity = activity as MainActivity?
+        if (activity != null) {
+            orientations.append(Surface.ROTATION_0, 90)
+            orientations.append(Surface.ROTATION_90, 0)
+            orientations.append(Surface.ROTATION_180, 270)
+            orientations.append(Surface.ROTATION_270, 180)
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val activity = activity as MainActivity?
+        sensorManager = activity?.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -85,6 +102,10 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
 
     override fun onResume() {
         super.onResume()
+        val activity = activity as MainActivity?
+        activity ?: return
+        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
         startBackgroundThread()
         if (texture_view.isAvailable)
             openCamera()
@@ -94,8 +115,12 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
 
     override fun onPause() {
         super.onPause()
+        val activity = activity as MainActivity?
+        activity ?: return
         closeCamera()
         stopBackgroundThread()
+        sensorManager.unregisterListener(this)
+        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
     }
 
     override fun onClick(v: View?) {
@@ -125,8 +150,8 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
         val manager = activity?.getSystemService(Context.CAMERA_SERVICE) as CameraManager?
         val characteristics = manager?.getCameraCharacteristics(cameraDevice!!.id)
         val jpegSizes: Array<Size>? =
-                characteristics?.get<StreamConfigurationMap>(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!
-                        .getOutputSizes(ImageFormat.JPEG)
+            characteristics?.get<StreamConfigurationMap>(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!
+                .getOutputSizes(ImageFormat.JPEG)
         return if (jpegSizes == null || jpegSizes.isEmpty()) null else Pair(jpegSizes[0].width, jpegSizes[0].height)
     }
 
@@ -154,7 +179,8 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
             rotation ?: return
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, orientations.get(rotation))
 
-            val defaultDirectory = File("${Environment.getExternalStorageDirectory()}/${activity.getString(R.string.default_folder_name)}")
+            val defaultDirectory =
+                File("${Environment.getExternalStorageDirectory()}/${activity.getString(R.string.default_folder_name)}")
             if (!defaultDirectory.exists() || !defaultDirectory.isDirectory)
                 defaultDirectory.mkdir()
 
@@ -194,9 +220,9 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
             reader.setOnImageAvailableListener(readerListener, mBackgroundHandler)
             val captureListener = object : CameraCaptureSession.CaptureCallback() {
                 override fun onCaptureCompleted(
-                        session: CameraCaptureSession,
-                        request: CaptureRequest,
-                        result: TotalCaptureResult
+                    session: CameraCaptureSession,
+                    request: CaptureRequest,
+                    result: TotalCaptureResult
                 ) {
                     super.onCaptureCompleted(session, request, result)
                     Toast.makeText(activity, "Saved:$file", Toast.LENGTH_SHORT).show()
@@ -284,8 +310,6 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
         } catch (e: CameraAccessException) {
             e.printStackTrace()
         }
-
-
     }
 
     private fun updatePreview() {
@@ -293,15 +317,15 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
         captureRequestBuilder ?: return
         captureRequestBuilder!!.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
 
-       /* val rotation = activity?.windowManager?.defaultDisplay?.rotation
-        rotation ?: return
-        texture_view.rotation = when (rotation) {
-            Surface.ROTATION_90 -> -90.0f
-            Surface.ROTATION_0 -> 0.0f
-            Surface.ROTATION_180 -> -180.0f
-            Surface.ROTATION_270 -> -270.0f
-            else -> 0.0f
-        }*/
+        /* val rotation = activity?.windowManager?.defaultDisplay?.rotation
+         rotation ?: return
+         texture_view.rotation = when (rotation) {
+             Surface.ROTATION_90 -> -90.0f
+             Surface.ROTATION_0 -> 0.0f
+             Surface.ROTATION_180 -> -180.0f
+             Surface.ROTATION_270 -> -270.0f
+             else -> 0.0f
+         }*/
         try {
             cameraCaptureSessions?.setRepeatingRequest(captureRequestBuilder!!.build(), null, mBackgroundHandler)
         } catch (e: CameraAccessException) {
@@ -320,6 +344,20 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
 
         imageReader?.close()
         imageReader = null
+    }
+
+    override fun onSensorChanged(event: SensorEvent?) {
+        if (event?.sensor?.type != Sensor.TYPE_ACCELEROMETER) return
+        val sensorX = event.values[0].absoluteValue
+        val sensorY = event.values[1].absoluteValue
+        if (sensorY > SENSOR_THRESHOLD && sensorY > sensorX)
+            println("portrait")
+        else if (sensorX > SENSOR_THRESHOLD && sensorX > sensorY)
+            println("landscape")
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+        //ignore
     }
 
 }
