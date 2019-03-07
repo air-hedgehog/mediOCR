@@ -74,9 +74,9 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
 
     init {
         orientations.append(Surface.ROTATION_0, 90)
-        orientations.append(Surface.ROTATION_90, 270)
-        orientations.append(Surface.ROTATION_180, 0)
-        orientations.append(Surface.ROTATION_270, 90)
+        orientations.append(Surface.ROTATION_90, 0)
+        orientations.append(Surface.ROTATION_180, 270)
+        orientations.append(Surface.ROTATION_270, 180)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -173,7 +173,7 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
             captureBuilder.addTarget(reader.surface)
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
             // Orientation
-            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, orientations.get(currentRotation))
+            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION,  orientations.get(currentRotation))
 
             val defaultDirectory =
                 File("${Environment.getExternalStorageDirectory()}/${activity.getString(R.string.default_folder_name)}")
@@ -346,28 +346,30 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
         if (event?.sensor?.type != Sensor.TYPE_ACCELEROMETER) return
         val sensorX = event.values[0]
         val sensorY = event.values[1]
-        //println("x: $sensorX, y: $sensorY")
+        println("x: $sensorX, y: $sensorY")
         onNewSensorValues(sensorX, sensorY)
     }
+    
+    /**
+     * ROTATION_90 == x -> 10; y -> 0
+     * ROTATION_270 == x-> -10; y -> 0
+     * ROTATION_180 == x -> 0; y -> -10
+     * ROTATION_0 ==  x -> 0; y -> 10*/
 
-    private var previousX = 0.0f
-    private var previousY = 0.0f
-
-    private fun onNewSensorValues(sensorX: Float, sensorY: Float) {
-        /*if (previousX != 0.0f &&
-            previousY != 0.0f &&
-            (previousX - sensorX).absoluteValue > SENSOR_THRESHOLD ||
-            (previousY - sensorY).absoluteValue > SENSOR_THRESHOLD) return
-        previousX = sensorX
-        previousY = sensorY*/
-        if (sensorX > 0 && sensorY > 0 && 10.0f - sensorX.absoluteValue < SENSOR_THRESHOLD) {
-            setCurrentRotation(Surface.ROTATION_90)
-        } else if (sensorX < 0 && sensorY > 0 && 10.0f - sensorX.absoluteValue < SENSOR_THRESHOLD) {
-            setCurrentRotation(Surface.ROTATION_270)
-        } else if (sensorY < 0 && 10.0f - sensorY.absoluteValue < SENSOR_THRESHOLD) {
-            setCurrentRotation(Surface.ROTATION_180)
-        } else {
-            setCurrentRotation(Surface.ROTATION_0)
+    private fun onNewSensorValues(x: Float, y: Float) {
+        if (y.absoluteValue < SENSOR_THRESHOLD && 10 - x.absoluteValue < SENSOR_THRESHOLD) {
+            //landscape
+            if (x > 0)
+                setCurrentRotation(Surface.ROTATION_90)
+            else
+                setCurrentRotation(Surface.ROTATION_270)
+        }
+        if (x.absoluteValue < SENSOR_THRESHOLD && 10 - y.absoluteValue < SENSOR_THRESHOLD) {
+            //portrait
+            if (y > 0)
+                setCurrentRotation(Surface.ROTATION_0)
+            else
+                setCurrentRotation(Surface.ROTATION_180)
         }
     }
 
