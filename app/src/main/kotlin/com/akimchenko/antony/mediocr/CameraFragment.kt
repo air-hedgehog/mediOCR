@@ -73,13 +73,10 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
     }
 
     init {
-        val activity = activity as MainActivity?
-        if (activity != null) {
-            orientations.append(Surface.ROTATION_0, 90)
-            orientations.append(Surface.ROTATION_90, 0)
-            orientations.append(Surface.ROTATION_180, 270)
-            orientations.append(Surface.ROTATION_270, 180)
-        }
+        orientations.append(Surface.ROTATION_0, 90)
+        orientations.append(Surface.ROTATION_90, 270)
+        orientations.append(Surface.ROTATION_180, 0)
+        orientations.append(Surface.ROTATION_270, 90)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
