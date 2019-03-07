@@ -34,7 +34,7 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
 
     companion object {
         const val READ_WRITE_CAMERA_REQUEST_CODE = 101
-        const val SENSOR_THRESHOLD = 7.0f
+        const val SENSOR_THRESHOLD = 2.0f
     }
 
     private lateinit var sensorManager: SensorManager
@@ -354,17 +354,24 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
     }
 
     private var previousX = 0.0f
-    private val previousY = 0.0f
+    private var previousY = 0.0f
 
     private fun onNewSensorValues(sensorX: Float, sensorY: Float) {
-        if (sensorX > 0 && sensorY > 0 && 10.0f - sensorX.absoluteValue < SENSOR_THRESHOLD)
+        /*if (previousX != 0.0f &&
+            previousY != 0.0f &&
+            (previousX - sensorX).absoluteValue > SENSOR_THRESHOLD ||
+            (previousY - sensorY).absoluteValue > SENSOR_THRESHOLD) return
+        previousX = sensorX
+        previousY = sensorY*/
+        if (sensorX > 0 && sensorY > 0 && 10.0f - sensorX.absoluteValue < SENSOR_THRESHOLD) {
             setCurrentRotation(Surface.ROTATION_90)
-        else if (sensorX < 0 && sensorY > 0 && 10.0f - sensorX.absoluteValue < SENSOR_THRESHOLD)
+        } else if (sensorX < 0 && sensorY > 0 && 10.0f - sensorX.absoluteValue < SENSOR_THRESHOLD) {
             setCurrentRotation(Surface.ROTATION_270)
-        else if (sensorY < 0 && 10.0f - sensorY.absoluteValue < SENSOR_THRESHOLD)
+        } else if (sensorY < 0 && 10.0f - sensorY.absoluteValue < SENSOR_THRESHOLD) {
             setCurrentRotation(Surface.ROTATION_180)
-        else
+        } else {
             setCurrentRotation(Surface.ROTATION_0)
+        }
     }
 
     private fun setCurrentRotation(rotation: Int) {
