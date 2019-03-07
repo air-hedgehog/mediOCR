@@ -2,6 +2,7 @@ package com.akimchenko.antony.mediocr
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.ImageFormat
@@ -85,17 +86,16 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
     override fun onResume() {
         super.onResume()
         startBackgroundThread()
-        if (texture_view.isAvailable) {
+        if (texture_view.isAvailable)
             openCamera()
-        } else {
+        else
             texture_view.surfaceTextureListener = this
-        }
     }
 
     override fun onPause() {
+        super.onPause()
         closeCamera()
         stopBackgroundThread()
-        super.onPause()
     }
 
     override fun onClick(v: View?) {
@@ -150,7 +150,7 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
             captureBuilder.addTarget(reader.surface)
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
             // Orientation
-            val rotation = activity.windowManager?.defaultDisplay?.rotation
+            val rotation: Int? = activity.windowManager?.defaultDisplay?.rotation
             rotation ?: return
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, orientations.get(rotation))
 
@@ -293,7 +293,7 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
         captureRequestBuilder ?: return
         captureRequestBuilder!!.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
 
-        val rotation = activity?.windowManager?.defaultDisplay?.rotation
+       /* val rotation = activity?.windowManager?.defaultDisplay?.rotation
         rotation ?: return
         texture_view.rotation = when (rotation) {
             Surface.ROTATION_90 -> -90.0f
@@ -301,7 +301,7 @@ class CameraFragment : Fragment(), View.OnClickListener, TextureView.SurfaceText
             Surface.ROTATION_180 -> -180.0f
             Surface.ROTATION_270 -> -270.0f
             else -> 0.0f
-        }
+        }*/
         try {
             cameraCaptureSessions?.setRepeatingRequest(captureRequestBuilder!!.build(), null, mBackgroundHandler)
         } catch (e: CameraAccessException) {

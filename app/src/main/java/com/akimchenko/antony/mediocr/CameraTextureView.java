@@ -44,10 +44,22 @@ public class CameraTextureView extends TextureView {
         if (ratioWidth == 0 || ratioHeight == 0) {
             setMeasuredDimension(width, height);
         } else {
-            if (width < height * ratioWidth / ratioHeight)
-                setMeasuredDimension(width, width * ratioHeight / ratioWidth);
-            else
-                setMeasuredDimension(width * ratioWidth / ratioHeight, width);
+            int measuredWidth;
+            int measuredHeight;
+            if (width < height * ratioWidth / ratioHeight) {
+                measuredWidth = width;
+                measuredHeight = width * ratioHeight / ratioWidth;
+            } else {
+                measuredWidth = height * ratioWidth / ratioHeight;
+                measuredHeight = height;
+            }
+            System.out.println("width: " + width);
+            System.out.println("height: " + height);
+            System.out.println("ratioWidth: " + ratioWidth);
+            System.out.println("ratioHeight: " + ratioHeight);
+            System.out.println("measuredWidth: " + measuredWidth);
+            System.out.println("measuredHeight: " + measuredHeight);
+            setMeasuredDimension(measuredWidth, measuredHeight);
         }
     }
 }
