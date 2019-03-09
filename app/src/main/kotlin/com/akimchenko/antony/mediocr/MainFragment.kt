@@ -13,6 +13,10 @@ import kotlinx.android.synthetic.main.fragment_main.*
 
 class MainFragment : Fragment(), View.OnClickListener {
 
+    companion object {
+        const val READ_WRITE_CAMERA_REQUEST_CODE = 101
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_main, container, false)
     }
@@ -38,7 +42,7 @@ class MainFragment : Fragment(), View.OnClickListener {
                     Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     Manifest.permission.CAMERA
                 ),
-                    CameraFragment.READ_WRITE_CAMERA_REQUEST_CODE,
+                    READ_WRITE_CAMERA_REQUEST_CODE,
                     object : MainActivity.OnRequestPermissionCallback {
                         override fun onPermissionReturned(isGranted: Boolean) {
                             if (isGranted)
