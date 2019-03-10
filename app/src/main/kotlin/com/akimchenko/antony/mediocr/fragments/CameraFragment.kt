@@ -182,7 +182,7 @@ class CameraFragment : Fragment(), SensorEventListener {
             val defaultDirectory =
                 File("${Environment.getExternalStorageDirectory()}/${activity.getString(R.string.default_folder_name)}")
             if (!defaultDirectory.exists() || !defaultDirectory.isDirectory)
-                defaultDirectory.mkdir()
+                defaultDirectory.mkdirs()
 
             val file = File("$defaultDirectory/${Calendar.getInstance().timeInMillis}.jpg")
             val readerListener = object : ImageReader.OnImageAvailableListener {
