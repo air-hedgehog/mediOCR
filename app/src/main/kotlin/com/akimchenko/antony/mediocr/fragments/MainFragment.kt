@@ -1,6 +1,7 @@
-package com.akimchenko.antony.mediocr
+package com.akimchenko.antony.mediocr.fragments
 
 import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,9 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
+import com.akimchenko.antony.mediocr.MainActivity
+import com.akimchenko.antony.mediocr.R
+import com.akimchenko.antony.mediocr.Utils
 import kotlinx.android.synthetic.main.fragment_main.*
 
 class MainFragment : Fragment(), View.OnClickListener {
@@ -26,8 +30,21 @@ class MainFragment : Fragment(), View.OnClickListener {
         val activity: MainActivity? = activity as MainActivity?
         activity ?: return
         //recycler_view.layoutManager = GridLayoutManager(activity, 2)
-        camera_button.setImageDrawable(Utils.makeSelector(activity, ContextCompat.getDrawable(activity, R.drawable.camera_button)!!.toBitmap()))
-        gallery_button.setImageDrawable(Utils.makeSelector(activity, ContextCompat.getDrawable(activity, R.drawable.gallery_button)!!.toBitmap()))
+        camera_button.setImageDrawable(
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.camera_button)!!.toBitmap()
+            )
+        )
+        gallery_button.setImageDrawable(
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(
+                    activity,
+                    R.drawable.gallery_button
+                )!!.toBitmap()
+            )
+        )
         camera_button.setOnClickListener(this)
         gallery_button.setOnClickListener(this)
     }
@@ -46,7 +63,11 @@ class MainFragment : Fragment(), View.OnClickListener {
                     object : MainActivity.OnRequestPermissionCallback {
                         override fun onPermissionReturned(isGranted: Boolean) {
                             if (isGranted)
-                                activity.pushFragment(CameraFragment())
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                    activity.pushFragment(CameraFragment())
+                                } else {
+                                    //TODO for older apis
+                                }
                             else
                                 Toast.makeText(
                                     activity,

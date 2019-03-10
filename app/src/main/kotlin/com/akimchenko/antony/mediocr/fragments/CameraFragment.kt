@@ -1,4 +1,4 @@
-package com.akimchenko.antony.mediocr
+package com.akimchenko.antony.mediocr.fragments
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -17,10 +17,14 @@ import android.util.Pair
 import android.util.Size
 import android.util.SparseIntArray
 import android.view.*
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
+import com.akimchenko.antony.mediocr.MainActivity
+import com.akimchenko.antony.mediocr.R
+import com.akimchenko.antony.mediocr.Utils
 import kotlinx.android.synthetic.main.fragment_camera.*
 import java.io.*
 import java.util.*
@@ -56,7 +60,7 @@ class CameraFragment : Fragment(), SensorEventListener {
 
     private val textureListener = object : TextureView.SurfaceTextureListener {
         override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-            //open your camera here
+            //open your shutter here
             openCamera()
         }
 
@@ -73,7 +77,7 @@ class CameraFragment : Fragment(), SensorEventListener {
 
     private val stateCallback = object : CameraDevice.StateCallback() {
         override fun onOpened(camera: CameraDevice) {
-            //This is called when the camera is open
+            //This is called when the shutter is open
             cameraDevice = camera
             createCameraPreview()
         }
@@ -121,9 +125,19 @@ class CameraFragment : Fragment(), SensorEventListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val activity = activity as MainActivity?
+        activity ?: return
         texture_view.surfaceTextureListener = textureListener
-        val captureButton = view.findViewById<ImageView>(R.id.capture_button)!!
-        captureButton.setOnClickListener { takePicture() }
+        capture_button.setImageDrawable(
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(
+                    activity,
+                    R.drawable.capture_button
+                )!!.toBitmap()
+            )
+        )
+        capture_button.setOnClickListener { takePicture() }
     }
 
     private fun startBackgroundThread() {
@@ -208,8 +222,13 @@ class CameraFragment : Fragment(), SensorEventListener {
                     result: TotalCaptureResult
                 ) {
                     super.onCaptureCompleted(session, request, result)
-                    Toast.makeText(activity, "Saved:$file", Toast.LENGTH_SHORT).show()
-                    createCameraPreview()
+                    val previewFragment = PreviewFragment()
+                    val args = Bundle()
+                    args.putString(PreviewFragment.ARG_IMAGE_FILE, file.path)
+                    previewFragment.arguments = args
+                    activity.pushFragment(previewFragment)
+                    //Toast.makeText(activity, "${activity.getString(R.string.saved)}: $file", Toast.LENGTH_SHORT).show()
+                    //createCameraPreview()
                 }
             }
             cameraDevice!!.createCaptureSession(outputSurfaces, object : CameraCaptureSession.StateCallback() {
@@ -231,6 +250,7 @@ class CameraFragment : Fragment(), SensorEventListener {
 
     private fun createCameraPreview() {
         cameraDevice ?: return
+        texture_view ?: return
         try {
             val texture = texture_view.surfaceTexture!!
             texture.setDefaultBufferSize(imageDimension!!.width, imageDimension!!.height)
@@ -239,7 +259,7 @@ class CameraFragment : Fragment(), SensorEventListener {
             captureRequestBuilder!!.addTarget(surface)
             cameraDevice!!.createCaptureSession(listOf(surface), object : CameraCaptureSession.StateCallback() {
                 override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
-                    //The camera is already closed
+                    //The shutter is already closed
                     if (null == cameraDevice) {
                         return
                     }

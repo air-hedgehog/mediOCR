@@ -1,14 +1,15 @@
 package com.akimchenko.antony.mediocr
 
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.util.SparseArray
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
+import com.akimchenko.antony.mediocr.fragments.MainFragment
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,13 +26,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun pushFragment(fragment: Fragment) {
-        if (isFinishing) return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed) return
+        if (isFinishing || Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed) return
         //hideKeyboard()
+        val name = fragment::class.java.name
         supportFragmentManager.beginTransaction()
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .replace(R.id.main_activity_container, fragment, fragment.javaClass.name)
-                .addToBackStack(fragment.javaClass.name)
+                .replace(R.id.main_activity_container, fragment, name)
+                .addToBackStack(name)
                 .commitAllowingStateLoss()
     }
 
@@ -69,7 +70,18 @@ class MainActivity : AppCompatActivity() {
         permissionCallbacks.remove(requestCode)
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration?) {
-        super.onConfigurationChanged(newConfig)
+    override fun onBackPressed() {
+        if (isFinishing) return
+        val entryCount = supportFragmentManager.backStackEntryCount
+        val fragment = supportFragmentManager.findFragmentByTag(supportFragmentManager.getBackStackEntryAt(entryCount - 1).name)
+        if (fragment is MainFragment || entryCount == 0)
+            finish()
+        else
+            super.onBackPressed()
     }
+
+    fun popFragment(fragmentName: String) {
+        supportFragmentManager.popBackStackImmediate(fragmentName, 0)
+    }
+
 }

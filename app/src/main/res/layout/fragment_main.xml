@@ -23,8 +23,7 @@
             android:layout_marginBottom="@dimen/default_side_margin"
             android:layout_marginLeft="@dimen/default_side_margin"
             android:background="@drawable/camera_button"
-            android:elevation="@dimen/default_elevation"
-            tools:background="@drawable/camera_button" />
+            android:elevation="@dimen/default_elevation" />
 
         <View
             android:layout_width="1dp"
