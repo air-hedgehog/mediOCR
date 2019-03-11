@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/black">
@@ -11,13 +12,23 @@
         android:layout_centerHorizontal="true" />
 
     <ImageView
-            android:layout_margin="@dimen/default_side_margin"
-            android:layout_centerHorizontal="true"
-            android:layout_alignParentBottom="true"
-            android:id="@+id/capture_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:scaleType="center"
-            android:src="@drawable/capture_button" />
+        android:id="@+id/capture_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="@dimen/default_side_margin"
+        android:scaleType="center"
+        android:src="@drawable/capture_button" />
+
+    <ImageView
+        android:id="@+id/flash_button"
+        android:layout_width="@dimen/default_button_edge"
+        android:layout_height="@dimen/default_button_edge"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="@dimen/default_side_margin"
+        android:scaleType="center"
+        tools:src="@drawable/flash" />
 
 </RelativeLayout>

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.ActivityInfo
 import android.graphics.ImageFormat
 import android.graphics.SurfaceTexture
+import android.graphics.drawable.Drawable
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -35,6 +36,7 @@ import kotlin.math.absoluteValue
 class CameraFragment : Fragment(), SensorEventListener {
 
     companion object {
+
         const val SENSOR_THRESHOLD = 2.0f
         private val ORIENTATIONS = SparseIntArray()
 
@@ -47,7 +49,7 @@ class CameraFragment : Fragment(), SensorEventListener {
     }
 
     private var currentRotation = Surface.ROTATION_0
-
+    private var flashMode: Int = CameraMetadata.FLASH_MODE_OFF
     private var sensorManager: SensorManager? = null
     private var accelerometer: Sensor? = null
     private var cameraDevice: CameraDevice? = null
@@ -96,13 +98,14 @@ class CameraFragment : Fragment(), SensorEventListener {
         get() {
             cameraDevice ?: return null
             val activity = activity as MainActivity? ?: return null
-            val manager = activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager? ?: return null
+            val manager = activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager?
+                    ?: return null
             try {
                 val characteristics = manager.getCameraCharacteristics(cameraDevice!!.id)
                 val jpegSizes: Array<Size>? =
-                    characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)?.getOutputSizes(
-                        ImageFormat.JPEG
-                    )
+                        characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)?.getOutputSizes(
+                                ImageFormat.JPEG
+                        )
                 if (jpegSizes != null && jpegSizes.isNotEmpty())
                     return Pair(jpegSizes[0].width, jpegSizes[0].height)
             } catch (e: CameraAccessException) {
@@ -129,15 +132,41 @@ class CameraFragment : Fragment(), SensorEventListener {
         activity ?: return
         texture_view.surfaceTextureListener = textureListener
         capture_button.setImageDrawable(
-            Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(
-                    activity,
-                    R.drawable.capture_button
-                )!!.toBitmap()
-            )
+                Utils.makeSelector(
+                        activity,
+                        ContextCompat.getDrawable(
+                                activity,
+                                R.drawable.capture_button
+                        )!!.toBitmap()
+                )
         )
         capture_button.setOnClickListener { takePicture() }
+
+        //TODO save flash state to sharedPreferences
+        flash_button.setImageDrawable(ContextCompat.getDrawable(activity,
+                when (flashMode) {
+                    CameraMetadata.FLASH_MODE_OFF -> R.drawable.flash_off
+                    CameraMetadata.FLASH_MODE_TORCH -> R.drawable.flash
+                    else -> R.drawable.flash_off
+                }))
+        flash_button.setOnClickListener { setFlashMode() }
+    }
+
+    private fun setFlashMode() {
+        val activity = activity as MainActivity? ?: return
+        var drawableId: Int? = null
+        when (flashMode) {
+            CameraMetadata.FLASH_MODE_OFF -> {
+                flashMode = CameraMetadata.FLASH_MODE_TORCH
+                drawableId = R.drawable.flash
+            }
+            CameraMetadata.FLASH_MODE_TORCH -> {
+                flashMode = CameraMetadata.FLASH_MODE_OFF
+                drawableId = R.drawable.flash_off
+            }
+        }
+        if (drawableId != null)
+            flash_button.setImageDrawable(Utils.makeSelector(activity, ContextCompat.getDrawable(activity, drawableId)!!.toBitmap()))
     }
 
     private fun startBackgroundThread() {
@@ -164,7 +193,7 @@ class CameraFragment : Fragment(), SensorEventListener {
         try {
             val characteristics = manager.getCameraCharacteristics(cameraDevice!!.id)
             val jpegSizes =
-                characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!.getOutputSizes(ImageFormat.JPEG)
+                    characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!.getOutputSizes(ImageFormat.JPEG)
             var width = 640
             var height = 480
             if (jpegSizes != null && jpegSizes.isNotEmpty()) {
@@ -179,8 +208,9 @@ class CameraFragment : Fragment(), SensorEventListener {
             captureBuilder.addTarget(reader.surface)
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(currentRotation))
+            captureBuilder.set(CaptureRequest.FLASH_MODE, flashMode)
             val defaultDirectory =
-                File("${Environment.getExternalStorageDirectory()}/${activity.getString(R.string.default_folder_name)}")
+                    File("${Environment.getExternalStorageDirectory()}/${activity.getString(R.string.default_folder_name)}")
             if (!defaultDirectory.exists() || !defaultDirectory.isDirectory)
                 defaultDirectory.mkdirs()
 
@@ -217,9 +247,9 @@ class CameraFragment : Fragment(), SensorEventListener {
             reader.setOnImageAvailableListener(readerListener, mBackgroundHandler)
             val captureListener = object : CameraCaptureSession.CaptureCallback() {
                 override fun onCaptureCompleted(
-                    session: CameraCaptureSession,
-                    request: CaptureRequest,
-                    result: TotalCaptureResult
+                        session: CameraCaptureSession,
+                        request: CaptureRequest,
+                        result: TotalCaptureResult
                 ) {
                     super.onCaptureCompleted(session, request, result)
                     val previewFragment = PreviewFragment()
