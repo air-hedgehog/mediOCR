@@ -6,4 +6,5 @@
         to use camera feature
     </string>
     <string name="saved">Saved</string>
+    <string name="recognition_result">Recognition Result</string>
 </resources>

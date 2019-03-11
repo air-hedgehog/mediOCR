@@ -1,16 +1,18 @@
 package com.akimchenko.antony.mediocr.fragments
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
@@ -31,7 +33,7 @@ class PreviewFragment : Fragment() {
         const val ARG_IMAGE_FILE = "arg_image_file"
     }
 
-    private lateinit var defaultDirectory: File
+    private var isRotated: Boolean = false
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_preview, container, false)
@@ -40,7 +42,7 @@ class PreviewFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity? ?: return
-        val imageFile: File
+        var imageFile: File
         val filePath: String? = arguments?.getString(ARG_IMAGE_FILE)
         if (filePath == null) {
             activity.popFragment(MainFragment::class.java.name)
@@ -54,123 +56,133 @@ class PreviewFragment : Fragment() {
         } else {
             image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
         }
-        defaultDirectory = File("${Environment.getExternalStorageDirectory()}/${activity.getString(R.string.default_folder_name)}")
-        if (!defaultDirectory.exists() || !defaultDirectory.isDirectory)
-            defaultDirectory.mkdirs()
 
         close_button.setImageDrawable(
-            Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(activity, R.drawable.close)!!.toBitmap()
-            )
+                Utils.makeSelector(
+                        activity,
+                        ContextCompat.getDrawable(activity, R.drawable.close)!!.toBitmap()
+                )
         )
         rotate_left_button.setImageDrawable(
-            Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(activity, R.drawable.rotate_left)!!.toBitmap()
-            )
+                Utils.makeSelector(
+                        activity,
+                        ContextCompat.getDrawable(activity, R.drawable.rotate_left)!!.toBitmap()
+                )
         )
         rotate_right_button.setImageDrawable(
-            Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(activity, R.drawable.rotate_right)!!.toBitmap()
-            )
+                Utils.makeSelector(
+                        activity,
+                        ContextCompat.getDrawable(activity, R.drawable.rotate_right)!!.toBitmap()
+                )
         )
         recognise_button.setImageDrawable(
-            Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(activity, R.drawable.recognition_button)!!.toBitmap()
-            )
+                Utils.makeSelector(
+                        activity,
+                        ContextCompat.getDrawable(activity, R.drawable.recognition_button)!!.toBitmap()
+                )
         )
 
         close_button.setOnClickListener { activity.popFragment(MainFragment::class.java.name) }
-        rotate_left_button.setOnClickListener { image_view.setImageBitmap(image_view.drawable.toBitmap().rotate(90.0f)) }
-        rotate_right_button.setOnClickListener { image_view.setImageBitmap(image_view.drawable.toBitmap().rotate(-90.0f)) }
+        rotate_left_button.setOnClickListener {
+            isRotated = true
+            image_view.setImageBitmap(image_view.drawable.toBitmap().rotate(-90.0f))
+        }
+        rotate_right_button.setOnClickListener {
+            isRotated = true
+            image_view.setImageBitmap(image_view.drawable.toBitmap().rotate(90.0f))
+        }
         recognise_button.setOnClickListener {
-            //TODO tesseract recognition
+            if (isRotated) {
+                isRotated = false
+                //saving current rotation of bitmap into file, if it was rotated
+                if (imageFile.exists())
+                    imageFile.delete()
+                imageFile = File(filePath)
+                imageFile.createNewFile()
+                Utils.writeExternalToCache(image_view.drawable.toBitmap(), imageFile)
+            }
+            recognise(imageFile.toUri())
         }
     }
 
-    private fun recognise(filePath: String) {
+    private fun recognise(fileUri: Uri) {
         prepareTesseract()
-        startOCR(filePath)
+        startOCR(fileUri)
     }
+
+    private fun getTesseractDataFolder(context: Context) = File(Utils.getInternalDirs(context)[0], TESSDATA)
 
     private fun prepareTesseract() {
         try {
-            val assets = activity?.assets ?: return
+            val activity = activity as MainActivity? ?: return
+            val assets = activity.assets ?: return
             val fileList = assets.list(TESSDATA) ?: return
+
+            val tessDataDir = getTesseractDataFolder(activity)
+            if (!tessDataDir.exists() || !tessDataDir.isDirectory)
+                tessDataDir.mkdir()
+
             for (fileName in fileList) {
 
-                // open file within the assets folder
-                // if it is not already there copy it to the sdcard
-                val existingAsset = File(defaultDirectory.path, TESSDATA)
+                val existingAsset = File(tessDataDir, fileName)
                 if (!existingAsset.exists()) {
-
                     val inputStream = assets.open("$TESSDATA/$fileName")
-
                     val outputStream = FileOutputStream(existingAsset)
+                    val buffer = ByteArray(1024)
 
-                    // Transfer bytes from in to out
-                    val buf = ByteArray(1024)
-                    var len = inputStream.read(buf)
+                    while ((inputStream.read(buffer)) > 0)
+                        outputStream.write(buffer)
 
-                    while (len > 0) {
-                        len = inputStream.read(buf)
-                        outputStream.write(buf, 0, len)
-                    }
                     inputStream.close()
                     outputStream.close()
-
                 }
             }
         } catch (e: IOException) {
-            //Log.e(TAG, e.stackTrace)
+            Log.e(this::class.java.name, e.message)
         }
     }
 
-    private fun copyTessDataFiles(path: String) {
-
-
-    }
-
     //TODO asyncTask (Corutines)
-    private fun startOCR(filePath: String) {
+    private fun startOCR(fileUri: Uri) {
         try {
+            val activity = activity as MainActivity? ?: return
             val options = BitmapFactory.Options()
             options.inSampleSize =
-                4 // 1 - means max size. 4 - means maxsize/4 size. Don't use value <4, because you need more memory in the heap to store your data.
-            val bitmap = BitmapFactory.decodeFile(filePath, options)
+                    4 // 1 - means max size. 4 - means maxsize/4 size. Don't use value <4, because you need more memory in the heap to store your data.
+            val bitmap = BitmapFactory.decodeFile(fileUri.path, options)
 
-            //TODO pass result to result fragment to edit and copy
             val result = extractText(bitmap)
-
+            val resultFragment = ResultFragment()
+            val args = Bundle()
+            args.putString(ResultFragment.ARG_OCR_RESULT, result)
+            resultFragment.arguments = args
+            activity.pushFragment(resultFragment)
         } catch (e: Exception) {
-            //Log.e(TAG, e.message)
+            Log.e(this::class.java.name, e.message)
         }
 
     }
 
     private fun extractText(bitmap: Bitmap): String? {
-        val tessBaseApi: TessBaseAPI = TessBaseAPI()
+        val activity = activity as MainActivity? ?: return null
+        val tessBaseApi = TessBaseAPI()
+        val path: String? = Utils.getInternalDirs(activity)[0]?.path ?: return null
 
-        tessBaseApi.init(defaultDirectory.path, lang)
+        tessBaseApi.init(path, lang)
 
-        //       //EXTRA SETTINGS
+        //       //EXTRA SETTINGS   
         //        //For example if we only want to detect numbers
         //        tessBaseApi.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, "1234567890");
         //
-        //        //blackList Example
-        //        tessBaseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, "!@#$%^&*()_+=-qwertyuiop[]}{POIU" +
-        //                "YTRWQasdASDfghFGHjklJKLl;L:'\"\\|~`xcvXCVbnmBNM,./<>?");
+        tessBaseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, "@#$^*()+=[]}{;:'|`/\\<>«»❝❞×⦂⁃‐‑‒�–⎯—―~⁓•°%‰‱&⅋§÷±‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ€₤＄♀♂⚢⚣⌘♲♻☺★↑↓")
 
-        //Log.d(TAG, "Training file loaded")
+        Log.d(this::class.java.name, "Training file loaded")
         tessBaseApi.setImage(bitmap)
         var extractedText = "empty result"
         try {
             extractedText = tessBaseApi.utF8Text
         } catch (e: Exception) {
-            //Log.e(TAG, "Error in recognizing text.")
+            Log.e(this::class.java.name, "Error in recognizing text.")
         }
 
         tessBaseApi.end()
@@ -178,6 +190,6 @@ class PreviewFragment : Fragment() {
     }
 
     private fun Bitmap.rotate(degrees: Float): Bitmap =
-        Bitmap.createBitmap(this, 0, 0, width, height, Matrix().apply { postRotate(degrees) }, true)
+            Bitmap.createBitmap(this, 0, 0, width, height, Matrix().apply { postRotate(degrees) }, true)
 
 }

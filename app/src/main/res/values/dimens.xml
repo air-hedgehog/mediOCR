@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="default_side_margin">16dp</dimen>
-    <dimen name="toolbar_height">72dp</dimen>
+    <dimen name="toolbar_height">56dp</dimen>
     <dimen name="default_button_edge">52dp</dimen>
     <dimen name="default_elevation">4dp</dimen>
     <dimen name="large_button_edge">72dp</dimen>
