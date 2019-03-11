@@ -23,7 +23,7 @@ class ResultFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity? ?: return
         val resultString: String? = arguments?.getString(ARG_OCR_RESULT) ?: return
-        back_button.setOnClickListener { activity.onBackPressed() }
+        close_button.setOnClickListener { activity.popFragment(MainFragment::class.java.name) }
         edit_text.setText(resultString)
     }
 }

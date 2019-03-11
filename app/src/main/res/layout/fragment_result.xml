@@ -12,17 +12,17 @@
         android:elevation="2dp">
 
         <ImageView
-            android:id="@+id/back_button"
+            android:id="@+id/close_button"
             android:layout_width="@dimen/toolbar_height"
             android:layout_height="@dimen/toolbar_height"
             android:background="?android:attr/selectableItemBackground"
             android:scaleType="center"
-            android:src="@drawable/arrow_back" />
+            android:src="@drawable/close" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_toRightOf="@id/back_button"
+            android:layout_toRightOf="@id/close_button"
             android:gravity="center_vertical"
             android:paddingLeft="@dimen/default_side_margin"
             android:paddingRight="@dimen/default_side_margin"

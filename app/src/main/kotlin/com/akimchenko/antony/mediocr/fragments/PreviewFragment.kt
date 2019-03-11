@@ -19,6 +19,8 @@ import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.Utils
 import com.googlecode.tesseract.android.TessBaseAPI
 import kotlinx.android.synthetic.main.fragment_preview.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -106,8 +108,22 @@ class PreviewFragment : Fragment() {
     }
 
     private fun recognise(fileUri: Uri) {
+        val activity = activity as MainActivity? ?: return
+        activity.showProgress()
         prepareTesseract()
-        startOCR(fileUri)
+        var result: String? = null
+        GlobalScope.launch {
+            result = startOCR(fileUri)
+        }.invokeOnCompletion {
+            activity.hideProgress()
+            if (result != null) {
+                val resultFragment = ResultFragment()
+                val args = Bundle()
+                args.putString(ResultFragment.ARG_OCR_RESULT, result)
+                resultFragment.arguments = args
+                activity.pushFragment(resultFragment)
+            }
+        }
     }
 
     private fun getTesseractDataFolder(context: Context) = File(Utils.getInternalDirs(context)[0], TESSDATA)
@@ -142,25 +158,19 @@ class PreviewFragment : Fragment() {
         }
     }
 
-    //TODO asyncTask (Corutines)
-    private fun startOCR(fileUri: Uri) {
+    private fun startOCR(fileUri: Uri): String? {
         try {
-            val activity = activity as MainActivity? ?: return
             val options = BitmapFactory.Options()
             options.inSampleSize =
                     4 // 1 - means max size. 4 - means maxsize/4 size. Don't use value <4, because you need more memory in the heap to store your data.
             val bitmap = BitmapFactory.decodeFile(fileUri.path, options)
 
-            val result = extractText(bitmap)
-            val resultFragment = ResultFragment()
-            val args = Bundle()
-            args.putString(ResultFragment.ARG_OCR_RESULT, result)
-            resultFragment.arguments = args
-            activity.pushFragment(resultFragment)
+            return extractText(bitmap)
+
         } catch (e: Exception) {
             Log.e(this::class.java.name, e.message)
         }
-
+        return null
     }
 
     private fun extractText(bitmap: Bitmap): String? {

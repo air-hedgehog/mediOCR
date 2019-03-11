@@ -1,15 +1,19 @@
 package com.akimchenko.antony.mediocr
 
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.SparseArray
+import android.view.LayoutInflater
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
 import com.akimchenko.antony.mediocr.fragments.MainFragment
+import kotlinx.android.synthetic.main.dialog_progress.view.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,10 +34,10 @@ class MainActivity : AppCompatActivity() {
         //hideKeyboard()
         val name = fragment::class.java.name
         supportFragmentManager.beginTransaction()
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .replace(R.id.main_activity_container, fragment, name)
-                .addToBackStack(name)
-                .commitAllowingStateLoss()
+            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+            .replace(R.id.main_activity_container, fragment, name)
+            .addToBackStack(name)
+            .commitAllowingStateLoss()
     }
 
     fun requestPermissions(strings: Array<String>, requestCode: Int, callback: OnRequestPermissionCallback) {
@@ -73,7 +77,8 @@ class MainActivity : AppCompatActivity() {
     override fun onBackPressed() {
         if (isFinishing) return
         val entryCount = supportFragmentManager.backStackEntryCount
-        val fragment = supportFragmentManager.findFragmentByTag(supportFragmentManager.getBackStackEntryAt(entryCount - 1).name)
+        val fragment =
+            supportFragmentManager.findFragmentByTag(supportFragmentManager.getBackStackEntryAt(entryCount - 1).name)
         if (fragment is MainFragment || entryCount == 0)
             finish()
         else
@@ -82,6 +87,24 @@ class MainActivity : AppCompatActivity() {
 
     fun popFragment(fragmentName: String) {
         supportFragmentManager.popBackStackImmediate(fragmentName, 0)
+    }
+
+    var progressDialog: AlertDialog? = null
+    @SuppressLint("InflateParams")
+    fun showProgress(message: String? = null) {
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_progress, null, false)
+        view.text_view.text = message ?: getString(R.string.please_wait)
+        progressDialog = AlertDialog.Builder(this)
+            .setView(view)
+            .setCancelable(false)
+            .create()
+        progressDialog?.setCanceledOnTouchOutside(false)
+        progressDialog?.show()
+    }
+
+    fun hideProgress() {
+        progressDialog?.dismiss()
+        progressDialog = null
     }
 
 }
