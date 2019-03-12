@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.pm.ActivityInfo
 import android.graphics.ImageFormat
 import android.graphics.SurfaceTexture
-import android.graphics.drawable.Drawable
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -18,6 +17,7 @@ import android.util.Pair
 import android.util.Size
 import android.util.SparseIntArray
 import android.view.*
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
@@ -25,7 +25,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
-import com.akimchenko.antony.mediocr.Utils
+import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_camera.*
 import java.io.*
 import java.util.*
@@ -131,7 +131,7 @@ class CameraFragment : Fragment(), SensorEventListener {
         val activity = activity as MainActivity?
         activity ?: return
         texture_view.surfaceTextureListener = textureListener
-        capture_button.setImageDrawable(
+        (capture_button as ImageView).setImageDrawable(
                 Utils.makeSelector(
                         activity,
                         ContextCompat.getDrawable(
@@ -140,16 +140,16 @@ class CameraFragment : Fragment(), SensorEventListener {
                         )!!.toBitmap()
                 )
         )
-        capture_button.setOnClickListener { takePicture() }
+        (capture_button as ImageView).setOnClickListener { takePicture() }
 
         //TODO save flash state to sharedPreferences
-        flash_button.setImageDrawable(ContextCompat.getDrawable(activity,
+        (flash_button as ImageView).setImageDrawable(ContextCompat.getDrawable(activity,
                 when (flashMode) {
                     CameraMetadata.FLASH_MODE_OFF -> R.drawable.flash_off
                     CameraMetadata.FLASH_MODE_TORCH -> R.drawable.flash
                     else -> R.drawable.flash_off
                 }))
-        flash_button.setOnClickListener { setFlashMode() }
+        (flash_button as ImageView).setOnClickListener { setFlashMode() }
     }
 
     private fun setFlashMode() {
@@ -166,7 +166,7 @@ class CameraFragment : Fragment(), SensorEventListener {
             }
         }
         if (drawableId != null)
-            flash_button.setImageDrawable(Utils.makeSelector(activity, ContextCompat.getDrawable(activity, drawableId)!!.toBitmap()))
+            (flash_button as ImageView).setImageDrawable(Utils.makeSelector(activity, ContextCompat.getDrawable(activity, drawableId)!!.toBitmap()))
     }
 
     private fun startBackgroundThread() {
@@ -210,7 +210,7 @@ class CameraFragment : Fragment(), SensorEventListener {
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(currentRotation))
             captureBuilder.set(CaptureRequest.FLASH_MODE, flashMode)
             val defaultDirectory =
-                    File("${Environment.getExternalStorageDirectory()}/${activity.getString(R.string.default_folder_name)}")
+                    File(Environment.getExternalStorageDirectory(), activity.getString(R.string.default_folder_name))
             if (!defaultDirectory.exists() || !defaultDirectory.isDirectory)
                 defaultDirectory.mkdirs()
 
@@ -378,6 +378,7 @@ class CameraFragment : Fragment(), SensorEventListener {
     }
 
     private fun onNewSensorValues(x: Float, y: Float) {
+        if (y.absoluteValue < 10 - SENSOR_THRESHOLD && x.absoluteValue < 10 - SENSOR_THRESHOLD) return
         if (y.absoluteValue < SENSOR_THRESHOLD && 10 - x.absoluteValue < SENSOR_THRESHOLD) {
             //landscape
             if (x > 0)

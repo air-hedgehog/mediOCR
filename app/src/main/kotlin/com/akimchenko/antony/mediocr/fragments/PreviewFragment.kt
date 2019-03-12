@@ -16,7 +16,7 @@ import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
-import com.akimchenko.antony.mediocr.Utils
+import com.akimchenko.antony.mediocr.utils.Utils
 import com.googlecode.tesseract.android.TessBaseAPI
 import kotlinx.android.synthetic.main.fragment_preview.*
 import kotlinx.coroutines.GlobalScope
@@ -101,7 +101,7 @@ class PreviewFragment : Fragment() {
                     imageFile.delete()
                 imageFile = File(filePath)
                 imageFile.createNewFile()
-                Utils.writeExternalToCache(image_view.drawable.toBitmap(), imageFile)
+                Utils.writeBitmapToFile(image_view.drawable.toBitmap(), imageFile)
             }
             recognise(imageFile.toUri())
         }
@@ -110,9 +110,9 @@ class PreviewFragment : Fragment() {
     private fun recognise(fileUri: Uri) {
         val activity = activity as MainActivity? ?: return
         activity.showProgress()
-        prepareTesseract()
         var result: String? = null
         GlobalScope.launch {
+            prepareTesseract()
             result = startOCR(fileUri)
         }.invokeOnCompletion {
             activity.hideProgress()
@@ -184,7 +184,7 @@ class PreviewFragment : Fragment() {
         //        //For example if we only want to detect numbers
         //        tessBaseApi.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, "1234567890");
         //
-        tessBaseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, "@#$^*()+=[]}{;:'|`/\\<>«»❝❞×⦂⁃‐‑‒�–⎯—―~⁓•°%‰‱&⅋§÷±‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ€₤＄♀♂⚢⚣⌘♲♻☺★↑↓")
+        tessBaseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, "×⦂⁃‐‑‒�–⎯—―~⁓•°%‰‱&⅋§÷±‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓")
 
         Log.d(this::class.java.name, "Training file loaded")
         tessBaseApi.setImage(bitmap)

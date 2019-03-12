@@ -1,12 +1,12 @@
-package com.akimchenko.antony.mediocr
+package com.akimchenko.antony.mediocr.utils
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.PorterDuff
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.StateListDrawable
-import android.os.Build
 import androidx.core.content.ContextCompat
+import com.akimchenko.antony.mediocr.R
 import java.io.*
 import java.text.DateFormat
 import java.util.*
@@ -29,7 +29,7 @@ object Utils {
     fun formatDate(date: Long) = DateFormat.getDateInstance(DateFormat.FULL, Locale.getDefault()).format(date)
 
     @JvmStatic
-    fun writeExternalToCache(bitmap: Bitmap, file: File) {
+    fun writeBitmapToFile(bitmap: Bitmap, file: File) {
         try {
             file.createNewFile()
             val fos = FileOutputStream(file)

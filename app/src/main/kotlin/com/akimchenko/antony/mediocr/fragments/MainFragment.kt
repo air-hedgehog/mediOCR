@@ -11,8 +11,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
 import com.akimchenko.antony.mediocr.MainActivity
+import com.akimchenko.antony.mediocr.OldCameraFragment
 import com.akimchenko.antony.mediocr.R
-import com.akimchenko.antony.mediocr.Utils
+import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_main.*
 
 class MainFragment : Fragment(), View.OnClickListener {
@@ -63,11 +64,14 @@ class MainFragment : Fragment(), View.OnClickListener {
                     object : MainActivity.OnRequestPermissionCallback {
                         override fun onPermissionReturned(isGranted: Boolean) {
                             if (isGranted)
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+
+                                //TODO раскомментить перед релизом
+                                /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                     activity.pushFragment(CameraFragment())
                                 } else {
-                                    //TODO for older apis
-                                }
+                                    activity.pushFragment(OldCameraFragment())
+                                }*/
+                                activity.pushFragment(OldCameraFragment())
                             else
                                 Toast.makeText(
                                     activity,
