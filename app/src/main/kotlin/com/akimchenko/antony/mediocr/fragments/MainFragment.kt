@@ -1,25 +1,33 @@
 package com.akimchenko.antony.mediocr.fragments
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
+import com.akimchenko.antony.mediocr.BuildConfig
 import com.akimchenko.antony.mediocr.MainActivity
-import com.akimchenko.antony.mediocr.OldCameraFragment
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_main.*
+import java.io.File
 
 class MainFragment : Fragment(), View.OnClickListener {
 
     companion object {
         const val READ_WRITE_CAMERA_REQUEST_CODE = 101
+        const val CAPTURE_IMAGE_REQUEST_CODE = 102
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -64,14 +72,10 @@ class MainFragment : Fragment(), View.OnClickListener {
                     object : MainActivity.OnRequestPermissionCallback {
                         override fun onPermissionReturned(isGranted: Boolean) {
                             if (isGranted)
-
-                                //TODO раскомментить перед релизом
-                                /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
                                     activity.pushFragment(CameraFragment())
-                                } else {
-                                    activity.pushFragment(OldCameraFragment())
-                                }*/
-                                activity.pushFragment(OldCameraFragment())
+                                else
+                                    sendCameraIntent()
                             else
                                 Toast.makeText(
                                     activity,
@@ -87,4 +91,31 @@ class MainFragment : Fragment(), View.OnClickListener {
         }
     }
 
+
+    private var newPhotoFile: File? = null
+    private fun sendCameraIntent() {
+        val activity = activity as MainActivity? ?: return
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
+            takePictureIntent.resolveActivity(activity.packageManager)?.also {
+                newPhotoFile = activity.getFileForBitmap()
+                if (!newPhotoFile!!.exists())
+                    newPhotoFile!!.createNewFile()
+                newPhotoFile!!.also { val fileUri = newPhotoFile!!.toUri()
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri)
+                    startActivityForResult(takePictureIntent, CAPTURE_IMAGE_REQUEST_CODE)
+                }
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == CAPTURE_IMAGE_REQUEST_CODE && resultCode == Activity.RESULT_OK && newPhotoFile != null) {
+            val activity = activity as MainActivity? ?: return
+            activity.pushFragment(PreviewFragment().also {
+                it.arguments = Bundle().also { args -> args.putString(PreviewFragment.ARG_IMAGE_FILE, newPhotoFile!!.path) }
+            })
+        } else {
+            super.onActivityResult(requestCode, resultCode, data)
+        }
+    }
 }

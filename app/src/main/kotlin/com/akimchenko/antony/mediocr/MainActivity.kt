@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.util.SparseArray
 import android.view.LayoutInflater
 import androidx.appcompat.app.AlertDialog
@@ -14,6 +15,8 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
 import com.akimchenko.antony.mediocr.fragments.MainFragment
 import kotlinx.android.synthetic.main.dialog_progress.view.*
+import java.io.File
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -92,6 +95,7 @@ class MainActivity : AppCompatActivity() {
     var progressDialog: AlertDialog? = null
     @SuppressLint("InflateParams")
     fun showProgress(message: String? = null) {
+        if (progressDialog != null) return
         val view = LayoutInflater.from(this).inflate(R.layout.dialog_progress, null, false)
         view.text_view.text = message ?: getString(R.string.please_wait)
         progressDialog = AlertDialog.Builder(this)
@@ -107,4 +111,10 @@ class MainActivity : AppCompatActivity() {
         progressDialog = null
     }
 
+    fun getFileForBitmap(): File {
+        val defaultDirectory = File(Environment.getExternalStorageDirectory(), getString(R.string.default_folder_name))
+        if (!defaultDirectory.exists() || !defaultDirectory.isDirectory)
+            defaultDirectory.mkdirs()
+        return File("$defaultDirectory/${Calendar.getInstance().timeInMillis}.jpg")
+    }
 }

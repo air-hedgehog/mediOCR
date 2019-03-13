@@ -97,13 +97,17 @@ class PreviewFragment : Fragment() {
             if (isRotated) {
                 isRotated = false
                 //saving current rotation of bitmap into file, if it was rotated
-                if (imageFile.exists())
-                    imageFile.delete()
-                imageFile = File(filePath)
-                imageFile.createNewFile()
-                Utils.writeBitmapToFile(image_view.drawable.toBitmap(), imageFile)
+                activity.showProgress()
+                GlobalScope.launch {
+                    if (imageFile.exists())
+                        imageFile.delete()
+                    imageFile = File(filePath)
+                    imageFile.createNewFile()
+                    Utils.writeBitmapToFile(image_view.drawable.toBitmap(), imageFile)
+                }.invokeOnCompletion {
+                    recognise(imageFile.toUri())
+                }
             }
-            recognise(imageFile.toUri())
         }
     }
 
@@ -161,12 +165,9 @@ class PreviewFragment : Fragment() {
     private fun startOCR(fileUri: Uri): String? {
         try {
             val options = BitmapFactory.Options()
-            options.inSampleSize =
-                    4 // 1 - means max size. 4 - means maxsize/4 size. Don't use value <4, because you need more memory in the heap to store your data.
+            options.inSampleSize = 4
             val bitmap = BitmapFactory.decodeFile(fileUri.path, options)
-
             return extractText(bitmap)
-
         } catch (e: Exception) {
             Log.e(this::class.java.name, e.message)
         }
@@ -179,11 +180,6 @@ class PreviewFragment : Fragment() {
         val path: String? = Utils.getInternalDirs(activity)[0]?.path ?: return null
 
         tessBaseApi.init(path, lang)
-
-        //       //EXTRA SETTINGS   
-        //        //For example if we only want to detect numbers
-        //        tessBaseApi.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, "1234567890");
-        //
         tessBaseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, "×⦂⁃‐‑‒�–⎯—―~⁓•°%‰‱&⅋§÷±‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓")
 
         Log.d(this::class.java.name, "Training file loaded")
