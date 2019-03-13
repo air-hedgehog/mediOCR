@@ -111,10 +111,13 @@ class MainActivity : AppCompatActivity() {
         progressDialog = null
     }
 
-    fun getFileForBitmap(): File {
+    fun getFileForBitmap() = File("${getDefaultDirectory()}/${Calendar.getInstance().timeInMillis}.jpg")
+
+
+    fun getDefaultDirectory(): File {
         val defaultDirectory = File(Environment.getExternalStorageDirectory(), getString(R.string.default_folder_name))
         if (!defaultDirectory.exists() || !defaultDirectory.isDirectory)
             defaultDirectory.mkdirs()
-        return File("$defaultDirectory/${Calendar.getInstance().timeInMillis}.jpg")
+        return defaultDirectory
     }
 }

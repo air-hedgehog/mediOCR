@@ -32,7 +32,7 @@ class PreviewFragment : Fragment() {
         //TODO download specific language and initialize TessBaseAPI with lang from its name
         const val lang = "eng"
         const val TESSDATA = "tessdata"
-        const val ARG_IMAGE_FILE = "arg_image_file"
+        const val ARG_IMAGE_FILE_URI = "arg_image_file"
     }
 
     private var isRotated: Boolean = false
@@ -44,20 +44,28 @@ class PreviewFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity? ?: return
-        var imageFile: File
-        val filePath: String? = arguments?.getString(ARG_IMAGE_FILE)
-        if (filePath == null) {
-            activity.popFragment(MainFragment::class.java.name)
-            return
-        } else {
-            imageFile = File(filePath)
+        val uriString = arguments?.getString(ARG_IMAGE_FILE_URI) ?: return
+        val uri: Uri = Uri.parse(uriString)
+        val imageFile: File
+        when {
+            uri.scheme == "file" -> imageFile = File(uri.path)
+            uri.scheme == "content" -> {
+                val inputStream = activity.contentResolver.openInputStream(uri) ?: return
+                imageFile = activity.getFileForBitmap()
+                val outputStream = FileOutputStream(imageFile)
+                val buffer = ByteArray(1024)
+
+                while ((inputStream.read(buffer)) > 0)
+                    outputStream.write(buffer)
+
+                inputStream.close()
+                outputStream.close()
+            }
+            else -> return
         }
-        if (!imageFile.exists()) {
-            activity.popFragment(MainFragment::class.java.name)
-            return
-        } else {
-            image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
-        }
+
+
+        image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
 
         close_button.setImageDrawable(
                 Utils.makeSelector(
@@ -101,7 +109,6 @@ class PreviewFragment : Fragment() {
                 GlobalScope.launch {
                     if (imageFile.exists())
                         imageFile.delete()
-                    imageFile = File(filePath)
                     imageFile.createNewFile()
                     Utils.writeBitmapToFile(image_view.drawable.toBitmap(), imageFile)
                 }.invokeOnCompletion {
@@ -155,6 +162,7 @@ class PreviewFragment : Fragment() {
 
                     inputStream.close()
                     outputStream.close()
+
                 }
             }
         } catch (e: IOException) {

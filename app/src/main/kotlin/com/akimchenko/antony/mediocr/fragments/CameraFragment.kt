@@ -22,6 +22,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
@@ -258,7 +259,7 @@ class CameraFragment : Fragment(), SensorEventListener {
                     super.onCaptureCompleted(session, request, result)
                     activity.pushFragment(PreviewFragment().also {
                         it.arguments =
-                            Bundle().also { args -> args.putString(PreviewFragment.ARG_IMAGE_FILE, file.path) }
+                            Bundle().also { args -> args.putString(PreviewFragment.ARG_IMAGE_FILE_URI, file.toUri().toString()) }
                     })
                 }
             }

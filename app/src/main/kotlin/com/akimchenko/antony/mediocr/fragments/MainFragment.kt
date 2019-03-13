@@ -1,9 +1,9 @@
 package com.akimchenko.antony.mediocr.fragments
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -12,22 +12,24 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
-import com.akimchenko.antony.mediocr.BuildConfig
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_main.*
 import java.io.File
+import java.net.URI
 
 class MainFragment : Fragment(), View.OnClickListener {
+
+    private var newPhotoFile: File? = null
 
     companion object {
         const val READ_WRITE_CAMERA_REQUEST_CODE = 101
         const val CAPTURE_IMAGE_REQUEST_CODE = 102
+        const val GALLERY_CHOOSER_REQUEST_CODE = 103
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -58,6 +60,7 @@ class MainFragment : Fragment(), View.OnClickListener {
         gallery_button.setOnClickListener(this)
     }
 
+    @SuppressLint("InlinedApi")
     override fun onClick(v: View?) {
         val activity: MainActivity? = activity as MainActivity?
         activity ?: return
@@ -85,14 +88,11 @@ class MainFragment : Fragment(), View.OnClickListener {
                         }
                     })
             }
-            gallery_button -> {
-                //TODO GalleryView
-            }
+            gallery_button -> sendGalleryChooserIntent()
+
         }
     }
 
-
-    private var newPhotoFile: File? = null
     private fun sendCameraIntent() {
         val activity = activity as MainActivity? ?: return
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
@@ -100,22 +100,51 @@ class MainFragment : Fragment(), View.OnClickListener {
                 newPhotoFile = activity.getFileForBitmap()
                 if (!newPhotoFile!!.exists())
                     newPhotoFile!!.createNewFile()
-                newPhotoFile!!.also { val fileUri = newPhotoFile!!.toUri()
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri)
+                newPhotoFile!!.also {
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, newPhotoFile!!.toUri())
                     startActivityForResult(takePictureIntent, CAPTURE_IMAGE_REQUEST_CODE)
                 }
             }
         }
     }
 
+    private fun sendGalleryChooserIntent() {
+        Intent().also {
+            it.type = "image/*"
+            it.action = Intent.ACTION_GET_CONTENT
+            startActivityForResult(Intent.createChooser(it, null), GALLERY_CHOOSER_REQUEST_CODE)
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == CAPTURE_IMAGE_REQUEST_CODE && resultCode == Activity.RESULT_OK && newPhotoFile != null) {
-            val activity = activity as MainActivity? ?: return
-            activity.pushFragment(PreviewFragment().also {
-                it.arguments = Bundle().also { args -> args.putString(PreviewFragment.ARG_IMAGE_FILE, newPhotoFile!!.path) }
-            })
-        } else {
-            super.onActivityResult(requestCode, resultCode, data)
+        val activity = activity as MainActivity? ?: return
+        when (requestCode) {
+            CAPTURE_IMAGE_REQUEST_CODE -> {
+                if (resultCode == Activity.RESULT_OK && newPhotoFile != null) {
+                    activity.pushFragment(PreviewFragment().also {
+                        it.arguments = Bundle().also { args ->
+                            args.putString(
+                                PreviewFragment.ARG_IMAGE_FILE_URI,
+                                newPhotoFile!!.toUri().toString()
+                            )
+                        }
+                    })
+                }
+            }
+            GALLERY_CHOOSER_REQUEST_CODE -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    val uri = data?.data ?: return
+                    activity.pushFragment(PreviewFragment().also {
+                        it.arguments = Bundle().also { args ->
+                            args.putString(
+                                PreviewFragment.ARG_IMAGE_FILE_URI,
+                                uri.toString()
+                            )
+                        }
+                    })
+                }
+            }
+            else -> super.onActivityResult(requestCode, resultCode, data)
         }
     }
 }
