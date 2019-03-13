@@ -8,4 +8,7 @@
     <string name="saved">Saved</string>
     <string name="recognition_result">Recognition Result</string>
     <string name="please_wait">Please wait...</string>
+    <string name="save_as_txt">Save as .txt</string>
+    <string name="save_as_pdf">Save as .pdf</string>
+    <string name="save_as_docx">Save as .docx</string>
 </resources>

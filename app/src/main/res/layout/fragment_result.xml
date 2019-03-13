@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
     <RelativeLayout
         android:id="@+id/toolbar"
@@ -22,6 +21,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_toLeftOf="@+id/share_button"
             android:layout_toRightOf="@id/close_button"
             android:gravity="center_vertical"
             android:paddingLeft="@dimen/default_side_margin"
@@ -31,12 +31,33 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
+        <ImageView
+            android:id="@+id/share_button"
+            android:layout_width="@dimen/toolbar_height"
+            android:layout_height="@dimen/toolbar_height"
+            android:layout_toLeftOf="@+id/save_button"
+            android:scaleType="center"
+            android:src="@drawable/share" />
+
+        <ImageView
+            android:id="@+id/save_button"
+            android:layout_width="@dimen/toolbar_height"
+            android:layout_height="@dimen/toolbar_height"
+            android:layout_alignParentRight="true"
+            android:background="?android:attr/selectableItemBackground"
+            android:scaleType="center"
+            android:src="@drawable/save" />
+
     </RelativeLayout>
 
     <EditText
         android:id="@+id/edit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/default_side_margin" />
+        android:layout_centerInParent="true"
+        android:layout_marginLeft="@dimen/default_side_margin"
+        android:layout_marginTop="@dimen/toolbar_height"
+        android:layout_marginRight="@dimen/default_side_margin"
+        android:background="@android:color/transparent" />
 
-</LinearLayout>
+</RelativeLayout>

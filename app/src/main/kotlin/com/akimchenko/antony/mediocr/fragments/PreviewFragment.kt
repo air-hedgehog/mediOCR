@@ -68,28 +68,28 @@ class PreviewFragment : Fragment() {
         image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
 
         close_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.close)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.close)!!.toBitmap()
+            )
         )
         rotate_left_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.rotate_left)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.rotate_left)!!.toBitmap()
+            )
         )
         rotate_right_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.rotate_right)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.rotate_right)!!.toBitmap()
+            )
         )
         recognise_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.recognition_button)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.recognition_button)!!.toBitmap()
+            )
         )
 
         close_button.setOnClickListener { activity.popFragment(MainFragment::class.java.name) }
@@ -128,11 +128,9 @@ class PreviewFragment : Fragment() {
         }.invokeOnCompletion {
             activity.hideProgress()
             if (result != null) {
-                val resultFragment = ResultFragment()
-                val args = Bundle()
-                args.putString(ResultFragment.ARG_OCR_RESULT, result)
-                resultFragment.arguments = args
-                activity.pushFragment(resultFragment)
+                activity.pushFragment(ResultFragment().also {
+                    it.arguments = Bundle().also { args -> args.putString(ResultFragment.ARG_OCR_RESULT, result) }
+                })
             }
         }
     }
@@ -188,7 +186,10 @@ class PreviewFragment : Fragment() {
         val path: String? = Utils.getInternalDirs(activity)[0]?.path ?: return null
 
         tessBaseApi.init(path, lang)
-        tessBaseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, "×⦂⁃‐‑‒�–⎯—―~⁓•°%‰‱&⅋§÷±‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓")
+        tessBaseApi.setVariable(
+            TessBaseAPI.VAR_CHAR_BLACKLIST,
+            "×⦂⁃‐‑‒�–⎯—―~⁓•°%‰‱&⅋§÷±‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓"
+        )
 
         Log.d(this::class.java.name, "Training file loaded")
         tessBaseApi.setImage(bitmap)
@@ -204,6 +205,6 @@ class PreviewFragment : Fragment() {
     }
 
     private fun Bitmap.rotate(degrees: Float): Bitmap =
-            Bitmap.createBitmap(this, 0, 0, width, height, Matrix().apply { postRotate(degrees) }, true)
+        Bitmap.createBitmap(this, 0, 0, width, height, Matrix().apply { postRotate(degrees) }, true)
 
 }
