@@ -1,18 +1,21 @@
 package com.akimchenko.antony.mediocr.fragments
 
-import android.content.Context
+import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
+import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_result.*
-import java.io.IOException
+import java.io.File
+import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 import java.util.*
 
@@ -41,14 +44,7 @@ class ResultFragment : Fragment() {
                 popup.menu.add(0, SAVE_AS_DOCX_ID, 2, activity.getString(R.string.save_as_docx))
             }
             popup.setOnMenuItemClickListener {
-                when (it.itemId) {
-                    SAVE_AS_TXT_ID -> saveAsTxt(activity, resultString)
-                    SAVE_AS_PDF_ID -> {
-                        //TODO pdf
-                    }
-                    SAVE_AS_DOCX_ID -> {
-                    }
-                }
+                showEnterNameAlert(activity, edit_text.text.trim().toString(), it.itemId)
                 false
             }
             popup.show()
@@ -62,15 +58,46 @@ class ResultFragment : Fragment() {
         edit_text.setText(resultString)
     }
 
-    private fun saveAsTxt(context: Context, text: String) {
-        //TODO alertDialog to enter file name
-        try {
-            OutputStreamWriter(context.openFileOutput(Calendar.getInstance().timeInMillis.toString(), Context.MODE_PRIVATE)).also {
-                it.write(text)
-                it.close()
-            }
-        } catch (e: IOException) {
-            Log.e(ResultFragment::class.java.name, e.message)
-        }
+    @SuppressLint("InflateParams")
+    private fun showEnterNameAlert(activity: MainActivity, contentText: String, fileTypeId: Int) {
+        val editTextView: EditText = LayoutInflater.from(activity).inflate(R.layout.dialog_enter_name, null, false) as EditText
+        val currentDateName = Utils.formatDate(Calendar.getInstance().timeInMillis)
+        editTextView.hint = currentDateName
+        AlertDialog.Builder(activity)
+                .setView(editTextView)
+                .setPositiveButton(activity.getString(R.string.save)) { dialog, _ ->
+                    var editedText = editTextView.text.trim().toString()
+                    if (editedText.isEmpty())
+                        editedText = currentDateName
+                    when (fileTypeId) {
+                        SAVE_AS_TXT_ID -> saveAsTxt(activity, contentText, editedText)
+                        SAVE_AS_PDF_ID -> saveAsPdf(activity, contentText, editedText)
+                        SAVE_AS_DOCX_ID -> saveAsDocx(activity, contentText, editedText)
+                    }
+
+                    dialog.dismiss()
+                }.setNegativeButton(activity.getString(R.string.cancel)) { dialog, _ ->
+                    dialog.dismiss()
+                }.create().show()
+    }
+
+    private fun saveAsDocx(activity: MainActivity, text: String, name: String) {
+
+    }
+
+    private fun saveAsPdf(activity: MainActivity, text: String, name: String) {
+
+    }
+
+    private fun saveAsTxt(activity: MainActivity, text: String, name: String) {
+        val file = File(activity.getDefaultSavedFilesDirectory(), "$name.txt")
+        if (!file.exists())
+            file.createNewFile()
+        val output = FileOutputStream(file)
+        val osw = OutputStreamWriter(output)
+        osw.append(text)
+        osw.close()
+        output.flush()
+        output.close()
     }
 }

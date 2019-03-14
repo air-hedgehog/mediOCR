@@ -11,4 +11,8 @@
     <string name="save_as_docx">Save as .docx file</string>
     <string name="saving_cropped_image">Saving cropped image…</string>
     <string name="recognising">Recognising</string>
+    <string name="cropped_images">Cropped_images</string>
+    <string name="saved_files">Saved_files</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
 </resources>

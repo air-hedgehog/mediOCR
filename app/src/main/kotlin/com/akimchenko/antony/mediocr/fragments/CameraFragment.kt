@@ -13,6 +13,7 @@ import android.hardware.camera2.*
 import android.media.Image
 import android.media.ImageReader
 import android.os.*
+import android.util.Log
 import android.util.Pair
 import android.util.Size
 import android.util.SparseIntArray
@@ -62,18 +63,11 @@ class CameraFragment : Fragment(), SensorEventListener {
     private var mBackgroundThread: HandlerThread? = null
 
     private val textureListener = object : TextureView.SurfaceTextureListener {
-        override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-            //open your shutter here
-            openCamera()
-        }
+        override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) = openCamera()
 
-        override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
-            // Transform you image captured size according to the surface width and height
-        }
+        override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {}
 
-        override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
-            return false
-        }
+        override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean = false
 
         override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {}
     }
@@ -100,17 +94,17 @@ class CameraFragment : Fragment(), SensorEventListener {
             cameraDevice ?: return null
             val activity = activity as MainActivity? ?: return null
             val manager = activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager?
-                ?: return null
+                    ?: return null
             try {
                 val characteristics = manager.getCameraCharacteristics(cameraDevice!!.id)
                 val jpegSizes: Array<Size>? =
-                    characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)?.getOutputSizes(
-                        ImageFormat.JPEG
-                    )
+                        characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)?.getOutputSizes(
+                                ImageFormat.JPEG
+                        )
                 if (jpegSizes != null && jpegSizes.isNotEmpty())
                     return Pair(jpegSizes[0].width, jpegSizes[0].height)
             } catch (e: CameraAccessException) {
-                e.printStackTrace()
+                Log.e(CameraFragment::class.java.name, e.message)
             }
 
             return null
@@ -123,9 +117,8 @@ class CameraFragment : Fragment(), SensorEventListener {
         accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_camera, container, false)
-    }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
+            inflater.inflate(R.layout.fragment_camera, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -133,26 +126,25 @@ class CameraFragment : Fragment(), SensorEventListener {
         activity ?: return
         texture_view.surfaceTextureListener = textureListener
         (capture_button as ImageView).setImageDrawable(
-            Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(
-                    activity,
-                    R.drawable.capture_button
-                )!!.toBitmap()
-            )
+                Utils.makeSelector(
+                        activity,
+                        ContextCompat.getDrawable(
+                                activity,
+                                R.drawable.capture_button
+                        )!!.toBitmap()
+                )
         )
         (capture_button as ImageView).setOnClickListener { takePicture() }
 
-        //TODO save flash state to sharedPreferences
         (flash_button as ImageView).setImageDrawable(
-            ContextCompat.getDrawable(
-                activity,
-                when (flashMode) {
-                    CameraMetadata.FLASH_MODE_OFF -> R.drawable.flash_off
-                    CameraMetadata.FLASH_MODE_TORCH -> R.drawable.flash
-                    else -> R.drawable.flash_off
-                }
-            )
+                ContextCompat.getDrawable(
+                        activity,
+                        when (flashMode) {
+                            CameraMetadata.FLASH_MODE_OFF -> R.drawable.flash_off
+                            CameraMetadata.FLASH_MODE_TORCH -> R.drawable.flash
+                            else -> R.drawable.flash_off
+                        }
+                )
         )
         (flash_button as ImageView).setOnClickListener { setFlashMode() }
     }
@@ -172,10 +164,10 @@ class CameraFragment : Fragment(), SensorEventListener {
         }
         if (drawableId != null)
             (flash_button as ImageView).setImageDrawable(
-                Utils.makeSelector(
-                    activity,
-                    ContextCompat.getDrawable(activity, drawableId)!!.toBitmap()
-                )
+                    Utils.makeSelector(
+                            activity,
+                            ContextCompat.getDrawable(activity, drawableId)!!.toBitmap()
+                    )
             )
     }
 
@@ -192,7 +184,7 @@ class CameraFragment : Fragment(), SensorEventListener {
             mBackgroundThread = null
             mBackgroundHandler = null
         } catch (e: InterruptedException) {
-            e.printStackTrace()
+            Log.e(CameraFragment::class.java.name, e.message)
         }
     }
 
@@ -203,7 +195,7 @@ class CameraFragment : Fragment(), SensorEventListener {
         try {
             val characteristics = manager.getCameraCharacteristics(cameraDevice!!.id)
             val jpegSizes =
-                characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!.getOutputSizes(ImageFormat.JPEG)
+                    characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!.getOutputSizes(ImageFormat.JPEG)
             var width = 640
             var height = 480
             if (jpegSizes != null && jpegSizes.isNotEmpty()) {
@@ -230,9 +222,9 @@ class CameraFragment : Fragment(), SensorEventListener {
                         buffer.get(bytes)
                         save(bytes)
                     } catch (e: FileNotFoundException) {
-                        e.printStackTrace()
+                        Log.e(CameraFragment::class.java.name, e.message)
                     } catch (e: IOException) {
-                        e.printStackTrace()
+                        Log.e(CameraFragment::class.java.name, e.message)
                     } finally {
                         image?.close()
                     }
@@ -252,14 +244,14 @@ class CameraFragment : Fragment(), SensorEventListener {
             reader.setOnImageAvailableListener(readerListener, mBackgroundHandler)
             val captureListener = object : CameraCaptureSession.CaptureCallback() {
                 override fun onCaptureCompleted(
-                    session: CameraCaptureSession,
-                    request: CaptureRequest,
-                    result: TotalCaptureResult
+                        session: CameraCaptureSession,
+                        request: CaptureRequest,
+                        result: TotalCaptureResult
                 ) {
                     super.onCaptureCompleted(session, request, result)
                     activity.pushFragment(PreviewFragment().also {
                         it.arguments =
-                            Bundle().also { args -> args.putString(PreviewFragment.ARG_IMAGE_FILE_URI, file.toUri().toString()) }
+                                Bundle().also { args -> args.putString(PreviewFragment.ARG_IMAGE_FILE_URI, file.toUri().toString()) }
                     })
                 }
             }
@@ -268,7 +260,7 @@ class CameraFragment : Fragment(), SensorEventListener {
                     try {
                         session.capture(captureBuilder.build(), captureListener, mBackgroundHandler)
                     } catch (e: CameraAccessException) {
-                        e.printStackTrace()
+                        Log.e(CameraFragment::class.java.name, e.message)
                     }
 
                 }
@@ -276,7 +268,7 @@ class CameraFragment : Fragment(), SensorEventListener {
                 override fun onConfigureFailed(session: CameraCaptureSession) {}
             }, mBackgroundHandler)
         } catch (e: CameraAccessException) {
-            e.printStackTrace()
+            Log.e(CameraFragment::class.java.name, e.message)
         }
     }
 
@@ -304,12 +296,11 @@ class CameraFragment : Fragment(), SensorEventListener {
                 }
 
                 override fun onConfigureFailed(cameraCaptureSession: CameraCaptureSession) {
-                    val activity = activity as MainActivity? ?: return
-                    Toast.makeText(activity, "Configuration change", Toast.LENGTH_SHORT).show()
+                    Log.e(CameraFragment::class.java.name, "configuration failed")
                 }
             }, null)
         } catch (e: CameraAccessException) {
-            e.printStackTrace()
+            Log.e(CameraFragment::class.java.name, e.message)
         }
 
     }
@@ -325,7 +316,7 @@ class CameraFragment : Fragment(), SensorEventListener {
             imageDimension = map.getOutputSizes(SurfaceTexture::class.java)[0]
             manager.openCamera(cameraId, stateCallback, null)
         } catch (e: CameraAccessException) {
-            e.printStackTrace()
+            Log.e(CameraFragment::class.java.name, e.message)
         }
     }
 
@@ -335,7 +326,7 @@ class CameraFragment : Fragment(), SensorEventListener {
         try {
             cameraCaptureSessions!!.setRepeatingRequest(captureRequestBuilder!!.build(), null, mBackgroundHandler)
         } catch (e: CameraAccessException) {
-            e.printStackTrace()
+            Log.e(CameraFragment::class.java.name, e.message)
         }
     }
 

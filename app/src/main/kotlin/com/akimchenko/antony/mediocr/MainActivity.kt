@@ -119,10 +119,23 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun getFileForBitmap() = File("${getDefaultDirectory()}/${Calendar.getInstance().timeInMillis}.jpg")
+    fun getFileForBitmap() = File("${getDefaultCroppedImagesDirectory()}/${Calendar.getInstance().timeInMillis}.jpg")
 
+    fun getDefaultSavedFilesDirectory(): File {
+        val savedFilesDirectory = File(getDefaultDirectory(), getString(R.string.saved_files))
+        if (!savedFilesDirectory.exists() || !savedFilesDirectory.isDirectory)
+            savedFilesDirectory.mkdirs()
+        return savedFilesDirectory
+    }
 
-    fun getDefaultDirectory(): File {
+    private fun getDefaultCroppedImagesDirectory(): File {
+        val croppedImageDirectory = File(getDefaultDirectory(), getString(R.string.cropped_images))
+        if (!croppedImageDirectory.exists() || !croppedImageDirectory.isDirectory)
+            croppedImageDirectory.mkdirs()
+        return croppedImageDirectory
+    }
+
+    private fun getDefaultDirectory(): File {
         val defaultDirectory = File(Environment.getExternalStorageDirectory(), getString(R.string.default_folder_name))
         if (!defaultDirectory.exists() || !defaultDirectory.isDirectory)
             defaultDirectory.mkdirs()

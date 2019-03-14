@@ -179,6 +179,8 @@ class PreviewFragment : Fragment() {
         val path: String? = Utils.getInternalDirs(activity)[0]?.path ?: return null
 
         tessBaseApi.init(path, lang)
+
+        //banned special symbols
         tessBaseApi.setVariable(
             TessBaseAPI.VAR_CHAR_BLACKLIST,
             "×⦂⁃‐‑‒�–⎯—―~⁓•°%‰‱&⅋§÷±‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓"
@@ -197,7 +199,7 @@ class PreviewFragment : Fragment() {
         return extractedText
     }
 
-    private fun Bitmap.rotate(degrees: Float): Bitmap =
-        Bitmap.createBitmap(this, 0, 0, width, height, Matrix().apply { postRotate(degrees) }, true)
+    /*private fun Bitmap.rotate(degrees: Float): Bitmap =
+        Bitmap.createBitmap(this, 0, 0, width, height, Matrix().apply { postRotate(degrees) }, true)*/
 
 }
