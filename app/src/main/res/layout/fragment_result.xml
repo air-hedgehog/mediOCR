@@ -36,6 +36,7 @@
             android:layout_width="@dimen/toolbar_height"
             android:layout_height="@dimen/toolbar_height"
             android:layout_toLeftOf="@+id/save_button"
+            android:background="?android:attr/selectableItemBackground"
             android:scaleType="center"
             android:src="@drawable/share" />
 

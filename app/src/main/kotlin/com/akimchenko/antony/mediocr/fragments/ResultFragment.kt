@@ -1,6 +1,7 @@
 package com.akimchenko.antony.mediocr.fragments
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -40,16 +41,23 @@ class ResultFragment : Fragment() {
                 popup.menu.add(0, SAVE_AS_DOCX_ID, 2, activity.getString(R.string.save_as_docx))
             }
             popup.setOnMenuItemClickListener {
-                when(it.itemId) {
+                when (it.itemId) {
                     SAVE_AS_TXT_ID -> saveAsTxt(activity, resultString)
                     SAVE_AS_PDF_ID -> {
                         //TODO pdf
                     }
-                    SAVE_AS_DOCX_ID -> {}
+                    SAVE_AS_DOCX_ID -> {
+                    }
                 }
                 false
             }
             popup.show()
+        }
+        share_button.setOnClickListener {
+            startActivity(Intent(Intent.ACTION_SEND).also { intent ->
+                intent.type = "text/plain"
+                intent.putExtra(Intent.EXTRA_TEXT, edit_text.text.toString())
+            })
         }
         edit_text.setText(resultString)
     }
@@ -61,7 +69,7 @@ class ResultFragment : Fragment() {
                 it.write(text)
                 it.close()
             }
-        } catch(e: IOException) {
+        } catch (e: IOException) {
             Log.e(ResultFragment::class.java.name, e.message)
         }
     }

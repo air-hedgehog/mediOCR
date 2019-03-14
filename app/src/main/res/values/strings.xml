@@ -2,15 +2,13 @@
     <string translatable="false" name="app_name">MediOCR</string>
     <string translatable="false" name="default_folder_name">MediOCR_data</string>
 
-    <string name="you_need_to_allow_permissions_read_write_camera">You need to grant READ/WRITE and CAMERA permissions
-        to use camera feature
-    </string>
+    <string name="you_need_to_allow_permissions_read_write_camera">You need to grant READ/WRITE and CAMERA permissions to use camera feature </string>
     <string name="saved">Saved</string>
     <string name="recognition_result">Recognition Result</string>
-    <string name="please_wait">Please wait...</string>
-    <string name="save_as_txt">Save as .txt</string>
-    <string name="save_as_pdf">Save as .pdf</string>
-    <string name="save_as_docx">Save as .docx</string>
-    <string name="saving_cropped_image">Saving cropped image...</string>
+    <string name="please_wait">Please wait…</string>
+    <string name="save_as_txt">Save as .txt file</string>
+    <string name="save_as_pdf">Save as .pdf file</string>
+    <string name="save_as_docx">Save as .docx file</string>
+    <string name="saving_cropped_image">Saving cropped image…</string>
     <string name="recognising">Recognising</string>
 </resources>
