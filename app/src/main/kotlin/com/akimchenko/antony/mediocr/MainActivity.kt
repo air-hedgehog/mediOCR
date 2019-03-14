@@ -20,6 +20,8 @@ import java.util.*
 class MainActivity : AppCompatActivity() {
 
     private val permissionCallbacks: SparseArray<OnRequestPermissionCallback> = SparseArray()
+    private var progressDialog: AlertDialog? = null
+    private var progressMessage: String? = null
 
     interface OnRequestPermissionCallback {
         fun onPermissionReturned(isGranted: Boolean)
@@ -90,9 +92,6 @@ class MainActivity : AppCompatActivity() {
     fun popFragment(fragmentName: String) {
         supportFragmentManager.popBackStackImmediate(fragmentName, 0)
     }
-
-    var progressDialog: AlertDialog? = null
-    var progressMessage: String? = null
 
     @SuppressLint("InflateParams")
     fun showProgress(message: String? = null) {

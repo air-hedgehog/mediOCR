@@ -20,7 +20,6 @@ import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_main.*
 import java.io.File
-import java.net.URI
 
 class MainFragment : Fragment(), View.OnClickListener {
 

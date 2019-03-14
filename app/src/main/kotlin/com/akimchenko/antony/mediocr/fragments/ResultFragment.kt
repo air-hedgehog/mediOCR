@@ -3,6 +3,8 @@ package com.akimchenko.antony.mediocr.fragments
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
+import android.graphics.pdf.PdfDocument
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -28,6 +30,8 @@ class ResultFragment : Fragment() {
         const val SAVE_AS_DOCX_ID = 2
     }
 
+    private var counter: Int = 1
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_result, container, false)
     }
@@ -40,7 +44,8 @@ class ResultFragment : Fragment() {
         save_button.setOnClickListener {
             val popup: PopupMenu = PopupMenu(activity, save_button).also { popup ->
                 popup.menu.add(0, SAVE_AS_TXT_ID, 0, activity.getString(R.string.save_as_txt))
-                popup.menu.add(0, SAVE_AS_PDF_ID, 1, activity.getString(R.string.save_as_pdf))
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+                    popup.menu.add(0, SAVE_AS_PDF_ID, 1, activity.getString(R.string.save_as_pdf))
                 popup.menu.add(0, SAVE_AS_DOCX_ID, 2, activity.getString(R.string.save_as_docx))
             }
             popup.setOnMenuItemClickListener {
@@ -66,6 +71,7 @@ class ResultFragment : Fragment() {
         AlertDialog.Builder(activity)
                 .setView(editTextView)
                 .setPositiveButton(activity.getString(R.string.save)) { dialog, _ ->
+
                     var editedText = editTextView.text.trim().toString()
                     if (editedText.isEmpty())
                         editedText = currentDateName
@@ -86,11 +92,13 @@ class ResultFragment : Fragment() {
     }
 
     private fun saveAsPdf(activity: MainActivity, text: String, name: String) {
-
+        //val pdfDoc = PdfDocument()
     }
 
     private fun saveAsTxt(activity: MainActivity, text: String, name: String) {
-        val file = File(activity.getDefaultSavedFilesDirectory(), "$name.txt")
+        val defaultDir = activity.getDefaultSavedFilesDirectory()
+        val file = File(defaultDir, createUniqueName(defaultDir, name, ".txt"))
+
         if (!file.exists())
             file.createNewFile()
         val output = FileOutputStream(file)
@@ -99,5 +107,20 @@ class ResultFragment : Fragment() {
         osw.close()
         output.flush()
         output.close()
+    }
+
+    private fun createUniqueName(directory: File, name: String, suffix: String): String {
+        /*val existing: File? = directory.listFiles().find {
+            var foundName = it.name.removeSuffix(suffix)
+            foundName = foundName.removeSuffix("(${counter -1})")
+            foundName == name
+        }
+        return if (existing != null) {
+            createUniqueName(directory, "$name(${counter++})", suffix)
+        } else {
+            counter = 1
+            "$name$suffix"
+        }*/
+        return "$name$suffix"
     }
 }
