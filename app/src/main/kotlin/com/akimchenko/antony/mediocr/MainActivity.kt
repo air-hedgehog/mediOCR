@@ -37,10 +37,10 @@ class MainActivity : AppCompatActivity() {
         //hideKeyboard()
         val name = fragment::class.java.name
         supportFragmentManager.beginTransaction()
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-            .replace(R.id.main_activity_container, fragment, name)
-            .addToBackStack(name)
-            .commitAllowingStateLoss()
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .replace(R.id.main_activity_container, fragment, name)
+                .addToBackStack(name)
+                .commitAllowingStateLoss()
     }
 
     fun requestPermissions(strings: Array<String>, requestCode: Int, callback: OnRequestPermissionCallback) {
@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
         if (isFinishing) return
         val entryCount = supportFragmentManager.backStackEntryCount
         val fragment =
-            supportFragmentManager.findFragmentByTag(supportFragmentManager.getBackStackEntryAt(entryCount - 1).name)
+                supportFragmentManager.findFragmentByTag(supportFragmentManager.getBackStackEntryAt(entryCount - 1).name)
         if (fragment is MainFragment || entryCount == 0)
             finish()
         else
@@ -93,22 +93,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     var progressDialog: AlertDialog? = null
+    var progressMessage: String? = null
+
     @SuppressLint("InflateParams")
     fun showProgress(message: String? = null) {
-        if (progressDialog != null) return
-        val view = LayoutInflater.from(this).inflate(R.layout.dialog_progress, null, false)
-        view.text_view.text = message ?: getString(R.string.please_wait)
-        progressDialog = AlertDialog.Builder(this)
-            .setView(view)
-            .setCancelable(false)
-            .create()
-        progressDialog?.setCanceledOnTouchOutside(false)
-        progressDialog?.show()
+        runOnUiThread {
+            if (progressDialog != null && message != progressMessage)
+                hideProgress()
+            val view = LayoutInflater.from(this).inflate(R.layout.dialog_progress, null, false)
+            progressMessage = message
+            view.text_view.text = message ?: getString(R.string.please_wait)
+            progressDialog = AlertDialog.Builder(this)
+                    .setView(view)
+                    .setCancelable(false)
+                    .create()
+            progressDialog?.setCanceledOnTouchOutside(false)
+            progressDialog?.show()
+        }
     }
 
     fun hideProgress() {
-        progressDialog?.dismiss()
-        progressDialog = null
+        runOnUiThread {
+            progressDialog?.dismiss()
+            progressDialog = null
+            progressMessage = null
+        }
     }
 
     fun getFileForBitmap() = File("${getDefaultDirectory()}/${Calendar.getInstance().timeInMillis}.jpg")

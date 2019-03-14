@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.Utils
+import com.edmodo.cropper.CropImageView
 import com.googlecode.tesseract.android.TessBaseAPI
 import kotlinx.android.synthetic.main.fragment_preview.*
 import kotlinx.coroutines.GlobalScope
@@ -34,8 +35,6 @@ class PreviewFragment : Fragment() {
         const val TESSDATA = "tessdata"
         const val ARG_IMAGE_FILE_URI = "arg_image_file"
     }
-
-    private var isRotated: Boolean = false
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_preview, container, false)
@@ -64,8 +63,8 @@ class PreviewFragment : Fragment() {
             else -> return
         }
 
-
-        image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
+        crop_image_view.setGuidelines(CropImageView.DEFAULT_GUIDELINES)
+        crop_image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
 
         close_button.setImageDrawable(
             Utils.makeSelector(
@@ -94,33 +93,27 @@ class PreviewFragment : Fragment() {
 
         close_button.setOnClickListener { activity.popFragment(MainFragment::class.java.name) }
         rotate_left_button.setOnClickListener {
-            isRotated = true
-            image_view.setImageBitmap(image_view.drawable.toBitmap().rotate(-90.0f))
+            crop_image_view.rotateImage(-90)
         }
         rotate_right_button.setOnClickListener {
-            isRotated = true
-            image_view.setImageBitmap(image_view.drawable.toBitmap().rotate(90.0f))
+            crop_image_view.rotateImage(90)
         }
         recognise_button.setOnClickListener {
-            if (isRotated) {
-                isRotated = false
-                //saving current rotation of bitmap into file, if it was rotated
-                activity.showProgress()
-                GlobalScope.launch {
-                    if (imageFile.exists())
-                        imageFile.delete()
-                    imageFile.createNewFile()
-                    Utils.writeBitmapToFile(image_view.drawable.toBitmap(), imageFile)
-                }.invokeOnCompletion {
-                    recognise(imageFile.toUri())
-                }
+            activity.showProgress(activity.getString(R.string.saving_cropped_image))
+            GlobalScope.launch {
+                if (imageFile.exists())
+                    imageFile.delete()
+                imageFile.createNewFile()
+                Utils.writeBitmapToFile(crop_image_view.croppedImage, imageFile)
+            }.invokeOnCompletion {
+                recognise(imageFile.toUri())
             }
         }
     }
 
     private fun recognise(fileUri: Uri) {
         val activity = activity as MainActivity? ?: return
-        activity.showProgress()
+        activity.showProgress(activity.getString(R.string.recognising))
         var result: String? = null
         GlobalScope.launch {
             prepareTesseract()

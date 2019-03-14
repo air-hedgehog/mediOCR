@@ -11,4 +11,6 @@
     <string name="save_as_txt">Save as .txt</string>
     <string name="save_as_pdf">Save as .pdf</string>
     <string name="save_as_docx">Save as .docx</string>
+    <string name="saving_cropped_image">Saving cropped image...</string>
+    <string name="recognising">Recognising</string>
 </resources>
