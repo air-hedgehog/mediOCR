@@ -3,7 +3,6 @@ package com.akimchenko.antony.mediocr.fragments
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
-import android.graphics.pdf.PdfDocument
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -30,7 +29,7 @@ class ResultFragment : Fragment() {
         const val SAVE_AS_DOCX_ID = 2
     }
 
-    private var counter: Int = 1
+    private var counter: Int = 0
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_result, container, false)
@@ -65,26 +64,27 @@ class ResultFragment : Fragment() {
 
     @SuppressLint("InflateParams")
     private fun showEnterNameAlert(activity: MainActivity, contentText: String, fileTypeId: Int) {
-        val editTextView: EditText = LayoutInflater.from(activity).inflate(R.layout.dialog_enter_name, null, false) as EditText
+        val editTextView: EditText =
+            LayoutInflater.from(activity).inflate(R.layout.dialog_enter_name, null, false) as EditText
         val currentDateName = Utils.formatDate(Calendar.getInstance().timeInMillis)
         editTextView.hint = currentDateName
         AlertDialog.Builder(activity)
-                .setView(editTextView)
-                .setPositiveButton(activity.getString(R.string.save)) { dialog, _ ->
+            .setView(editTextView)
+            .setPositiveButton(activity.getString(R.string.save)) { dialog, _ ->
 
-                    var editedText = editTextView.text.trim().toString()
-                    if (editedText.isEmpty())
-                        editedText = currentDateName
-                    when (fileTypeId) {
-                        SAVE_AS_TXT_ID -> saveAsTxt(activity, contentText, editedText)
-                        SAVE_AS_PDF_ID -> saveAsPdf(activity, contentText, editedText)
-                        SAVE_AS_DOCX_ID -> saveAsDocx(activity, contentText, editedText)
-                    }
+                var editedText = editTextView.text.trim().toString()
+                if (editedText.isEmpty())
+                    editedText = currentDateName
+                when (fileTypeId) {
+                    SAVE_AS_TXT_ID -> saveAsTxt(activity, contentText, editedText)
+                    SAVE_AS_PDF_ID -> saveAsPdf(activity, contentText, editedText)
+                    SAVE_AS_DOCX_ID -> saveAsDocx(activity, contentText, editedText)
+                }
 
-                    dialog.dismiss()
-                }.setNegativeButton(activity.getString(R.string.cancel)) { dialog, _ ->
-                    dialog.dismiss()
-                }.create().show()
+                dialog.dismiss()
+            }.setNegativeButton(activity.getString(R.string.cancel)) { dialog, _ ->
+                dialog.dismiss()
+            }.create().show()
     }
 
     private fun saveAsDocx(activity: MainActivity, text: String, name: String) {
@@ -97,7 +97,10 @@ class ResultFragment : Fragment() {
 
     private fun saveAsTxt(activity: MainActivity, text: String, name: String) {
         val defaultDir = activity.getDefaultSavedFilesDirectory()
-        val file = File(defaultDir, createUniqueName(defaultDir, name, ".txt"))
+        val suffix = ".txt"
+        val increment = getIncrementForNameRecursive(defaultDir, name, suffix)
+        val uniqueName = "$name${if (increment > 0) "($increment)" else ""}$suffix"
+        val file = File(defaultDir, uniqueName)
 
         if (!file.exists())
             file.createNewFile()
@@ -109,18 +112,16 @@ class ResultFragment : Fragment() {
         output.close()
     }
 
-    private fun createUniqueName(directory: File, name: String, suffix: String): String {
-        /*val existing: File? = directory.listFiles().find {
-            var foundName = it.name.removeSuffix(suffix)
-            foundName = foundName.removeSuffix("(${counter -1})")
-            foundName == name
+    private fun getIncrementForNameRecursive(directory: File, name: String, suffix: String): Int {
+        val existingFile: File? = directory.listFiles().find {
+            val countedName: String = if (counter > 0) "$name($counter)" else name
+            it.name.removeSuffix(suffix) == countedName
         }
-        return if (existing != null) {
-            createUniqueName(directory, "$name(${counter++})", suffix)
-        } else {
-            counter = 1
-            "$name$suffix"
-        }*/
-        return "$name$suffix"
+        if (existingFile != null) {
+            counter++
+            getIncrementForNameRecursive(directory, name, suffix)
+        }
+
+        return counter
     }
 }
