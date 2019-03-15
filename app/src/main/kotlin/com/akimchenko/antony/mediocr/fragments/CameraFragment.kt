@@ -12,14 +12,16 @@ import android.hardware.SensorManager
 import android.hardware.camera2.*
 import android.media.Image
 import android.media.ImageReader
-import android.os.*
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.os.HandlerThread
 import android.util.Log
 import android.util.Pair
 import android.util.Size
 import android.util.SparseIntArray
 import android.view.*
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
@@ -29,7 +31,10 @@ import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_camera.*
-import java.io.*
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.OutputStream
 import java.util.*
 import kotlin.math.absoluteValue
 

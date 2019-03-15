@@ -54,6 +54,7 @@ class ResultFragment : Fragment() {
             popup.show()
         }
         share_button.setOnClickListener {
+            counter = 0
             startActivity(Intent(Intent.ACTION_SEND).also { intent ->
                 intent.type = "text/plain"
                 intent.putExtra(Intent.EXTRA_TEXT, edit_text.text.toString())
