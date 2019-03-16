@@ -14,11 +14,16 @@ import androidx.fragment.app.Fragment
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.Utils
+import com.itextpdf.text.Document
+import com.itextpdf.text.Font
+import com.itextpdf.text.Paragraph
+import com.itextpdf.text.pdf.PdfWriter
 import kotlinx.android.synthetic.main.fragment_result.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 import java.util.*
+
 
 class ResultFragment : Fragment() {
 
@@ -41,20 +46,20 @@ class ResultFragment : Fragment() {
         val resultString = arguments?.getString(ARG_OCR_RESULT) ?: return
         close_button.setOnClickListener { activity.popFragment(MainFragment::class.java.name) }
         save_button.setOnClickListener {
-            val popup: PopupMenu = PopupMenu(activity, save_button).also { popup ->
+            counter = 0
+            PopupMenu(activity, save_button).also { popup ->
                 popup.menu.add(0, SAVE_AS_TXT_ID, 0, activity.getString(R.string.save_as_txt))
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
                     popup.menu.add(0, SAVE_AS_PDF_ID, 1, activity.getString(R.string.save_as_pdf))
                 popup.menu.add(0, SAVE_AS_DOCX_ID, 2, activity.getString(R.string.save_as_docx))
+                popup.setOnMenuItemClickListener {
+                    showEnterNameAlert(activity, edit_text.text.trim().toString(), it.itemId)
+                    false
+                }
+                popup.show()
             }
-            popup.setOnMenuItemClickListener {
-                showEnterNameAlert(activity, edit_text.text.trim().toString(), it.itemId)
-                false
-            }
-            popup.show()
         }
         share_button.setOnClickListener {
-            counter = 0
             startActivity(Intent(Intent.ACTION_SEND).also { intent ->
                 intent.type = "text/plain"
                 intent.putExtra(Intent.EXTRA_TEXT, edit_text.text.toString())
@@ -92,25 +97,44 @@ class ResultFragment : Fragment() {
 
     }
 
+    @SuppressLint("NewApi")
     private fun saveAsPdf(activity: MainActivity, text: String, name: String) {
-        //val pdfDoc = PdfDocument()
+        val defaultDir = activity.getDefaultSavedFilesDirectory()
+        val file = File(defaultDir, getUniqueName(defaultDir, name, ".pdf"))
+        if (!file.exists())
+            file.createNewFile()
+
+        Document().also { document ->
+            val fOut = FileOutputStream(file)
+            PdfWriter.getInstance(document, fOut)
+            //open the document
+            document.open()
+            val p1 = Paragraph(text)
+            val paraFont = Font(Font.FontFamily.UNDEFINED)
+            p1.alignment = Paragraph.ALIGN_LEFT
+            p1.font = paraFont
+            document.add(p1)
+            document.close()
+        }
     }
 
     private fun saveAsTxt(activity: MainActivity, text: String, name: String) {
         val defaultDir = activity.getDefaultSavedFilesDirectory()
-        val suffix = ".txt"
-        val increment = getIncrementForNameRecursive(defaultDir, name, suffix)
-        val uniqueName = "$name${if (increment > 0) "($increment)" else ""}$suffix"
-        val file = File(defaultDir, uniqueName)
-
+        val file = File(defaultDir, getUniqueName(defaultDir, name, ".txt"))
         if (!file.exists())
             file.createNewFile()
         val output = FileOutputStream(file)
-        val osw = OutputStreamWriter(output)
-        osw.append(text)
-        osw.close()
+        OutputStreamWriter(output).also {
+            it.append(text)
+            it.close()
+        }
         output.flush()
         output.close()
+    }
+
+    private fun getUniqueName(defaultDir: File, name: String, suffix: String): String {
+        val increment = getIncrementForNameRecursive(defaultDir, name, suffix)
+        return "$name${if (increment > 0) "($increment)" else ""}$suffix"
     }
 
     private fun getIncrementForNameRecursive(directory: File, name: String, suffix: String): Int {
@@ -122,7 +146,6 @@ class ResultFragment : Fragment() {
             counter++
             getIncrementForNameRecursive(directory, name, suffix)
         }
-
         return counter
     }
 }
