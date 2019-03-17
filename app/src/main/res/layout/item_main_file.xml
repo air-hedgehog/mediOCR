@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="200dp"
+    android:background="@drawable/main_item_background"
+    android:orientation="vertical"
+    tools:layout_width="190dp"
+    android:layout_margin="@dimen/default_side_margin_small">
+
+    <TextView
+        android:paddingLeft="@dimen/default_side_margin_small"
+        android:paddingRight="@dimen/default_side_margin_small"
+        android:id="@+id/text_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="marquee"
+        android:singleLine="true"
+        android:textColor="@color/colorAccent"
+        tools:text="some file.pdf" />
+
+    <ImageView
+        android:id="@+id/image_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:scaleType="center"
+        tools:src="@drawable/ic_pdf" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/share_button"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/default_button_edge"
+            android:layout_weight="1"
+            android:background="?android:attr/selectableItemBackground"
+            android:src="@drawable/share"
+            android:tint="@color/colorAccent" />
+
+        <ImageButton
+            android:id="@+id/delete_button"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/default_button_edge"
+            android:layout_weight="1"
+            android:background="?android:attr/selectableItemBackground"
+            android:src="@drawable/delete"
+            android:tint="@color/colorAccent" />
+
+    </LinearLayout>
+
+</LinearLayout>

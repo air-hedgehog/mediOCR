@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingLeft="@dimen/default_side_margin_small"
+        android:paddingTop="@dimen/default_side_margin_small"
+        android:paddingRight="@dimen/default_side_margin_small"
+        android:paddingBottom="@dimen/toolbar_height" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -20,8 +24,8 @@
             android:id="@+id/camera_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/default_side_margin"
             android:layout_marginLeft="@dimen/default_side_margin"
+            android:layout_marginBottom="@dimen/default_side_margin"
             android:background="@drawable/camera_button"
             android:elevation="@dimen/default_elevation" />
 
@@ -33,8 +37,8 @@
             android:id="@+id/gallery_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/default_side_margin"
             android:layout_marginRight="@dimen/default_side_margin"
+            android:layout_marginBottom="@dimen/default_side_margin"
             android:background="@drawable/gallery_button"
             android:elevation="@dimen/default_elevation" />
 

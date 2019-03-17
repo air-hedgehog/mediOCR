@@ -31,7 +31,6 @@ class ResultFragment : Fragment() {
         const val ARG_OCR_RESULT = "arg_ocr_result"
         const val SAVE_AS_TXT_ID = 0
         const val SAVE_AS_PDF_ID = 1
-        const val SAVE_AS_DOCX_ID = 2
     }
 
     private var counter: Int = 0
@@ -51,7 +50,6 @@ class ResultFragment : Fragment() {
                 popup.menu.add(0, SAVE_AS_TXT_ID, 0, activity.getString(R.string.save_as_txt))
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
                     popup.menu.add(0, SAVE_AS_PDF_ID, 1, activity.getString(R.string.save_as_pdf))
-                popup.menu.add(0, SAVE_AS_DOCX_ID, 2, activity.getString(R.string.save_as_docx))
                 popup.setOnMenuItemClickListener {
                     showEnterNameAlert(activity, edit_text.text.trim().toString(), it.itemId)
                     false
@@ -84,17 +82,12 @@ class ResultFragment : Fragment() {
                 when (fileTypeId) {
                     SAVE_AS_TXT_ID -> saveAsTxt(activity, contentText, editedText)
                     SAVE_AS_PDF_ID -> saveAsPdf(activity, contentText, editedText)
-                    SAVE_AS_DOCX_ID -> saveAsDocx(activity, contentText, editedText)
                 }
 
                 dialog.dismiss()
             }.setNegativeButton(activity.getString(R.string.cancel)) { dialog, _ ->
                 dialog.dismiss()
             }.create().show()
-    }
-
-    private fun saveAsDocx(activity: MainActivity, text: String, name: String) {
-
     }
 
     @SuppressLint("NewApi")
@@ -107,7 +100,6 @@ class ResultFragment : Fragment() {
         Document().also { document ->
             val fOut = FileOutputStream(file)
             PdfWriter.getInstance(document, fOut)
-            //open the document
             document.open()
             val p1 = Paragraph(text)
             val paraFont = Font(Font.FontFamily.UNDEFINED)
@@ -123,6 +115,7 @@ class ResultFragment : Fragment() {
         val file = File(defaultDir, getUniqueName(defaultDir, name, ".txt"))
         if (!file.exists())
             file.createNewFile()
+
         val output = FileOutputStream(file)
         OutputStreamWriter(output).also {
             it.append(text)

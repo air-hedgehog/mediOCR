@@ -15,8 +15,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.GridLayoutManager
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
+import com.akimchenko.antony.mediocr.adapters.MainFragmentAdapter
 import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_main.*
 import java.io.File
@@ -39,7 +41,8 @@ class MainFragment : Fragment(), View.OnClickListener {
         super.onViewCreated(view, savedInstanceState)
         val activity: MainActivity? = activity as MainActivity?
         activity ?: return
-        //recycler_view.layoutManager = GridLayoutManager(activity, 2)
+        recycler_view.layoutManager = GridLayoutManager(activity, 2)
+        recycler_view.adapter = MainFragmentAdapter(activity, ArrayList<File>().also { it.addAll(activity.getDefaultSavedFilesDirectory().listFiles()) })
         camera_button.setImageDrawable(
             Utils.makeSelector(
                 activity,
