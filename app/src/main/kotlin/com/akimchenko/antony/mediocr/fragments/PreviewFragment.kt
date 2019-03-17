@@ -128,15 +128,13 @@ class PreviewFragment : Fragment() {
         }
     }
 
-    private fun getTesseractDataFolder(context: Context) = File(Utils.getInternalDirs(context)[0], TESSDATA)
-
     private fun prepareTesseract() {
         try {
             val activity = activity as MainActivity? ?: return
             val assets = activity.assets ?: return
             val fileList = assets.list(TESSDATA) ?: return
 
-            val tessDataDir = getTesseractDataFolder(activity)
+            val tessDataDir = activity.getTesseractDataFolder()
             if (!tessDataDir.exists() || !tessDataDir.isDirectory)
                 tessDataDir.mkdir()
 

@@ -1,6 +1,7 @@
 package com.akimchenko.antony.mediocr
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -13,6 +14,8 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import com.akimchenko.antony.mediocr.fragments.MainFragment
+import com.akimchenko.antony.mediocr.fragments.PreviewFragment
+import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.dialog_progress.view.*
 import java.io.File
 import java.util.*
@@ -119,6 +122,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun getFileForBitmap() = File("${getDefaultCroppedImagesDirectory()}/${Calendar.getInstance().timeInMillis}.jpg")
+
+    fun getTesseractDataFolder() = File(Utils.getInternalDirs(this)[0], PreviewFragment.TESSDATA)
 
     fun getDefaultSavedFilesDirectory(): File {
         val savedFilesDirectory = File(getDefaultDirectory(), getString(R.string.saved_files))

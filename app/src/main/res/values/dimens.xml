@@ -6,4 +6,5 @@
     <dimen name="default_elevation">4dp</dimen>
     <dimen name="large_button_edge">72dp</dimen>
     <dimen name="default_side_margin_small">8dp</dimen>
+    <dimen name="default_list_item_height">48dp</dimen>
 </resources>

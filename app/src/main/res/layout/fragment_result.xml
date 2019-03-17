@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <RelativeLayout
+    <LinearLayout
+        android:orientation="horizontal"
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/toolbar_height"
@@ -16,49 +19,48 @@
             android:layout_height="@dimen/toolbar_height"
             android:background="?android:attr/selectableItemBackground"
             android:scaleType="center"
-            android:src="@drawable/close" />
+            android:src="@drawable/close"
+            android:tint="@color/colorAccent" />
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_toLeftOf="@+id/share_button"
-            android:layout_toRightOf="@id/close_button"
             android:gravity="center_vertical"
             android:paddingLeft="@dimen/default_side_margin"
             android:paddingRight="@dimen/default_side_margin"
             android:text="@string/recognition_result"
-            android:textColor="@android:color/white"
+            android:textColor="@color/colorAccent"
             android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:layout_weight="1"/>
 
         <ImageView
             android:id="@+id/share_button"
             android:layout_width="@dimen/toolbar_height"
             android:layout_height="@dimen/toolbar_height"
-            android:layout_toLeftOf="@+id/save_button"
             android:background="?android:attr/selectableItemBackground"
             android:scaleType="center"
-            android:src="@drawable/share" />
+            android:src="@drawable/share"
+            android:tint="@color/colorAccent" />
 
         <ImageView
             android:id="@+id/save_button"
             android:layout_width="@dimen/toolbar_height"
             android:layout_height="@dimen/toolbar_height"
-            android:layout_alignParentRight="true"
             android:background="?android:attr/selectableItemBackground"
             android:scaleType="center"
-            android:src="@drawable/save" />
+            android:src="@drawable/save"
+            android:tint="@color/colorAccent" />
 
-    </RelativeLayout>
+    </LinearLayout>
 
     <EditText
         android:id="@+id/edit_text"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:layout_marginLeft="@dimen/default_side_margin"
-        android:layout_marginTop="@dimen/toolbar_height"
-        android:layout_marginRight="@dimen/default_side_margin"
-        android:background="@android:color/transparent" />
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent"
+        android:gravity="center_vertical"
+        android:padding="@dimen/default_side_margin"
+        tools:text="some recognized text" />
 
-</RelativeLayout>
+</LinearLayout>
