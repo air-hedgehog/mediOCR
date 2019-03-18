@@ -69,6 +69,7 @@ class MainFragment : BaseFragment(), View.OnClickListener {
     override fun onResume() {
         super.onResume()
         adapter?.updateItems()
+        hint.visibility = if (adapter != null && adapter!!.itemCount > 0) View.GONE else View.VISIBLE
     }
 
     @SuppressLint("InlinedApi")

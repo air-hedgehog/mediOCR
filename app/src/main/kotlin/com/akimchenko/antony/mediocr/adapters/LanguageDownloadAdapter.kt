@@ -91,7 +91,6 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
                             }.create().show()
 
                 } else {
-                    //TODO convert langCode to Language name for special cases like 'aze-cyrl'
                     download(items[adapterPosition], file, item)
                 }
                 notifyItemChanged(adapterPosition)
@@ -102,7 +101,6 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
             activity ?: return
             val item = items[position] as String? ?: return
 
-            //TODO convert langCode to Language name for special cases like 'aze-cyrl'
             title.text = getLocalizedLangName(item)
             val isDownloaded = isLanguageDownloaded(item)
             val isDownloading = activity.downloadIdsLangs.containsValue(item)
