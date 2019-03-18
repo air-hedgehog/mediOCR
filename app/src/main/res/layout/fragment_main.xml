@@ -43,7 +43,7 @@
         android:paddingLeft="@dimen/default_side_margin_small"
         android:paddingTop="@dimen/default_side_margin_small"
         android:paddingRight="@dimen/default_side_margin_small"
-        android:paddingBottom="@dimen/toolbar_height" />
+        android:paddingBottom="72dp" />
 
     <LinearLayout
         android:layout_width="wrap_content"
