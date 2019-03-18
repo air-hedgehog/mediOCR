@@ -15,8 +15,9 @@ import com.akimchenko.antony.mediocr.R
 import java.io.File
 
 
-class MainFragmentAdapter(private val activity: MainActivity, private var items: ArrayList<File> = ArrayList()) :
-        RecyclerView.Adapter<MainFragmentAdapter.ViewHolder>() {
+class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Adapter<MainFragmentAdapter.ViewHolder>() {
+
+    private val items: ArrayList<File> = ArrayList()
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
@@ -60,16 +61,14 @@ class MainFragmentAdapter(private val activity: MainActivity, private var items:
         holder.icon.setImageDrawable(ContextCompat.getDrawable(activity, if (name.endsWith(".txt")) R.drawable.ic_txt else R.drawable.ic_pdf))
     }
 
-    public fun updateItems(items: ArrayList<File>?) {
-        if (items != null) {
-            this.items = items
-            this.items.sortByDescending { it.lastModified() }
-        } else
-            this.items.clear()
+    fun updateItems() {
+        val files = activity.getDefaultSavedFilesDirectory().listFiles() as Array<File>? ?: return
+        items.clear()
+        items.addAll(files)
         notifyDataSetChanged()
     }
 
-    public fun deleteItem(file: File) {
+    fun deleteItem(file: File) {
         if (!items.contains(file)) return
         items.remove(file)
         notifyItemRemoved(items.indexOf(file))
