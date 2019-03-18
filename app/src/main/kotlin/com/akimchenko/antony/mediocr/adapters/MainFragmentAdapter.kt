@@ -15,7 +15,7 @@ import com.akimchenko.antony.mediocr.R
 import java.io.File
 
 
-class MainFragmentAdapter(private val activity: MainActivity, private var items: ArrayList<File>) :
+class MainFragmentAdapter(private val activity: MainActivity, private var items: ArrayList<File> = ArrayList()) :
         RecyclerView.Adapter<MainFragmentAdapter.ViewHolder>() {
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -30,7 +30,7 @@ class MainFragmentAdapter(private val activity: MainActivity, private var items:
 
             itemView.setOnClickListener {
                 Intent(Intent.ACTION_VIEW).also { intent ->
-                    val file = items[adapterPosition]
+                    val file = items[adapterPosition] as File? ?: return@setOnClickListener
                     val fileUri = FileProvider.getUriForFile(activity, activity.applicationContext.packageName + ".provider", file)
                     val mimeType = activity.contentResolver.getType(fileUri)
 

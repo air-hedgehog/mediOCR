@@ -42,7 +42,10 @@ class MainFragment : Fragment(), View.OnClickListener {
         val activity: MainActivity? = activity as MainActivity?
         activity ?: return
         recycler_view.layoutManager = GridLayoutManager(activity, 2)
-        recycler_view.adapter = MainFragmentAdapter(activity, ArrayList<File>().also { it.addAll(activity.getDefaultSavedFilesDirectory().listFiles()) })
+        recycler_view.adapter = MainFragmentAdapter(activity, ArrayList<File>().also {
+            val files = activity.getDefaultSavedFilesDirectory().listFiles() as Array<File>? ?: return@also
+            it.addAll(files)
+        })
         camera_button.setImageDrawable(
             Utils.makeSelector(
                 activity,
@@ -58,6 +61,7 @@ class MainFragment : Fragment(), View.OnClickListener {
                 )!!.toBitmap()
             )
         )
+        settings_button.setOnClickListener(this)
         camera_button.setOnClickListener(this)
         gallery_button.setOnClickListener(this)
     }
@@ -91,6 +95,7 @@ class MainFragment : Fragment(), View.OnClickListener {
                     })
             }
             gallery_button -> sendGalleryChooserIntent()
+            settings_button -> activity.pushFragment(SettingsFragment())
 
         }
     }

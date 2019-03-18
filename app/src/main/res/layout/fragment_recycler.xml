@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -13,7 +14,7 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:id="@+id/close_button"
+            android:id="@+id/back_button"
             android:layout_width="@dimen/toolbar_height"
             android:layout_height="@dimen/toolbar_height"
             android:background="?android:attr/selectableItemBackground"
@@ -22,15 +23,16 @@
             android:tint="@color/colorAccent" />
 
         <TextView
+            android:id="@+id/toolbar_title"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center_vertical"
             android:paddingLeft="@dimen/default_side_margin"
             android:paddingRight="@dimen/default_side_margin"
-            android:text="@string/download_languages"
             android:textColor="@color/colorAccent"
             android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            tools:text="Toolbar title" />
 
     </LinearLayout>
 
@@ -39,6 +41,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:padding="@dimen/default_side_margin" />
+        android:paddingTop="@dimen/default_side_margin"
+        android:paddingBottom="@dimen/default_side_margin" />
 
 </LinearLayout>

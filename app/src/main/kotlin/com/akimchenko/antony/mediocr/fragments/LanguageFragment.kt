@@ -15,12 +15,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.adapters.LanguageDownloadAdapter
-import kotlinx.android.synthetic.main.fragment_download_language.*
+import kotlinx.android.synthetic.main.fragment_recycler.*
 
 
 class LanguageFragment : Fragment() {
 
-    public interface OnDownloadStatusListener {
+    interface OnDownloadStatusListener {
         fun statousChanged(language: String)
     }
 
@@ -28,11 +28,13 @@ class LanguageFragment : Fragment() {
     private var downloadListener: OnDownloadStatusListener? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
-            inflater.inflate(R.layout.fragment_download_language, container, false)
+            inflater.inflate(R.layout.fragment_recycler, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity? ?: return
+        toolbar_title.text = activity.getString(R.string.download_languages)
+        back_button.setOnClickListener { activity.onBackPressed() }
         recycler_view.layoutManager = LinearLayoutManager(activity)
         val languages = activity.resources.getStringArray(R.array.tessdata_langs)
         adapter = LanguageDownloadAdapter(this, ArrayList<String>().also { it.addAll(languages) })

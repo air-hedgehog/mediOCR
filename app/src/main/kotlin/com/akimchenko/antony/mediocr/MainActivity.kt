@@ -123,7 +123,12 @@ class MainActivity : AppCompatActivity() {
 
     fun getFileForBitmap() = File("${getDefaultCroppedImagesDirectory()}/${Calendar.getInstance().timeInMillis}.jpg")
 
-    fun getTesseractDataFolder() = File(Utils.getInternalDirs(this)[0], PreviewFragment.TESSDATA)
+    fun getTesseractDataFolder(): File {
+        val dir = File(Utils.getInternalDirs(this)[0], PreviewFragment.TESSDATA)
+        if (!dir.exists())
+            dir.mkdirs()
+        return dir
+    }
 
     fun getDefaultSavedFilesDirectory(): File {
         val savedFilesDirectory = File(getDefaultDirectory(), getString(R.string.saved_files))
