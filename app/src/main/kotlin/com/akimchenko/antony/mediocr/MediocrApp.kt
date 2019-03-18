@@ -1,9 +1,9 @@
 package com.akimchenko.antony.mediocr
 
-import android.app.Application
+import androidx.multidex.MultiDexApplication
 import com.akimchenko.antony.mediocr.utils.AppSettings
 
-class MediocrApp: Application() {
+class MediocrApp: MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
