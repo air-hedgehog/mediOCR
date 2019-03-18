@@ -28,13 +28,9 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
 
     val activity: MainActivity? = fragment.activity as MainActivity?
 
-    fun resume() {
-        NotificationCenter.addObserver(this)
-    }
+    fun resume() = NotificationCenter.addObserver(this)
 
-    fun pause() {
-        NotificationCenter.removeObserver(this)
-    }
+    fun pause() = NotificationCenter.removeObserver(this)
 
     abstract inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         abstract fun updateUI(position: Int)

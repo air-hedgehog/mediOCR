@@ -1,5 +1,6 @@
 package com.akimchenko.antony.mediocr.adapters
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
@@ -34,20 +35,29 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
                     val file = items[adapterPosition] as File? ?: return@setOnClickListener
                     val fileUri = FileProvider.getUriForFile(activity, activity.applicationContext.packageName + ".provider", file)
                     val mimeType = activity.contentResolver.getType(fileUri)
-
                     intent.setDataAndType(fileUri, mimeType)
                     intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-
-                    //intent.putExtra(Intent.EXTRA_STREAM, fileUri)
                     activity.startActivity(intent)
                 }
             }
-            deleteButton.setOnClickListener { deleteItem(items[adapterPosition]) }
+            deleteButton.setOnClickListener {
+                val file = items[adapterPosition]
+                AlertDialog.Builder(activity)
+                        .setMessage("${activity.getString(R.string.do_you_want_to_delete)} ${file.name}")
+                        .setPositiveButton(activity.getString(R.string.delete)) { dialog, _ ->
+                            deleteItem(items[adapterPosition])
+                            dialog.dismiss()
+                        }.setNegativeButton(activity.getString(R.string.cancel)) { dialog, _ ->
+                            dialog.dismiss()
+                        }.create().show()
+
+            }
+
             shareButton.setOnClickListener {
                 Intent(Intent.ACTION_SEND).also { intent ->
                     val file = items[adapterPosition]
-                    intent.type = "application/${if (file.name.endsWith(".pdf")) "pdf" else "txt"}"
                     val fileUri = FileProvider.getUriForFile(activity, activity.applicationContext.packageName + ".provider", file)
+                    intent.type = activity.contentResolver.getType(fileUri)
                     intent.putExtra(Intent.EXTRA_STREAM, fileUri)
                     activity.startActivity(Intent.createChooser(intent, null))
                 }
@@ -70,14 +80,14 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
 
     fun deleteItem(file: File) {
         if (!items.contains(file)) return
-        items.remove(file)
+        file.delete()
         notifyItemRemoved(items.indexOf(file))
+        items.remove(file)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MainFragmentAdapter.ViewHolder =
             ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_main_file, parent, false))
 
     override fun getItemCount() = items.size
-
 
 }
