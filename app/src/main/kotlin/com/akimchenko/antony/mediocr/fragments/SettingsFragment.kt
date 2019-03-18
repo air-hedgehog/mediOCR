@@ -7,14 +7,14 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import kotlinx.android.synthetic.main.fragment_recycler.*
 
-class SettingsFragment: Fragment() {
+class SettingsFragment: BaseFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
             inflater.inflate(R.layout.fragment_recycler, container, false)
@@ -26,6 +26,7 @@ class SettingsFragment: Fragment() {
         back_button.setOnClickListener { activity.onBackPressed() }
         recycler_view.layoutManager = LinearLayoutManager(activity)
         recycler_view.adapter = SettingsAdapter()
+        recycler_view.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))
 
     }
 

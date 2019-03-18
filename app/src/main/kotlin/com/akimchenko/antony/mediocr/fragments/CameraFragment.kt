@@ -26,7 +26,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
-import androidx.fragment.app.Fragment
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.Utils
@@ -40,7 +39,7 @@ import kotlin.math.absoluteValue
 
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class CameraFragment : Fragment(), SensorEventListener {
+class CameraFragment : BaseFragment(), SensorEventListener {
 
     companion object {
 

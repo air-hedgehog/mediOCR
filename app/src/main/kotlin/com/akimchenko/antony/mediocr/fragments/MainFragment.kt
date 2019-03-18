@@ -14,7 +14,6 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
@@ -23,7 +22,7 @@ import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_main.*
 import java.io.File
 
-class MainFragment : Fragment(), View.OnClickListener {
+class MainFragment : BaseFragment(), View.OnClickListener {
 
     private var newPhotoFile: File? = null
 

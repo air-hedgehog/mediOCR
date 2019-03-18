@@ -8,13 +8,13 @@
 
     <ImageView
         android:id="@+id/checkmark"
-        android:src="@drawable/check"
-        android:tint="@color/colorAccent"
-        android:scaleType="center"
         android:layout_width="@dimen/default_list_item_height"
         android:layout_height="@dimen/default_list_item_height"
+        android:scaleType="center"
+        android:src="@drawable/check"
+        android:tint="@color/colorAccent"
         android:visibility="gone"
-        tools:visibility="visible"/>
+        tools:visibility="visible" />
 
     <TextView
         android:id="@+id/text_view"
@@ -24,7 +24,6 @@
         android:background="?android:attr/selectableItemBackground"
         android:ellipsize="marquee"
         android:gravity="center_vertical"
-        android:paddingLeft="@dimen/default_side_margin"
         android:paddingRight="@dimen/default_side_margin"
         android:singleLine="true"
         android:textSize="16sp"
@@ -38,5 +37,13 @@
         android:scaleType="center"
         android:tint="@color/colorAccent"
         tools:src="@drawable/download" />
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="@dimen/default_list_item_height"
+        android:layout_height="@dimen/default_list_item_height"
+        android:padding="@dimen/default_side_margin_small"
+        android:visibility="gone"
+        tools:visibility="visible" />
 
 </LinearLayout>

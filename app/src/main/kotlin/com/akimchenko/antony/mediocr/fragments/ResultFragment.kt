@@ -10,7 +10,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.PopupMenu
-import androidx.fragment.app.Fragment
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.Utils
@@ -25,7 +24,7 @@ import java.io.OutputStreamWriter
 import java.util.*
 
 
-class ResultFragment : Fragment() {
+class ResultFragment : BaseFragment() {
 
     companion object {
         const val ARG_OCR_RESULT = "arg_ocr_result"

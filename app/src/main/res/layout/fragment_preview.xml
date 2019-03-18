@@ -33,13 +33,26 @@
             android:scaleType="center"
             android:src="@drawable/rotate_left" />
 
-        <ImageView
-            android:id="@+id/recognise_button"
+        <RelativeLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/default_side_margin"
-            android:elevation="@dimen/default_elevation"
-            tools:background="@drawable/recognition_button" />
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/recognise_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/default_side_margin"
+                tools:background="@drawable/recognition_button" />
+
+            <ProgressBar
+                android:visibility="gone"
+                android:layout_centerInParent="true"
+                android:id="@+id/progress_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </RelativeLayout>
+
 
         <ImageView
             android:id="@+id/rotate_right_button"

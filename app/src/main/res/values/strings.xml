@@ -16,4 +16,7 @@
     <string name="cancel">Cancel</string>
     <string name="download_languages">Download Languages</string>
     <string name="settings">Settings</string>
+    <string name="download_completed">Download completed</string>
+    <string name="do_you_want_to_delete">Do you want to delete</string>
+    <string name="delete">Delete</string>
 </resources>
