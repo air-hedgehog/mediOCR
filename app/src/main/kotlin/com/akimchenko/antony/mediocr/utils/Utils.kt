@@ -12,6 +12,25 @@ import java.text.DateFormat
 import java.util.*
 
 object Utils {
+    @JvmStatic
+    val customLanguageTags: HashMap<String, String> = hashMapOf(
+            Pair("aze_cyrl", "Azerbaijani - Cyrillic"),
+            Pair("chi_sim", "Chinese - Simplified"),
+            Pair("chi_sim_vert", "Chinese - Simplified Vertical"),
+            Pair("chi_tra", "Chinese - Traditional"),
+            Pair("chi_tra_vert", "Chinese - Traditional Vertical"),
+            Pair("dan_frak", "Danish - Fraktur"),
+            Pair("equ", "Math / equation detection"),
+            Pair("frk", "Frankish"),
+            Pair("jpn_vert", "Japanese - Vertical"),
+            Pair("kat_old", "Georgian - Old"),
+            Pair("kmr", "Kurdish"),
+            Pair("kor_vert", "Korean - Vertical"),
+            Pair("osd", "Orientation and script detection"),
+            Pair("slk_frak", "Slovak - Fraktur"),
+            Pair("spa_old", "Spanish Old"),
+            Pair("srp_latn", "Serbian - Latin"),
+            Pair("uzb_cyrl", "Uzbek - Cyrillic"))
 
     @JvmStatic
     fun makeSelector(context: Context, bitmap: Bitmap): StateListDrawable {

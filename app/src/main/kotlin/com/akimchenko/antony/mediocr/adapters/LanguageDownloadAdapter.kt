@@ -18,6 +18,7 @@ import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.fragments.LanguageFragment
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
+import com.akimchenko.antony.mediocr.utils.Utils
 import java.io.File
 import java.util.*
 
@@ -47,6 +48,8 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
         }
     }
 
+    private fun getLocalizedLangName(item: String) = Utils.customLanguageTags[item] ?: Locale(item).displayLanguage
+
     private inner class AvailableLangViewHolder(itemView: View) : ViewHolder(itemView) {
 
         val downloadDeleteButton: ImageView = itemView.findViewById(R.id.download_button)
@@ -65,7 +68,7 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
                 val item = items[adapterPosition] as String? ?: return@setOnClickListener
                 val isDownloaded = isLanguageDownloaded(item)
                 if (!isDownloaded)
-                    download(item, File(activity.getTesseractDataFolder(), "$item.traineddata"), Locale(item).displayName)
+                    download(item, File(activity.getTesseractDataFolder(), "$item.traineddata"), getLocalizedLangName(item))
 
                 AppSettings.setSelectedLanguage(item)
                 notifyDataSetChanged()
@@ -77,7 +80,7 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
                 val file = File(activity.getTesseractDataFolder(), "$item.traineddata")
                 if (isDownloaded) {
                     AlertDialog.Builder(activity)
-                            .setMessage("${activity.getString(R.string.do_you_want_to_delete)} ${Locale(item).displayLanguage}")
+                            .setMessage("${activity.getString(R.string.do_you_want_to_delete)} ${getLocalizedLangName(item)}")
                             .setPositiveButton(activity.getString(R.string.delete)) { dialog, _ ->
                                 if (file.exists())
                                     file.delete()
@@ -100,7 +103,7 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
             val item = items[position] as String? ?: return
 
             //TODO convert langCode to Language name for special cases like 'aze-cyrl'
-            title.text = Locale(item).displayLanguage
+            title.text = getLocalizedLangName(item)
             val isDownloaded = isLanguageDownloaded(item)
             val isDownloading = activity.downloadIdsLangs.containsValue(item)
             downloadDeleteButton.isClickable = !isDownloading
