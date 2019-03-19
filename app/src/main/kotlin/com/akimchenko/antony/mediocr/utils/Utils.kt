@@ -33,6 +33,9 @@ object Utils {
             Pair("uzb_cyrl", "Uzbek - Cyrillic"))
 
     @JvmStatic
+    fun getLocalizedLangName(item: String): String = Utils.customLanguageTags[item] ?: Locale(item).displayLanguage
+
+    @JvmStatic
     fun makeSelector(context: Context, bitmap: Bitmap): StateListDrawable {
         val resources = context.resources
         val stateList = StateListDrawable()
@@ -45,7 +48,7 @@ object Utils {
     }
 
     @JvmStatic
-    fun formatDate(date: Long) = DateFormat.getDateInstance(DateFormat.FULL, Locale.getDefault()).format(date)
+    fun formatDate(date: Long): String = DateFormat.getDateInstance(DateFormat.FULL, Locale.getDefault()).format(date)
 
     @JvmStatic
     fun writeBitmapToFile(bitmap: Bitmap, file: File) {

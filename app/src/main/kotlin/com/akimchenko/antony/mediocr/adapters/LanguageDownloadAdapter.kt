@@ -48,8 +48,6 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
         }
     }
 
-    private fun getLocalizedLangName(item: String) = Utils.customLanguageTags[item] ?: Locale(item).displayLanguage
-
     private inner class AvailableLangViewHolder(itemView: View) : ViewHolder(itemView) {
 
         val downloadDeleteButton: ImageView = itemView.findViewById(R.id.download_button)
@@ -67,8 +65,8 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
                 activity ?: return@setOnClickListener
                 val item = items[adapterPosition] as String? ?: return@setOnClickListener
                 val isDownloaded = isLanguageDownloaded(item)
-                if (!isDownloaded)
-                    download(item, File(activity.getTesseractDataFolder(), "$item.traineddata"), getLocalizedLangName(item))
+                if (!isDownloaded && item != "eng")
+                    download(item, File(activity.getTesseractDataFolder(), "$item.traineddata"), Utils.getLocalizedLangName(item))
 
                 AppSettings.setSelectedLanguage(item)
                 notifyDataSetChanged()
@@ -80,7 +78,7 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
                 val file = File(activity.getTesseractDataFolder(), "$item.traineddata")
                 if (isDownloaded) {
                     AlertDialog.Builder(activity)
-                            .setMessage("${activity.getString(R.string.do_you_want_to_delete)} ${getLocalizedLangName(item)}")
+                            .setMessage("${activity.getString(R.string.do_you_want_to_delete)} ${Utils.getLocalizedLangName(item)}")
                             .setPositiveButton(activity.getString(R.string.delete)) { dialog, _ ->
                                 if (file.exists())
                                     file.delete()
@@ -100,21 +98,24 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
         override fun updateUI(position: Int) {
             activity ?: return
             val item = items[position] as String? ?: return
-
-            title.text = getLocalizedLangName(item)
-            val isDownloaded = isLanguageDownloaded(item)
-            val isDownloading = activity.downloadIdsLangs.containsValue(item)
-            downloadDeleteButton.isClickable = !isDownloading
-            downloadDeleteButton.isFocusable = !isDownloading
-            if (isDownloading) {
-                downloadDeleteButton.visibility = View.GONE
-                progressbar.visibility = View.VISIBLE
+            if (item != "eng") {
+                val isDownloaded = isLanguageDownloaded(item)
+                val isDownloading = activity.downloadIdsLangs.containsValue(item)
+                downloadDeleteButton.isClickable = !isDownloading
+                downloadDeleteButton.isFocusable = !isDownloading
+                if (isDownloading) {
+                    downloadDeleteButton.visibility = View.GONE
+                    progressbar.visibility = View.VISIBLE
+                } else {
+                    downloadDeleteButton.visibility = View.VISIBLE
+                    progressbar.visibility = View.GONE
+                }
+                downloadDeleteButton.setImageDrawable(ContextCompat.getDrawable(activity, if (isDownloaded) R.drawable.delete else R.drawable.download))
             } else {
-                downloadDeleteButton.visibility = View.VISIBLE
+                downloadDeleteButton.visibility = View.GONE
                 progressbar.visibility = View.GONE
             }
-            downloadDeleteButton.setImageDrawable(ContextCompat.getDrawable(activity, if (isDownloaded) R.drawable.delete else R.drawable.download))
-
+            title.text = Utils.getLocalizedLangName(item)
             val isSelected = AppSettings.getSelectedLanguage() == item
             checkMark.visibility = if (isSelected) View.VISIBLE else View.GONE
             title.setPadding(if (isSelected) 0 else activity.resources.getDimensionPixelSize(R.dimen.default_side_margin), 0, 0, 0)

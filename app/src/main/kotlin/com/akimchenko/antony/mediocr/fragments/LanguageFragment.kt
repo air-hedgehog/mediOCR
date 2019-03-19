@@ -27,7 +27,10 @@ class LanguageFragment : BaseFragment() {
         recycler_view.layoutManager = LinearLayoutManager(activity)
         recycler_view.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))
         val languages = activity.resources.getStringArray(R.array.tessdata_langs)
-        adapter = LanguageDownloadAdapter(this, ArrayList<String>().also { it.addAll(languages) })
+        adapter = LanguageDownloadAdapter(this, ArrayList<String>().also {
+            it.add("eng")
+            it.addAll(languages)
+        })
         recycler_view.adapter = adapter
     }
 

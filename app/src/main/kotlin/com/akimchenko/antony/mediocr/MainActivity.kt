@@ -71,7 +71,11 @@ class MainActivity : AppCompatActivity() {
                 val language = downloadIdsLangs[id]!!
                 NotificationCenter.notify(NotificationCenter.LANG_DOWNLOAD_STATUS_CHANGED, language)
                 downloadIdsLangs.remove(id)
-                Toast.makeText(this@MainActivity, getString(R.string.download_completed), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@MainActivity,
+                    "${getString(R.string.download_completed)}: ${Utils.getLocalizedLangName(language)}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
