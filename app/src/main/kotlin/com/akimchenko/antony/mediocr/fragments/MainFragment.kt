@@ -23,6 +23,7 @@ import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_main.*
 import java.io.File
 
+@SuppressLint("InlinedApi")
 class MainFragment : BaseFragment(), View.OnClickListener {
 
     private var newPhotoFile: File? = null
@@ -31,6 +32,7 @@ class MainFragment : BaseFragment(), View.OnClickListener {
         const val READ_WRITE_CAMERA_REQUEST_CODE = 101
         const val CAPTURE_IMAGE_REQUEST_CODE = 102
         const val GALLERY_CHOOSER_REQUEST_CODE = 103
+        const val READ_WRITE_REQUEST_CODE = 104
     }
 
     private var adapter: MainFragmentAdapter? = null
@@ -72,10 +74,8 @@ class MainFragment : BaseFragment(), View.OnClickListener {
         hint.visibility = if (adapter != null && adapter!!.itemCount > 0) View.GONE else View.VISIBLE
     }
 
-    @SuppressLint("InlinedApi")
     override fun onClick(v: View?) {
-        val activity: MainActivity? = activity as MainActivity?
-        activity ?: return
+        val activity = activity as MainActivity? ?: return
         when (v) {
             camera_button -> {
                 activity.requestPermissions(arrayOf(
@@ -100,7 +100,23 @@ class MainFragment : BaseFragment(), View.OnClickListener {
                             }
                         })
             }
-            gallery_button -> sendGalleryChooserIntent()
+            gallery_button -> {
+                activity.requestPermissions(arrayOf(
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ), READ_WRITE_REQUEST_CODE, object : MainActivity.OnRequestPermissionCallback {
+                    override fun onPermissionReturned(isGranted: Boolean) {
+                        if (isGranted)
+                            sendGalleryChooserIntent()
+                        else
+                            Toast.makeText(
+                                activity,
+                                activity.getString(R.string.you_need_to_allow_permissions_read_write),
+                                Toast.LENGTH_LONG
+                            ).show()
+                    }
+                })
+            }
             settings_button -> activity.pushFragment(SettingsFragment())
         }
     }

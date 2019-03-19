@@ -3,6 +3,7 @@
     <string translatable="false" name="default_folder_name">MediOCR_data</string>
 
     <string name="you_need_to_allow_permissions_read_write_camera">You need to grant READ/WRITE and CAMERA permissions to use camera feature </string>
+    <string name="you_need_to_allow_permissions_read_write">You need to grant READ/WRITE permissions to use gallery feature </string>
     <string name="saved">Saved</string>
     <string name="recognition_result">Recognition Result</string>
     <string name="please_wait">Please wait…</string>
