@@ -3,8 +3,11 @@ package com.akimchenko.antony.mediocr.fragments
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -13,6 +16,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.GridLayoutManager
@@ -22,6 +26,7 @@ import com.akimchenko.antony.mediocr.adapters.MainFragmentAdapter
 import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_main.*
 import java.io.File
+
 
 @SuppressLint("InlinedApi")
 class MainFragment : BaseFragment(), View.OnClickListener {
@@ -87,9 +92,21 @@ class MainFragment : BaseFragment(), View.OnClickListener {
                         object : MainActivity.OnRequestPermissionCallback {
                             override fun onPermissionReturned(isGranted: Boolean) {
                                 if (isGranted)
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                                        activity.pushFragment(CameraFragment())
-                                    else
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                        val manager = activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager? ?: return
+                                        var isCamera2Supported = false
+
+                                        for (cameraId in manager.cameraIdList) {
+                                            val characteristics: Int? = manager.getCameraCharacteristics(cameraId).get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL)
+                                            isCamera2Supported = characteristics == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY
+                                            break
+                                        }
+
+                                        if (isCamera2Supported)
+                                            activity.pushFragment(CameraFragment())
+                                        else
+                                            sendCameraIntent()
+                                    } else
                                         sendCameraIntent()
                                 else
                                     Toast.makeText(
@@ -129,7 +146,8 @@ class MainFragment : BaseFragment(), View.OnClickListener {
                 if (!newPhotoFile!!.exists())
                     newPhotoFile!!.createNewFile()
                 newPhotoFile!!.also {
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, newPhotoFile!!.toUri())
+                    val uri = FileProvider.getUriForFile(activity, activity.applicationContext.packageName + ".provider", newPhotoFile!!)
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri)
                     startActivityForResult(takePictureIntent, CAPTURE_IMAGE_REQUEST_CODE)
                 }
             }
