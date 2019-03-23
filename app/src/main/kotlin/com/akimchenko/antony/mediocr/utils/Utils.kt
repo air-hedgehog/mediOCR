@@ -6,6 +6,7 @@ import android.graphics.PorterDuff
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.StateListDrawable
 import androidx.core.content.ContextCompat
+import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import java.io.*
 import java.text.DateFormat
@@ -65,6 +66,11 @@ object Utils {
         } catch (e: IOException) {
 
         }
+    }
+
+    @JvmStatic
+    public fun isLanguageDownloaded(activity: MainActivity, item: String): Boolean {
+        return activity.getTesseractDataFolder().listFiles()?.find { it.name == "$item.traineddata" } != null
     }
 
     @JvmStatic

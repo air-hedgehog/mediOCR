@@ -16,6 +16,7 @@
         android:layout_height="wrap_content"
         android:ellipsize="marquee"
         android:singleLine="true"
+        android:textSize="@dimen/secondary_text"
         android:textColor="@color/colorAccent"
         tools:text="some file.pdf" />
 

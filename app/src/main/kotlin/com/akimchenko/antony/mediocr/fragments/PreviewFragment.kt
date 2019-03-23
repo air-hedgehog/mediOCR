@@ -89,6 +89,8 @@ class PreviewFragment : BaseFragment() {
                         ContextCompat.getDrawable(activity, R.drawable.recognition_button)!!.toBitmap()
                 )
         )
+        language_button.text = Utils.getLocalizedLangName(AppSettings.getSelectedLanguage())
+        language_button.setOnClickListener { activity.pushFragment(LanguageFragment()) }
 
         close_button.setOnClickListener { activity.popFragment(MainFragment::class.java.name) }
         rotate_left_button.setOnClickListener {
@@ -116,6 +118,12 @@ class PreviewFragment : BaseFragment() {
             else
                 runnable.run()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val activity = activity as MainActivity? ?: return
+        updateProgressVisibility(activity.downloadIdsLangs.containsValue(AppSettings.getSelectedLanguage()))
     }
 
     private fun updateProgressVisibility(isVisible: Boolean) {

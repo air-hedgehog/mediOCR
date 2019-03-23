@@ -45,11 +45,11 @@
                 tools:background="@drawable/recognition_button" />
 
             <ProgressBar
-                android:visibility="gone"
-                android:layout_centerInParent="true"
                 android:id="@+id/progress_bar"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:visibility="gone" />
 
         </RelativeLayout>
 
@@ -72,5 +72,19 @@
         android:layout_margin="@dimen/default_side_margin"
         android:scaleType="center"
         android:src="@drawable/close" />
+
+    <TextView
+        android:id="@+id/language_button"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/default_button_edge"
+        android:layout_margin="@dimen/default_side_margin"
+        android:layout_toLeftOf="@id/close_button"
+        android:drawableLeft="@drawable/language"
+        android:drawablePadding="@dimen/default_side_margin_small"
+        android:gravity="center_vertical"
+        android:src="@drawable/language"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/primary_text"
+        tools:text="english" />
 
 </RelativeLayout>

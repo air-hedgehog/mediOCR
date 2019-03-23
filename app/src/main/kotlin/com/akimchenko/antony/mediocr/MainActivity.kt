@@ -45,6 +45,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        downloadIdsLangs.keys.forEach { key ->
+            if (Utils.isLanguageDownloaded(this, downloadIdsLangs[key]!!))
+                downloadIdsLangs.remove(key)
+        }
         registerReceiver(onDownloadComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
     }
 
@@ -72,9 +76,9 @@ class MainActivity : AppCompatActivity() {
                 NotificationCenter.notify(NotificationCenter.LANG_DOWNLOAD_STATUS_CHANGED, language)
                 downloadIdsLangs.remove(id)
                 Toast.makeText(
-                    this@MainActivity,
-                    "${getString(R.string.download_completed)}: ${Utils.getLocalizedLangName(language)}",
-                    Toast.LENGTH_SHORT
+                        this@MainActivity,
+                        "${getString(R.string.download_completed)}: ${Utils.getLocalizedLangName(language)}",
+                        Toast.LENGTH_SHORT
                 ).show()
             }
         }

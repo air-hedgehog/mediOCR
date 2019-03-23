@@ -29,7 +29,10 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
 
     val activity: MainActivity? = fragment.activity as MainActivity?
 
-    fun resume() = NotificationCenter.addObserver(this)
+    fun resume() {
+        NotificationCenter.addObserver(this)
+        notifyDataSetChanged()
+    }
 
     fun pause() = NotificationCenter.removeObserver(this)
 
@@ -55,17 +58,11 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
         val checkMark: ImageView = itemView.findViewById(R.id.checkmark)
         val progressbar: ProgressBar = itemView.findViewById(R.id.progress_bar)
 
-        private fun isLanguageDownloaded(item: String): Boolean {
-            activity ?: return false
-            return activity.getTesseractDataFolder().listFiles()?.find { it.name == "$item.traineddata" } != null
-        }
-
         init {
             itemView.setOnClickListener {
                 activity ?: return@setOnClickListener
                 val item = items[adapterPosition] as String? ?: return@setOnClickListener
-                val isDownloaded = isLanguageDownloaded(item)
-                if (!isDownloaded && item != "eng")
+                if (!Utils.isLanguageDownloaded(activity, item) && item != "eng")
                     download(item, File(activity.getTesseractDataFolder(), "$item.traineddata"), Utils.getLocalizedLangName(item))
 
                 AppSettings.setSelectedLanguage(item)
@@ -74,9 +71,8 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
             downloadDeleteButton.setOnClickListener {
                 activity ?: return@setOnClickListener
                 val item = items[adapterPosition] as String? ?: return@setOnClickListener
-                val isDownloaded = isLanguageDownloaded(item)
                 val file = File(activity.getTesseractDataFolder(), "$item.traineddata")
-                if (isDownloaded) {
+                if (Utils.isLanguageDownloaded(activity, item)) {
                     AlertDialog.Builder(activity)
                             .setMessage("${activity.getString(R.string.do_you_want_to_delete)} ${Utils.getLocalizedLangName(item)}")
                             .setPositiveButton(activity.getString(R.string.delete)) { dialog, _ ->
@@ -99,7 +95,7 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
             activity ?: return
             val item = items[position] as String? ?: return
             if (item != "eng") {
-                val isDownloaded = isLanguageDownloaded(item)
+                val isDownloaded = Utils.isLanguageDownloaded(activity, item)
                 val isDownloading = activity.downloadIdsLangs.containsValue(item)
                 downloadDeleteButton.isClickable = !isDownloading
                 downloadDeleteButton.isFocusable = !isDownloading
