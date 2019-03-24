@@ -16,18 +16,21 @@ import androidx.recyclerview.widget.RecyclerView
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.fragments.LanguageFragment
-import com.akimchenko.antony.mediocr.utils.AppSettings
+import com.akimchenko.antony.mediocr.utils.AppSettingsComponent
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
+import org.koin.standalone.KoinComponent
+import org.koin.standalone.get
 import java.io.File
 import java.util.*
 
 
 class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<String>) :
-        RecyclerView.Adapter<LanguageDownloadAdapter.ViewHolder>(), NotificationCenter.Observer {
+        RecyclerView.Adapter<LanguageDownloadAdapter.ViewHolder>(), NotificationCenter.Observer, KoinComponent {
 
 
     val activity: MainActivity? = fragment.activity as MainActivity?
+    private val appSettings = get<AppSettingsComponent>()
 
     fun resume() {
         NotificationCenter.addObserver(this)
@@ -43,8 +46,8 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
     override fun onNotification(id: Int, `object`: Any?) {
         when (id) {
             NotificationCenter.LANG_DELETED -> {
-                if (`object` == AppSettings.getSelectedLanguage())
-                    AppSettings.setSelectedLanguage(null)
+                if (`object` == appSettings.getSelectedLanguage())
+                    appSettings.setSelectedLanguage(null)
                 notifyDataSetChanged()
             }
             NotificationCenter.LANG_DOWNLOAD_STATUS_CHANGED -> notifyItemChanged(items.indexOf(`object` as String))
@@ -65,7 +68,7 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
                 if (!Utils.isLanguageDownloaded(activity, item) && item != "eng")
                     download(item, File(activity.getTesseractDataFolder(), "$item.traineddata"), Utils.getLocalizedLangName(item))
 
-                AppSettings.setSelectedLanguage(item)
+                appSettings.setSelectedLanguage(item)
                 notifyDataSetChanged()
             }
             downloadDeleteButton.setOnClickListener {
@@ -112,7 +115,7 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
                 progressbar.visibility = View.GONE
             }
             title.text = Utils.getLocalizedLangName(item)
-            val isSelected = AppSettings.getSelectedLanguage() == item
+            val isSelected = appSettings.getSelectedLanguage() == item
             checkMark.visibility = if (isSelected) View.VISIBLE else View.GONE
             title.setPadding(if (isSelected) 0 else activity.resources.getDimensionPixelSize(R.dimen.default_side_margin), 0, 0, 0)
         }

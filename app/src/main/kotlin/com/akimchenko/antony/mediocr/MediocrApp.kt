@@ -1,12 +1,13 @@
 package com.akimchenko.antony.mediocr
 
 import androidx.multidex.MultiDexApplication
-import com.akimchenko.antony.mediocr.utils.AppSettings
+import com.akimchenko.antony.mediocr.utils.sharedPreferencesModule
+import org.koin.android.ext.android.startKoin
 
 class MediocrApp: MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
-        AppSettings.init(this)
+        startKoin(this, listOf(sharedPreferencesModule))
     }
 }

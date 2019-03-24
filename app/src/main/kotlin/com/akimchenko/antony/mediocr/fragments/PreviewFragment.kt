@@ -13,7 +13,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
-import com.akimchenko.antony.mediocr.utils.AppSettings
+import com.akimchenko.antony.mediocr.utils.AppSettingsComponent
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
 import com.edmodo.cropper.CropImageView
@@ -21,6 +21,7 @@ import com.googlecode.tesseract.android.TessBaseAPI
 import kotlinx.android.synthetic.main.fragment_preview.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.get
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -32,6 +33,8 @@ class PreviewFragment : BaseFragment() {
         const val TESSDATA = "tessdata"
         const val ARG_IMAGE_FILE_URI = "arg_image_file"
     }
+
+    private val appSettings = get<AppSettingsComponent>()
 
     private var doWhenDownloaded: Runnable? = null
 
@@ -89,7 +92,7 @@ class PreviewFragment : BaseFragment() {
                         ContextCompat.getDrawable(activity, R.drawable.recognition_button)!!.toBitmap()
                 )
         )
-        language_button.text = Utils.getLocalizedLangName(AppSettings.getSelectedLanguage())
+        language_button.text = Utils.getLocalizedLangName(appSettings.getSelectedLanguage())
         language_button.setOnClickListener { activity.pushFragment(LanguageFragment()) }
 
         close_button.setOnClickListener { activity.popFragment(MainFragment::class.java.name) }
@@ -113,7 +116,7 @@ class PreviewFragment : BaseFragment() {
                 }
             }
             updateProgressVisibility(true)
-            if (activity.downloadIdsLangs.containsValue(AppSettings.getSelectedLanguage()))
+            if (activity.downloadIdsLangs.containsValue(appSettings.getSelectedLanguage()))
                 doWhenDownloaded = runnable
             else
                 runnable.run()
@@ -123,12 +126,12 @@ class PreviewFragment : BaseFragment() {
     override fun onResume() {
         super.onResume()
         val activity = activity as MainActivity? ?: return
-        updateProgressVisibility(activity.downloadIdsLangs.containsValue(AppSettings.getSelectedLanguage()))
+        updateProgressVisibility(activity.downloadIdsLangs.containsValue(appSettings.getSelectedLanguage()))
     }
 
     private fun updateProgressVisibility(isVisible: Boolean) {
         val activity = activity as MainActivity? ?: return
-        if (isVisible && AppSettings.getSelectedLanguage() != "eng") {
+        if (isVisible && appSettings.getSelectedLanguage() != "eng") {
             recognise_button.setColorFilter(ContextCompat.getColor(activity, R.color.selected_tint))
             progress_bar.visibility = View.VISIBLE
             recognise_button.isClickable = false
@@ -142,11 +145,11 @@ class PreviewFragment : BaseFragment() {
     }
 
     private fun isLangDownloaded(activity: MainActivity): Boolean = activity.getTesseractDataFolder().listFiles()
-            .contains(File(activity.getTesseractDataFolder(), "${AppSettings.getSelectedLanguage()}.traineddata"))
+            .contains(File(activity.getTesseractDataFolder(), "${appSettings.getSelectedLanguage()}.traineddata"))
 
     override fun onNotification(id: Int, `object`: Any?) {
         super.onNotification(id, `object`)
-        if (id == NotificationCenter.LANG_DOWNLOAD_STATUS_CHANGED && (`object` as String) == AppSettings.getSelectedLanguage()) {
+        if (id == NotificationCenter.LANG_DOWNLOAD_STATUS_CHANGED && (`object` as String) == appSettings.getSelectedLanguage()) {
             val activity = activity as MainActivity? ?: return
             updateProgressVisibility(!isLangDownloaded(activity))
             doWhenDownloaded?.run()
@@ -217,7 +220,7 @@ class PreviewFragment : BaseFragment() {
         val activity = activity as MainActivity? ?: return null
         val tessBaseApi = TessBaseAPI()
         val path: String? = Utils.getInternalDirs(activity)[0]?.path ?: return null
-        val lang = AppSettings.getSelectedLanguage()
+        val lang = appSettings.getSelectedLanguage()
         if (lang == "eng")
             checkDefaultTessdata()
 
