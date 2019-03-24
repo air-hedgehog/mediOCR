@@ -1,11 +1,7 @@
 package com.akimchenko.antony.mediocr
 
 import android.annotation.SuppressLint
-import android.app.DownloadManager
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -13,17 +9,17 @@ import android.os.Bundle
 import android.os.Environment
 import android.util.SparseArray
 import android.view.LayoutInflater
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import com.akimchenko.antony.mediocr.components.LangDownloadComponent
 import com.akimchenko.antony.mediocr.fragments.MainFragment
 import com.akimchenko.antony.mediocr.fragments.PreviewFragment
-import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.dialog_progress.view.*
+import org.koin.android.ext.android.get
 import java.io.File
 import java.util.*
 
@@ -32,7 +28,8 @@ class MainActivity : AppCompatActivity() {
     private val permissionCallbacks: SparseArray<OnRequestPermissionCallback> = SparseArray()
     private var progressDialog: AlertDialog? = null
     private var progressMessage: String? = null
-    val downloadIdsLangs: HashMap<Long, String> = HashMap()
+
+    private val downloadCallback = get<LangDownloadComponent>()
 
     interface OnRequestPermissionCallback {
         fun onPermissionReturned(isGranted: Boolean)
@@ -78,16 +75,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        downloadIdsLangs.keys.forEach { key ->
-            if (Utils.isLanguageDownloaded(this, downloadIdsLangs[key]!!))
-                downloadIdsLangs.remove(key)
+        downloadCallback.register()
+        val idsLangs = downloadCallback.downloadIdsLangs
+        idsLangs.keys.forEach { key ->
+            if (Utils.isLanguageDownloaded(this, idsLangs[key]!!))
+                idsLangs.remove(key)
         }
-        registerReceiver(onDownloadComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
     }
 
     override fun onPause() {
         super.onPause()
-        unregisterReceiver(onDownloadComplete)
+        downloadCallback.unregister()
     }
 
     fun pushFragment(fragment: Fragment) {
@@ -99,22 +97,6 @@ class MainActivity : AppCompatActivity() {
                 .replace(R.id.main_activity_container, fragment, name)
                 .addToBackStack(name)
                 .commitAllowingStateLoss()
-    }
-
-    private val onDownloadComplete = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-            if (downloadIdsLangs.containsKey(id)) {
-                val language = downloadIdsLangs[id]!!
-                NotificationCenter.notify(NotificationCenter.LANG_DOWNLOAD_STATUS_CHANGED, language)
-                downloadIdsLangs.remove(id)
-                Toast.makeText(
-                        this@MainActivity,
-                        "${getString(R.string.download_completed)}: ${Utils.getLocalizedLangName(language)}",
-                        Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
     }
 
     fun requestPermissions(strings: Array<String>, requestCode: Int, callback: OnRequestPermissionCallback) {

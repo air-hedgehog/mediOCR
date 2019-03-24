@@ -1,4 +1,4 @@
-package com.akimchenko.antony.mediocr.utils
+package com.akimchenko.antony.mediocr.components
 
 import android.content.Context
 import android.content.SharedPreferences

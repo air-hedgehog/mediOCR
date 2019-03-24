@@ -15,14 +15,16 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
+import com.akimchenko.antony.mediocr.components.AppSettingsComponent
+import com.akimchenko.antony.mediocr.components.LangDownloadComponent
 import com.akimchenko.antony.mediocr.fragments.LanguageFragment
-import com.akimchenko.antony.mediocr.utils.AppSettingsComponent
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.get
 import java.io.File
 import java.util.*
+import kotlin.collections.set
 
 
 class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<String>) :
@@ -31,6 +33,7 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
 
     val activity: MainActivity? = fragment.activity as MainActivity?
     private val appSettings = get<AppSettingsComponent>()
+    private val downloadCallback = get<LangDownloadComponent>()
 
     fun resume() {
         NotificationCenter.addObserver(this)
@@ -99,7 +102,7 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
             val item = items[position] as String? ?: return
             if (item != "eng") {
                 val isDownloaded = Utils.isLanguageDownloaded(activity, item)
-                val isDownloading = activity.downloadIdsLangs.containsValue(item)
+                val isDownloading = downloadCallback.downloadIdsLangs.containsValue(item)
                 downloadDeleteButton.isClickable = !isDownloading
                 downloadDeleteButton.isFocusable = !isDownloading
                 if (isDownloading) {
@@ -136,7 +139,7 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
 
         val downloadManager = activity.getSystemService(DOWNLOAD_SERVICE) as DownloadManager?
                 ?: return
-        activity.downloadIdsLangs[downloadManager.enqueue(request)] = lang
+        downloadCallback.downloadIdsLangs[downloadManager.enqueue(request)] = lang
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LanguageDownloadAdapter.ViewHolder {

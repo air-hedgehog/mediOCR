@@ -13,7 +13,8 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
-import com.akimchenko.antony.mediocr.utils.AppSettingsComponent
+import com.akimchenko.antony.mediocr.components.AppSettingsComponent
+import com.akimchenko.antony.mediocr.components.LangDownloadComponent
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
 import com.edmodo.cropper.CropImageView
@@ -35,6 +36,7 @@ class PreviewFragment : BaseFragment() {
     }
 
     private val appSettings = get<AppSettingsComponent>()
+    private val downloadCallback = get<LangDownloadComponent>()
 
     private var doWhenDownloaded: Runnable? = null
 
@@ -116,7 +118,7 @@ class PreviewFragment : BaseFragment() {
                 }
             }
             updateProgressVisibility(true)
-            if (activity.downloadIdsLangs.containsValue(appSettings.getSelectedLanguage()))
+            if (downloadCallback.downloadIdsLangs.containsValue(appSettings.getSelectedLanguage()))
                 doWhenDownloaded = runnable
             else
                 runnable.run()
@@ -125,8 +127,7 @@ class PreviewFragment : BaseFragment() {
 
     override fun onResume() {
         super.onResume()
-        val activity = activity as MainActivity? ?: return
-        updateProgressVisibility(activity.downloadIdsLangs.containsValue(appSettings.getSelectedLanguage()))
+        updateProgressVisibility(downloadCallback.downloadIdsLangs.containsValue(appSettings.getSelectedLanguage()))
     }
 
     private fun updateProgressVisibility(isVisible: Boolean) {
