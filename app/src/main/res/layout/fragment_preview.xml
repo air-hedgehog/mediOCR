@@ -8,7 +8,8 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/buttons">
+        android:layout_above="@+id/buttons"
+        android:layout_below="@+id/language_button">
 
         <com.edmodo.cropper.CropImageView
             android:id="@+id/crop_image_view"

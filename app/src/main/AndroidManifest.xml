@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.akimchenko.antony.mediocr"
-    android:installLocation="preferExternal">
+    android:installLocation="auto">
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
 
-    <uses-feature android:name="android.hardware.camera2"
-    android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.camera2"
+        android:required="false" />
 
     <application
         android:name=".MediocrApp"
@@ -18,7 +20,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="false"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        tools:ignore="GoogleAppIndexingWarning">
 
         <activity
             android:name=".MainActivity"
@@ -30,16 +33,63 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.jpg" />
+                <data android:pathPattern=".*\\..*\\.jpg" />
+                <data android:pathPattern=".*\\..*\\..*\\.jpg" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.jpg" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.jpg" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.jpeg" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.jpeg" />
+                <data android:pathPattern=".*\\..*\\..*\\.jpeg" />
+                <data android:pathPattern=".*\\..*\\.jpeg" />
+                <data android:pathPattern=".*\\.jpeg" />
+                <data android:pathPattern=".*\\.JPG" />
+                <data android:pathPattern=".*\\..*\\.JPG" />
+                <data android:pathPattern=".*\\..*\\..*\\.JPG" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.JPG" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.JPG" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.JPEG" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.JPEG" />
+                <data android:pathPattern=".*\\..*\\..*\\.JPEG" />
+                <data android:pathPattern=".*\\..*\\.JPEG" />
+                <data android:pathPattern=".*\\.JPEG" />
+                <data android:pathPattern=".*\\.png" />
+                <data android:pathPattern=".*\\..*\\.png" />
+                <data android:pathPattern=".*\\..*\\..*\\.png" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.png" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.png" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.PNG" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.PNG" />
+                <data android:pathPattern=".*\\..*\\..*\\.PNG" />
+                <data android:pathPattern=".*\\..*\\.PNG" />
+                <data android:pathPattern=".*\\.PNG" />
+            </intent-filter>
         </activity>
 
         <provider
-                android:name="androidx.core.content.FileProvider"
-                android:authorities="${applicationId}.provider"
-                android:exported="false"
-                android:grantUriPermissions="true">
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
             <meta-data
-                    android:name="android.support.FILE_PROVIDER_PATHS"
-                    android:resource="@xml/provider_paths"/>
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
         </provider>
 
     </application>

@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -41,6 +42,38 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         pushFragment(MainFragment())
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        intent ?: return
+        if (intent.type == "image/*") {
+            var scheme: String? = intent.scheme
+            var uriString: String? = intent.dataString
+            if (scheme == null) {
+                val receiveUri = intent.getParcelableExtra(Intent.EXTRA_STREAM) as Uri?
+                uriString = receiveUri.toString()
+                scheme = receiveUri?.scheme
+            }
+            scheme ?: return
+            uriString ?: return
+            when (scheme) {
+                "content",
+                "file" -> {
+                    pushFragment(PreviewFragment().also { fragment ->
+                        fragment.arguments = Bundle().also { args ->
+                            args.putString(PreviewFragment.ARG_IMAGE_FILE_URI, uriString)
+                        }
+                    })
+                    setIntent(null)
+                }
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
     }
 
     override fun onResume() {
