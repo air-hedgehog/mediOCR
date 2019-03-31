@@ -226,7 +226,7 @@ class PreviewFragment : BaseFragment() {
         //banned special symbols
         tessBaseApi.setVariable(
                 TessBaseAPI.VAR_CHAR_BLACKLIST,
-                "×⦂⁃‐‑‒�–⎯—―~⁓•°%‰‱&⅋§÷±‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓"
+                "№×⦂‒�–⎯—―~⁓•°%‰‱&⅋§÷‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓"
         )
 
         Log.d(this::class.java.name, "Training file loaded")
@@ -241,8 +241,5 @@ class PreviewFragment : BaseFragment() {
         tessBaseApi.end()
         return extractedText
     }
-
-    /*private fun Bitmap.rotate(degrees: Float): Bitmap =
-        Bitmap.createBitmap(this, 0, 0, width, height, Matrix().apply { postRotate(degrees) }, true)*/
 
 }
