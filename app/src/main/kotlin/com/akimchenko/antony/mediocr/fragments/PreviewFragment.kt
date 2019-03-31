@@ -162,7 +162,11 @@ class PreviewFragment : BaseFragment() {
         activity.showProgress(activity.getString(R.string.recognising))
 
         val disposable = Single.create<String> { emitter ->
-            emitter.onSuccess(startOCR(fileUri)!!)
+            val result: String? = startOCR(fileUri)
+            if (result == null)
+                emitter.onError(NullPointerException())
+            else
+                emitter.onSuccess(startOCR(fileUri)!!)
         }.subscribeWith(object : DisposableSingleObserver<String>() {
 
             override fun onSuccess(result: String) {
