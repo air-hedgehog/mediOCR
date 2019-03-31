@@ -161,7 +161,6 @@ class PreviewFragment : BaseFragment() {
         val activity = activity as MainActivity? ?: return
         activity.showProgress(activity.getString(R.string.recognising))
 
-
         val disposable = Single.create<String> { emitter ->
             emitter.onSuccess(startOCR(fileUri)!!)
         }.subscribeWith(object : DisposableSingleObserver<String>() {
@@ -174,6 +173,7 @@ class PreviewFragment : BaseFragment() {
             }
 
             override fun onError(e: Throwable) {
+                activity.hideProgress()
                 Toast.makeText(activity, "OCR error : ${e.message}", Toast.LENGTH_SHORT).show()
             }
         })
@@ -213,15 +213,10 @@ class PreviewFragment : BaseFragment() {
     }
 
     private fun startOCR(fileUri: Uri): String? {
-        try {
-            val options = BitmapFactory.Options()
-            options.inSampleSize = 4
-            val bitmap = BitmapFactory.decodeFile(fileUri.path, options)
-            return extractText(bitmap)
-        } catch (e: Exception) {
-            Log.e(this::class.java.name, e.message)
-        }
-        return null
+        val options = BitmapFactory.Options()
+        options.inSampleSize = 4
+        val bitmap = BitmapFactory.decodeFile(fileUri.path, options)
+        return extractText(bitmap)
     }
 
     private fun extractText(bitmap: Bitmap): String? {
