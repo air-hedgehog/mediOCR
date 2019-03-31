@@ -166,7 +166,7 @@ class PreviewFragment : BaseFragment() {
             if (result == null)
                 emitter.onError(NullPointerException())
             else
-                emitter.onSuccess(startOCR(fileUri)!!)
+                emitter.onSuccess(result)
         }.subscribeWith(object : DisposableSingleObserver<String>() {
 
             override fun onSuccess(result: String) {
