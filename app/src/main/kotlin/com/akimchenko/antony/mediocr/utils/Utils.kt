@@ -69,7 +69,7 @@ object Utils {
     }
 
     @JvmStatic
-    public fun isLanguageDownloaded(activity: MainActivity, item: String): Boolean {
+    fun isLanguageDownloaded(activity: MainActivity, item: String): Boolean {
         return activity.getTesseractDataFolder().listFiles()?.find { it.name == "$item.traineddata" } != null
     }
 

@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
@@ -18,6 +19,8 @@ import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
 import com.edmodo.cropper.CropImageView
 import com.googlecode.tesseract.android.TessBaseAPI
+import io.reactivex.Single
+import io.reactivex.observers.DisposableSingleObserver
 import kotlinx.android.synthetic.main.fragment_preview.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -66,28 +69,28 @@ class PreviewFragment : BaseFragment() {
         crop_image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
 
         close_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.close)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.close)!!.toBitmap()
+            )
         )
         rotate_left_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.rotate_left)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.rotate_left)!!.toBitmap()
+            )
         )
         rotate_right_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.rotate_right)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.rotate_right)!!.toBitmap()
+            )
         )
         recognise_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.recognition_button)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.recognition_button)!!.toBitmap()
+            )
         )
         language_button.text = Utils.getLocalizedLangName(AppSettings.getSelectedLanguage())
         language_button.setOnClickListener { activity.pushFragment(LanguageFragment()) }
@@ -142,7 +145,7 @@ class PreviewFragment : BaseFragment() {
     }
 
     private fun isLangDownloaded(activity: MainActivity): Boolean = activity.getTesseractDataFolder().listFiles()
-            .contains(File(activity.getTesseractDataFolder(), "${AppSettings.getSelectedLanguage()}.traineddata"))
+        .contains(File(activity.getTesseractDataFolder(), "${AppSettings.getSelectedLanguage()}.traineddata"))
 
     override fun onNotification(id: Int, `object`: Any?) {
         super.onNotification(id, `object`)
@@ -157,17 +160,25 @@ class PreviewFragment : BaseFragment() {
     private fun recognise(fileUri: Uri) {
         val activity = activity as MainActivity? ?: return
         activity.showProgress(activity.getString(R.string.recognising))
-        var result: String? = null
-        GlobalScope.launch {
-            result = startOCR(fileUri)
-        }.invokeOnCompletion {
-            activity.hideProgress()
-            if (result != null) {
+
+
+        val disposable = Single.create<String> { emitter ->
+            emitter.onSuccess(startOCR(fileUri)!!)
+        }.subscribeWith(object : DisposableSingleObserver<String>() {
+
+            override fun onSuccess(result: String) {
+                activity.hideProgress()
                 activity.pushFragment(ResultFragment().also {
                     it.arguments = Bundle().also { args -> args.putString(ResultFragment.ARG_OCR_RESULT, result) }
                 })
             }
-        }
+
+            override fun onError(e: Throwable) {
+                Toast.makeText(activity, "OCR error : ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+
+        disposable.dispose()
     }
 
     private fun checkDefaultTessdata() {
@@ -225,8 +236,8 @@ class PreviewFragment : BaseFragment() {
 
         //banned special symbols
         tessBaseApi.setVariable(
-                TessBaseAPI.VAR_CHAR_BLACKLIST,
-                "×⦂⁃‐‑‒�–⎯—―~⁓•°%‰‱&⅋§÷±‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓"
+            TessBaseAPI.VAR_CHAR_BLACKLIST,
+            "×⦂⁃‐‑‒�–⎯—―~⁓•°%‰‱&⅋§÷±‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓"
         )
 
         Log.d(this::class.java.name, "Training file loaded")
