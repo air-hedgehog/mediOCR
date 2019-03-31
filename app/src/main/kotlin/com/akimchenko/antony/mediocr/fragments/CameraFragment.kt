@@ -98,13 +98,13 @@ class CameraFragment : BaseFragment(), SensorEventListener {
             cameraDevice ?: return null
             val activity = activity as MainActivity? ?: return null
             val manager = activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager?
-                    ?: return null
+                ?: return null
             try {
                 val characteristics = manager.getCameraCharacteristics(cameraDevice!!.id)
                 val jpegSizes: Array<Size>? =
-                        characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)?.getOutputSizes(
-                                ImageFormat.JPEG
-                        )
+                    characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)?.getOutputSizes(
+                        ImageFormat.JPEG
+                    )
                 if (jpegSizes != null && jpegSizes.isNotEmpty())
                     return Pair(jpegSizes[0].width, jpegSizes[0].height)
             } catch (e: CameraAccessException) {
@@ -114,15 +114,8 @@ class CameraFragment : BaseFragment(), SensorEventListener {
             return null
         }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val activity = activity as MainActivity? ?: return
-        sensorManager = activity.getSystemService(Context.SENSOR_SERVICE) as SensorManager?
-        accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
-            inflater.inflate(R.layout.fragment_camera, container, false)
+        inflater.inflate(R.layout.fragment_camera, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -130,25 +123,25 @@ class CameraFragment : BaseFragment(), SensorEventListener {
         activity ?: return
         texture_view.surfaceTextureListener = textureListener
         (capture_button as ImageView).setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(
-                                activity,
-                                R.drawable.capture_button
-                        )!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(
+                    activity,
+                    R.drawable.capture_button
+                )!!.toBitmap()
+            )
         )
         (capture_button as ImageView).setOnClickListener { takePicture() }
 
         (flash_button as ImageView).setImageDrawable(
-                ContextCompat.getDrawable(
-                        activity,
-                        when (flashMode) {
-                            CameraMetadata.FLASH_MODE_OFF -> R.drawable.flash_off
-                            CameraMetadata.FLASH_MODE_TORCH -> R.drawable.flash
-                            else -> R.drawable.flash_off
-                        }
-                )
+            ContextCompat.getDrawable(
+                activity,
+                when (flashMode) {
+                    CameraMetadata.FLASH_MODE_OFF -> R.drawable.flash_off
+                    CameraMetadata.FLASH_MODE_TORCH -> R.drawable.flash
+                    else -> R.drawable.flash_off
+                }
+            )
         )
         (flash_button as ImageView).setOnClickListener { setFlashMode() }
     }
@@ -168,10 +161,10 @@ class CameraFragment : BaseFragment(), SensorEventListener {
         }
         if (drawableId != null)
             (flash_button as ImageView).setImageDrawable(
-                    Utils.makeSelector(
-                            activity,
-                            ContextCompat.getDrawable(activity, drawableId)!!.toBitmap()
-                    )
+                Utils.makeSelector(
+                    activity,
+                    ContextCompat.getDrawable(activity, drawableId)!!.toBitmap()
+                )
             )
     }
 
@@ -199,7 +192,7 @@ class CameraFragment : BaseFragment(), SensorEventListener {
         try {
             val characteristics = manager.getCameraCharacteristics(cameraDevice!!.id)
             val jpegSizes =
-                    characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!.getOutputSizes(ImageFormat.JPEG)
+                characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!.getOutputSizes(ImageFormat.JPEG)
             var width = 640
             var height = 480
             if (jpegSizes != null && jpegSizes.isNotEmpty()) {
@@ -248,14 +241,19 @@ class CameraFragment : BaseFragment(), SensorEventListener {
             reader.setOnImageAvailableListener(readerListener, mBackgroundHandler)
             val captureListener = object : CameraCaptureSession.CaptureCallback() {
                 override fun onCaptureCompleted(
-                        session: CameraCaptureSession,
-                        request: CaptureRequest,
-                        result: TotalCaptureResult
+                    session: CameraCaptureSession,
+                    request: CaptureRequest,
+                    result: TotalCaptureResult
                 ) {
                     super.onCaptureCompleted(session, request, result)
                     activity.pushFragment(PreviewFragment().also {
                         it.arguments =
-                                Bundle().also { args -> args.putString(PreviewFragment.ARG_IMAGE_FILE_URI, file.toUri().toString()) }
+                            Bundle().also { args ->
+                                args.putString(
+                                    PreviewFragment.ARG_IMAGE_FILE_URI,
+                                    file.toUri().toString()
+                                )
+                            }
                     })
                 }
             }
@@ -348,23 +346,24 @@ class CameraFragment : BaseFragment(), SensorEventListener {
     override fun onResume() {
         super.onResume()
         val activity = activity as MainActivity? ?: return
+        sensorManager = activity.getSystemService(Context.SENSOR_SERVICE) as SensorManager? ?: return
+        accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         sensorManager?.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
         startBackgroundThread()
-        if (texture_view.isAvailable) {
+        if (texture_view.isAvailable)
             openCamera()
-        } else {
+        else
             texture_view.surfaceTextureListener = textureListener
-        }
     }
 
     override fun onPause() {
+        super.onPause()
         val activity = activity as MainActivity? ?: return
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
         sensorManager?.unregisterListener(this)
         stopBackgroundThread()
         closeCamera()
-        super.onPause()
     }
 
     override fun onSensorChanged(event: SensorEvent?) {

@@ -8,9 +8,10 @@ object AppSettings {
 
     private const val SHARED_PREFERENCES_NAME = "mediocr_shared_preferences"
     private const val TESSERACT_SELECTED_LANGUAGE = "tesseract_selected_language"
+    private const val USE_APPLICATION_CAMERA = "use_application_camera"
 
     @JvmStatic
-    lateinit var sp: SharedPreferences
+    private lateinit var sp: SharedPreferences
 
     @JvmStatic
     fun init(appContext: MediocrApp) {
@@ -23,4 +24,8 @@ object AppSettings {
     @JvmStatic
     fun setSelectedLanguage(lang: String?) = sp.edit().putString(TESSERACT_SELECTED_LANGUAGE, lang).apply()
 
+    @JvmStatic
+    var useApplicationCamera: Boolean
+        get() = sp.getBoolean(USE_APPLICATION_CAMERA, true)
+        set(isUse) = sp.edit().putBoolean(USE_APPLICATION_CAMERA, isUse).apply()
 }

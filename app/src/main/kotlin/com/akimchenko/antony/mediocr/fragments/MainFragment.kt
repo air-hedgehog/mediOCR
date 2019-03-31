@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.adapters.MainFragmentAdapter
+import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_main.*
 import java.io.File
@@ -49,24 +50,27 @@ class MainFragment : BaseFragment(), View.OnClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity? ?: return
-        recycler_view.layoutManager = GridLayoutManager(activity, if (activity.resources.configuration.orientation ==
-                Configuration.ORIENTATION_PORTRAIT) 2 else 3)
+        recycler_view.layoutManager = GridLayoutManager(
+            activity, if (activity.resources.configuration.orientation ==
+                Configuration.ORIENTATION_PORTRAIT
+            ) 2 else 3
+        )
         adapter = MainFragmentAdapter(activity)
         recycler_view.adapter = adapter
         camera_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.camera_button)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.camera_button)!!.toBitmap()
+            )
         )
         gallery_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(
-                                activity,
-                                R.drawable.gallery_button
-                        )!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(
+                    activity,
+                    R.drawable.gallery_button
+                )!!.toBitmap()
+            )
         )
         settings_button.setOnClickListener(this)
         camera_button.setOnClickListener(this)
@@ -84,38 +88,41 @@ class MainFragment : BaseFragment(), View.OnClickListener {
         when (v) {
             camera_button -> {
                 activity.requestPermissions(arrayOf(
-                        Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        Manifest.permission.CAMERA
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.CAMERA
                 ),
-                        READ_WRITE_CAMERA_REQUEST_CODE,
-                        object : MainActivity.OnRequestPermissionCallback {
-                            override fun onPermissionReturned(isGranted: Boolean) {
-                                if (isGranted)
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                        val manager = activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager? ?: return
-                                        var isCamera2Supported = false
+                    READ_WRITE_CAMERA_REQUEST_CODE,
+                    object : MainActivity.OnRequestPermissionCallback {
+                        override fun onPermissionReturned(isGranted: Boolean) {
+                            if (isGranted)
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && AppSettings.useApplicationCamera) {
+                                    val manager =
+                                        activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager? ?: return
+                                    var isCamera2Supported = false
 
-                                        for (cameraId in manager.cameraIdList) {
-                                            val characteristics: Int? = manager.getCameraCharacteristics(cameraId).get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL)
-                                            isCamera2Supported = characteristics == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY
-                                            break
-                                        }
+                                    for (cameraId in manager.cameraIdList) {
+                                        val characteristics: Int? = manager.getCameraCharacteristics(cameraId)
+                                            .get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL)
+                                        isCamera2Supported =
+                                            characteristics == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY
+                                        break
+                                    }
 
-                                        if (isCamera2Supported)
-                                            activity.pushFragment(CameraFragment())
-                                        else
-                                            sendCameraIntent()
-                                    } else
+                                    if (isCamera2Supported)
+                                        activity.pushFragment(CameraFragment())
+                                    else
                                         sendCameraIntent()
-                                else
-                                    Toast.makeText(
-                                            activity,
-                                            activity.getString(R.string.you_need_to_allow_permissions_read_write_camera),
-                                            Toast.LENGTH_LONG
-                                    ).show()
-                            }
-                        })
+                                } else
+                                    sendCameraIntent()
+                            else
+                                Toast.makeText(
+                                    activity,
+                                    activity.getString(R.string.you_need_to_allow_permissions_read_write_camera),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                        }
+                    })
             }
             gallery_button -> {
                 activity.requestPermissions(arrayOf(
@@ -146,7 +153,11 @@ class MainFragment : BaseFragment(), View.OnClickListener {
                 if (!newPhotoFile!!.exists())
                     newPhotoFile!!.createNewFile()
                 newPhotoFile!!.also {
-                    val uri = FileProvider.getUriForFile(activity, activity.applicationContext.packageName + ".provider", newPhotoFile!!)
+                    val uri = FileProvider.getUriForFile(
+                        activity,
+                        activity.applicationContext.packageName + ".provider",
+                        newPhotoFile!!
+                    )
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri)
                     startActivityForResult(takePictureIntent, CAPTURE_IMAGE_REQUEST_CODE)
                 }
@@ -156,7 +167,8 @@ class MainFragment : BaseFragment(), View.OnClickListener {
 
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)
-        recycler_view.layoutManager = GridLayoutManager(activity, if (newConfig?.orientation == Configuration.ORIENTATION_PORTRAIT) 2 else 3)
+        recycler_view.layoutManager =
+            GridLayoutManager(activity, if (newConfig?.orientation == Configuration.ORIENTATION_PORTRAIT) 2 else 3)
     }
 
     private fun sendGalleryChooserIntent() {
@@ -175,8 +187,8 @@ class MainFragment : BaseFragment(), View.OnClickListener {
                     activity.pushFragment(PreviewFragment().also {
                         it.arguments = Bundle().also { args ->
                             args.putString(
-                                    PreviewFragment.ARG_IMAGE_FILE_URI,
-                                    newPhotoFile!!.toUri().toString()
+                                PreviewFragment.ARG_IMAGE_FILE_URI,
+                                newPhotoFile!!.toUri().toString()
                             )
                         }
                     })
@@ -188,8 +200,8 @@ class MainFragment : BaseFragment(), View.OnClickListener {
                     activity.pushFragment(PreviewFragment().also {
                         it.arguments = Bundle().also { args ->
                             args.putString(
-                                    PreviewFragment.ARG_IMAGE_FILE_URI,
-                                    uri.toString()
+                                PreviewFragment.ARG_IMAGE_FILE_URI,
+                                uri.toString()
                             )
                         }
                     })
