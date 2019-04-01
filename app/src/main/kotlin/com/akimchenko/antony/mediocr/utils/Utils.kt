@@ -64,14 +64,13 @@ object Utils {
         } catch (e: FileNotFoundException) {
             e.printStackTrace()
         } catch (e: IOException) {
-
+            e.printStackTrace()
         }
     }
 
     @JvmStatic
-    public fun isLanguageDownloaded(activity: MainActivity, item: String): Boolean {
-        return activity.getTesseractDataFolder().listFiles()?.find { it.name == "$item.traineddata" } != null
-    }
+    fun isLanguageDownloaded(activity: MainActivity, item: String): Boolean =
+        activity.getTesseractDataFolder().listFiles()?.find { it.name == "$item.traineddata" } != null
 
     @JvmStatic
     fun getInternalDirs(context: Context): Array<File?> {

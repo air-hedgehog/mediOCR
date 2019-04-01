@@ -204,7 +204,7 @@ class PreviewFragment : BaseFragment() {
     private fun startOCR(fileUri: Uri): String? {
         try {
             val options = BitmapFactory.Options()
-            options.inSampleSize = 4
+            options.inSampleSize = 1
             val bitmap = BitmapFactory.decodeFile(fileUri.path, options)
             return extractText(bitmap)
         } catch (e: Exception) {
@@ -215,7 +215,12 @@ class PreviewFragment : BaseFragment() {
 
     private fun extractText(bitmap: Bitmap): String? {
         val activity = activity as MainActivity? ?: return null
-        val tessBaseApi = TessBaseAPI()
+        val tessBaseApi = TessBaseAPI(TessBaseAPI.ProgressNotifier {
+            //TODO
+            /*it.currentRect
+            it.currentWordRect
+            it.percent*/
+        })
         val path: String? = Utils.getInternalDirs(activity)[0]?.path ?: return null
         val lang = AppSettings.getSelectedLanguage()
         if (lang == "eng")
