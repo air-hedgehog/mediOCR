@@ -69,7 +69,7 @@
         android:id="@+id/close_button"
         android:layout_width="@dimen/default_button_edge"
         android:layout_height="@dimen/default_button_edge"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentLeft="true"
         android:scaleType="center"
         android:src="@drawable/close" />
 
@@ -77,11 +77,11 @@
         android:id="@+id/language_button"
         android:layout_width="match_parent"
         android:layout_height="@dimen/default_button_edge"
-        android:layout_toLeftOf="@id/close_button"
-        android:drawableLeft="@drawable/language"
+        android:layout_toRightOf="@id/close_button"
+        android:drawableRight="@drawable/language"
         android:drawablePadding="@dimen/default_side_margin_small"
         android:ellipsize="end"
-        android:gravity="center_vertical"
+        android:gravity="center|right"
         android:maxLines="1"
         android:paddingLeft="@dimen/default_side_margin"
         android:paddingRight="@dimen/default_side_margin"

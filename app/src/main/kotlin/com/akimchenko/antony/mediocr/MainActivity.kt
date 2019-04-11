@@ -12,26 +12,23 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.SparseArray
-import android.view.LayoutInflater
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import com.akimchenko.antony.mediocr.dialogs.ProgressDialog
 import com.akimchenko.antony.mediocr.fragments.MainFragment
 import com.akimchenko.antony.mediocr.fragments.PreviewFragment
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
-import kotlinx.android.synthetic.main.dialog_progress.view.*
 import java.io.File
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
     private val permissionCallbacks: SparseArray<OnRequestPermissionCallback> = SparseArray()
-    private var progressDialog: AlertDialog? = null
-    private var progressMessage: String? = null
+    private var progressDialog: ProgressDialog? = null
     val downloadIdsLangs: HashMap<Long, String> = HashMap()
 
     interface OnRequestPermissionCallback {
@@ -169,19 +166,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("InflateParams")
-    fun showProgress(message: String? = null) {
+    fun showProgress(message: String? = getString(R.string.please_wait)) {
         runOnUiThread {
-            if (progressDialog != null && message != progressMessage)
-                hideProgress()
-            val view = LayoutInflater.from(this).inflate(R.layout.dialog_progress, null, false)
-            progressMessage = message
-            view.text_view.text = message ?: getString(R.string.please_wait)
-            progressDialog = AlertDialog.Builder(this)
-                    .setView(view)
-                    .setCancelable(false)
-                    .create()
-            progressDialog?.setCanceledOnTouchOutside(false)
-            progressDialog?.show()
+            if (progressDialog == null || progressDialog!!.dialog == null || !progressDialog!!.dialog.isShowing) {
+                progressDialog = ProgressDialog(message)
+                progressDialog!!.show(this.supportFragmentManager, ProgressDialog::class.java.name)
+            }
+            if (message != progressDialog!!.getMessage())
+                progressDialog!!.setMessage(message)
         }
     }
 
@@ -189,7 +181,6 @@ class MainActivity : AppCompatActivity() {
         runOnUiThread {
             progressDialog?.dismiss()
             progressDialog = null
-            progressMessage = null
         }
     }
 

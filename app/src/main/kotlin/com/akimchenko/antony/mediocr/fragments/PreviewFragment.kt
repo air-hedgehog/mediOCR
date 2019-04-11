@@ -1,6 +1,5 @@
 package com.akimchenko.antony.mediocr.fragments
 
-import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -35,7 +34,7 @@ class PreviewFragment : BaseFragment() {
     }
 
     private var doWhenDownloaded: Runnable? = null
-    private lateinit var imageFile: File
+    private var tessBaseApi: TessBaseAPI? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_preview, container, false)
@@ -46,7 +45,7 @@ class PreviewFragment : BaseFragment() {
         val activity = activity as MainActivity? ?: return
         val uriString = arguments?.getString(ARG_IMAGE_FILE_URI) ?: return
         val uri: Uri = Uri.parse(uriString)
-        //val imageFile: File
+        val imageFile: File
         when {
             uri.scheme == "file" -> imageFile = File(uri.path)
             uri.scheme == "content" -> {
@@ -128,13 +127,6 @@ class PreviewFragment : BaseFragment() {
         updateProgressVisibility(activity.downloadIdsLangs.containsValue(AppSettings.getSelectedLanguage()))
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration?) {
-        super.onConfigurationChanged(newConfig)
-        crop_image_view.invalidate()
-        crop_image_view.setGuidelines(CropImageView.DEFAULT_GUIDELINES)
-        crop_image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
-    }
-
     private fun updateProgressVisibility(isVisible: Boolean) {
         val activity = activity as MainActivity? ?: return
         if (isVisible && AppSettings.getSelectedLanguage() != "eng") {
@@ -155,17 +147,25 @@ class PreviewFragment : BaseFragment() {
 
     override fun onNotification(id: Int, `object`: Any?) {
         super.onNotification(id, `object`)
-        if (id == NotificationCenter.LANG_DOWNLOAD_STATUS_CHANGED && (`object` as String) == AppSettings.getSelectedLanguage()) {
-            val activity = activity as MainActivity? ?: return
-            updateProgressVisibility(!isLangDownloaded(activity))
-            doWhenDownloaded?.run()
-            doWhenDownloaded = null
+        when (id) {
+            NotificationCenter.LANG_DOWNLOAD_STATUS_CHANGED -> {
+                if ((`object` as String) == AppSettings.getSelectedLanguage()) {
+                    val activity = activity as MainActivity? ?: return
+                    updateProgressVisibility(!isLangDownloaded(activity))
+                    doWhenDownloaded?.run()
+                    doWhenDownloaded = null
+                }
+            }
+            NotificationCenter.RECOGNITION_PROCESS_CANCELLED -> {
+                tessBaseApi?.stop()
+                tessBaseApi?.end()
+                (activity as MainActivity?)?.hideProgress()
+            }
         }
     }
 
     private fun recognise(fileUri: Uri) {
         val activity = activity as MainActivity? ?: return
-        activity.showProgress(activity.getString(R.string.recognising))
         var result: String? = null
         GlobalScope.launch {
             result = startOCR(fileUri)
@@ -224,35 +224,38 @@ class PreviewFragment : BaseFragment() {
 
     private fun extractText(bitmap: Bitmap): String? {
         val activity = activity as MainActivity? ?: return null
-        val tessBaseApi = TessBaseAPI(TessBaseAPI.ProgressNotifier {
+        tessBaseApi = TessBaseAPI(TessBaseAPI.ProgressNotifier {progressValues ->
             //TODO
             /*it.currentRect
-            it.currentWordRect
-            it.percent*/
+            it.currentWordRect*/
+            activity.showProgress("${activity.getString(R.string.recognising)} ${progressValues.percent}%")
+
         })
+        tessBaseApi ?: return null
+        //tessBaseApi.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_COLUMN)
         val path: String? = Utils.getInternalDirs(activity)[0]?.path ?: return null
         val lang = AppSettings.getSelectedLanguage()
         if (lang == "eng")
             checkDefaultTessdata()
 
-        tessBaseApi.init(path, lang)
+        tessBaseApi!!.init(path, lang)
 
         //banned special symbols
-        tessBaseApi.setVariable(
+        tessBaseApi!!.setVariable(
                 TessBaseAPI.VAR_CHAR_BLACKLIST,
                 "№×⦂‒�–⎯—―~⁓•°%‰‱&⅋§÷‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓"
         )
 
         Log.d(this::class.java.name, "Training file loaded")
-        tessBaseApi.setImage(bitmap)
+        tessBaseApi!!.setImage(bitmap)
         var extractedText = "empty result"
         try {
-            extractedText = tessBaseApi.utF8Text
+            extractedText = tessBaseApi!!.utF8Text
         } catch (e: Exception) {
             Log.e(this::class.java.name, "Error in recognizing text.")
         }
 
-        tessBaseApi.end()
+        tessBaseApi!!.end()
         return extractedText
     }
 
