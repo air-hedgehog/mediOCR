@@ -10,6 +10,7 @@ import androidx.fragment.app.DialogFragment
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 
+@SuppressLint("ValidFragment")
 class ProgressDialog(var initialText: String?) : DialogFragment() {
 
     private var textView: TextView? = null
