@@ -31,13 +31,13 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
             title.isSelected = true
 
             itemView.setOnClickListener {
-                Intent(Intent.ACTION_VIEW).also { intent ->
+                Intent(Intent.ACTION_VIEW).apply {
                     val file = items[adapterPosition] as File? ?: return@setOnClickListener
                     val fileUri = FileProvider.getUriForFile(activity, activity.applicationContext.packageName + ".provider", file)
                     val mimeType = activity.contentResolver.getType(fileUri)
-                    intent.setDataAndType(fileUri, mimeType)
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    activity.startActivity(intent)
+                    this.setDataAndType(fileUri, mimeType)
+                    this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    activity.startActivity(this)
                 }
             }
             deleteButton.setOnClickListener {
@@ -54,12 +54,12 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
             }
 
             shareButton.setOnClickListener {
-                Intent(Intent.ACTION_SEND).also { intent ->
+                Intent(Intent.ACTION_SEND).apply {
                     val file = items[adapterPosition]
                     val fileUri = FileProvider.getUriForFile(activity, activity.applicationContext.packageName + ".provider", file)
-                    intent.type = activity.contentResolver.getType(fileUri)
-                    intent.putExtra(Intent.EXTRA_STREAM, fileUri)
-                    activity.startActivity(Intent.createChooser(intent, null))
+                    this.type = activity.contentResolver.getType(fileUri)
+                    this.putExtra(Intent.EXTRA_STREAM, fileUri)
+                    activity.startActivity(Intent.createChooser(this, null))
                 }
             }
         }

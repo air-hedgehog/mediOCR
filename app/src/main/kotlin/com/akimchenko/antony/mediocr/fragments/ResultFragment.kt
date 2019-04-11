@@ -45,21 +45,21 @@ class ResultFragment : BaseFragment() {
         close_button.setOnClickListener { activity.popFragment(MainFragment::class.java.name) }
         save_button.setOnClickListener {
             counter = 0
-            PopupMenu(activity, save_button).also { popup ->
-                popup.menu.add(0, SAVE_AS_TXT_ID, 0, activity.getString(R.string.save_as_txt))
+            PopupMenu(activity, save_button).apply {
+                this.menu.add(0, SAVE_AS_TXT_ID, 0, activity.getString(R.string.save_as_txt))
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-                    popup.menu.add(0, SAVE_AS_PDF_ID, 1, activity.getString(R.string.save_as_pdf))
-                popup.setOnMenuItemClickListener {
+                    this.menu.add(0, SAVE_AS_PDF_ID, 1, activity.getString(R.string.save_as_pdf))
+                this.setOnMenuItemClickListener {
                     showEnterNameAlert(activity, edit_text.text.trim().toString(), it.itemId)
                     false
                 }
-                popup.show()
+                this.show()
             }
         }
         share_button.setOnClickListener {
-            startActivity(Intent(Intent.ACTION_SEND).also { intent ->
-                intent.type = "text/plain"
-                intent.putExtra(Intent.EXTRA_TEXT, edit_text.text.toString())
+            startActivity(Intent(Intent.ACTION_SEND).apply {
+                this.type = "text/plain"
+                this.putExtra(Intent.EXTRA_TEXT, edit_text.text.toString())
             })
         }
         edit_text.setText(resultString)
@@ -96,16 +96,16 @@ class ResultFragment : BaseFragment() {
         if (!file.exists())
             file.createNewFile()
 
-        Document().also { document ->
+        Document().apply {
             val fOut = FileOutputStream(file)
-            PdfWriter.getInstance(document, fOut)
-            document.open()
+            PdfWriter.getInstance(this, fOut)
+            this.open()
             val p1 = Paragraph(text)
             val paraFont = Font(Font.FontFamily.UNDEFINED)
             p1.alignment = Paragraph.ALIGN_LEFT
             p1.font = paraFont
-            document.add(p1)
-            document.close()
+            this.add(p1)
+            this.close()
         }
     }
 
@@ -116,9 +116,9 @@ class ResultFragment : BaseFragment() {
             file.createNewFile()
 
         val output = FileOutputStream(file)
-        OutputStreamWriter(output).also {
-            it.append(text)
-            it.close()
+        OutputStreamWriter(output).apply {
+            this.append(text)
+            this.close()
         }
         output.flush()
         output.close()

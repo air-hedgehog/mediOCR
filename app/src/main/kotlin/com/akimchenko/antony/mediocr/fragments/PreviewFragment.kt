@@ -1,5 +1,6 @@
 package com.akimchenko.antony.mediocr.fragments
 
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -34,6 +35,7 @@ class PreviewFragment : BaseFragment() {
     }
 
     private var doWhenDownloaded: Runnable? = null
+    private lateinit var imageFile: File
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_preview, container, false)
@@ -44,7 +46,7 @@ class PreviewFragment : BaseFragment() {
         val activity = activity as MainActivity? ?: return
         val uriString = arguments?.getString(ARG_IMAGE_FILE_URI) ?: return
         val uri: Uri = Uri.parse(uriString)
-        val imageFile: File
+        //val imageFile: File
         when {
             uri.scheme == "file" -> imageFile = File(uri.path)
             uri.scheme == "content" -> {
@@ -124,6 +126,13 @@ class PreviewFragment : BaseFragment() {
         super.onResume()
         val activity = activity as MainActivity? ?: return
         updateProgressVisibility(activity.downloadIdsLangs.containsValue(AppSettings.getSelectedLanguage()))
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        crop_image_view.invalidate()
+        crop_image_view.setGuidelines(CropImageView.DEFAULT_GUIDELINES)
+        crop_image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
     }
 
     private fun updateProgressVisibility(isVisible: Boolean) {

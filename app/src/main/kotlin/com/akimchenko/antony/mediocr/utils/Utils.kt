@@ -39,12 +39,12 @@ object Utils {
     @JvmStatic
     fun makeSelector(context: Context, bitmap: Bitmap): StateListDrawable {
         val resources = context.resources
-        return StateListDrawable().also {stateList ->
-            stateList.setExitFadeDuration(60)
+        return StateListDrawable().apply {
+            this.setExitFadeDuration(60)
             val pressedState = BitmapDrawable(resources, bitmap)
             pressedState.setColorFilter(ContextCompat.getColor(context, R.color.selected_tint), PorterDuff.Mode.SRC_ATOP)
-            stateList.addState(intArrayOf(android.R.attr.state_pressed), pressedState)
-            stateList.addState(intArrayOf(), BitmapDrawable(resources, bitmap))
+            this.addState(intArrayOf(android.R.attr.state_pressed), pressedState)
+            this.addState(intArrayOf(), BitmapDrawable(resources, bitmap))
         }
     }
 

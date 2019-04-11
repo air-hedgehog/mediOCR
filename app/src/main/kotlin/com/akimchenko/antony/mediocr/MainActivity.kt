@@ -41,7 +41,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        pushFragment(MainFragment())
+
+        if (supportFragmentManager.backStackEntryCount == 0)
+            pushFragment(MainFragment())
+
         handleIntent(intent)
     }
 
@@ -92,7 +95,6 @@ class MainActivity : AppCompatActivity() {
 
     fun pushFragment(fragment: Fragment) {
         if (isFinishing || Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed) return
-        //hideKeyboard()
         val name = fragment::class.java.name
         supportFragmentManager.beginTransaction()
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)

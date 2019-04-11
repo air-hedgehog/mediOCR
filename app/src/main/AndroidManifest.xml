@@ -26,7 +26,6 @@
         <activity
             android:name=".MainActivity"
             android:clearTaskOnLaunch="true"
-            android:configChanges="orientation|screenSize"
             android:exported="true"
             android:launchMode="singleTask">
             <intent-filter>

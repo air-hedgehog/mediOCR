@@ -148,11 +148,11 @@ class MainFragment : BaseFragment(), View.OnClickListener {
     private fun sendCameraIntent() {
         val activity = activity as MainActivity? ?: return
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
-            takePictureIntent.resolveActivity(activity.packageManager)?.also {
+            takePictureIntent.resolveActivity(activity.packageManager)?.apply {
                 newPhotoFile = activity.getFileForBitmap()
                 if (!newPhotoFile!!.exists())
                     newPhotoFile!!.createNewFile()
-                newPhotoFile!!.also {
+                newPhotoFile!!.apply {
                     val uri = FileProvider.getUriForFile(
                         activity,
                         activity.applicationContext.packageName + ".provider",
@@ -172,10 +172,10 @@ class MainFragment : BaseFragment(), View.OnClickListener {
     }
 
     private fun sendGalleryChooserIntent() {
-        Intent().also {
-            it.type = "image/*"
-            it.action = Intent.ACTION_GET_CONTENT
-            startActivityForResult(Intent.createChooser(it, null), GALLERY_CHOOSER_REQUEST_CODE)
+        Intent().apply {
+            this.type = "image/*"
+            this.action = Intent.ACTION_GET_CONTENT
+            startActivityForResult(Intent.createChooser(this, null), GALLERY_CHOOSER_REQUEST_CODE)
         }
     }
 
@@ -184,8 +184,8 @@ class MainFragment : BaseFragment(), View.OnClickListener {
         when (requestCode) {
             CAPTURE_IMAGE_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK && newPhotoFile != null) {
-                    activity.pushFragment(PreviewFragment().also {
-                        it.arguments = Bundle().also { args ->
+                    activity.pushFragment(PreviewFragment().also { fragment ->
+                        fragment.arguments = Bundle().also { args ->
                             args.putString(
                                 PreviewFragment.ARG_IMAGE_FILE_URI,
                                 newPhotoFile!!.toUri().toString()
@@ -197,8 +197,8 @@ class MainFragment : BaseFragment(), View.OnClickListener {
             GALLERY_CHOOSER_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK) {
                     val uri = data?.data ?: return
-                    activity.pushFragment(PreviewFragment().also {
-                        it.arguments = Bundle().also { args ->
+                    activity.pushFragment(PreviewFragment().also { fragment ->
+                        fragment.arguments = Bundle().also { args ->
                             args.putString(
                                 PreviewFragment.ARG_IMAGE_FILE_URI,
                                 uri.toString()
