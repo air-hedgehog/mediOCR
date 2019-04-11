@@ -9,6 +9,7 @@ object AppSettings {
     private const val SHARED_PREFERENCES_NAME = "mediocr_shared_preferences"
     private const val TESSERACT_SELECTED_LANGUAGE = "tesseract_selected_language"
     private const val USE_APPLICATION_CAMERA = "use_application_camera"
+    private const val DEFAULT_RESULT_FORMATTING = "default_result_formatting"
 
     @JvmStatic
     private lateinit var sp: SharedPreferences
@@ -28,4 +29,9 @@ object AppSettings {
     var useApplicationCamera: Boolean
         get() = sp.getBoolean(USE_APPLICATION_CAMERA, true)
         set(isUse) = sp.edit().putBoolean(USE_APPLICATION_CAMERA, isUse).apply()
+
+    @JvmStatic
+    var defaultResultFormatting: Boolean
+        get() = sp.getBoolean(DEFAULT_RESULT_FORMATTING, true)
+        set(isDefaultFormatting) = sp.edit().putBoolean(DEFAULT_RESULT_FORMATTING, isDefaultFormatting).apply()
 }

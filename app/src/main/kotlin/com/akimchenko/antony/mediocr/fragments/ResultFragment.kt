@@ -12,6 +12,7 @@ import android.widget.EditText
 import android.widget.PopupMenu
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
+import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.Utils
 import com.itextpdf.text.Document
 import com.itextpdf.text.Font
@@ -62,8 +63,17 @@ class ResultFragment : BaseFragment() {
                 this.putExtra(Intent.EXTRA_TEXT, edit_text.text.toString())
             })
         }
-        edit_text.setText(resultString)
+        updateTextFormatting(resultString)
+        formatting_switch.setOnCheckedChangeListener { _, isChecked ->
+            AppSettings.defaultResultFormatting = isChecked
+            updateTextFormatting(resultString)
+        }
+        formatting_switch.isChecked = AppSettings.defaultResultFormatting
     }
+
+    private fun updateTextFormatting(text: String) = edit_text.setText(if (AppSettings.defaultResultFormatting) text else text.removeRowBreaks())
+
+    private fun String.removeRowBreaks(): String = this.replace("\n", " ", true)
 
     @SuppressLint("InflateParams")
     private fun showEnterNameAlert(activity: MainActivity, contentText: String, fileTypeId: Int) {

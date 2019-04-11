@@ -22,4 +22,5 @@
     <string name="delete">Delete</string>
     <string name="empty_files_hint">Your saved files will appear here. You also can find it in internalStorage/MediOCR_data/Saved_files.</string>
     <string name="use_app_camera">Use application camera</string>
+    <string name="original_text_formatting">Original text formatting</string>
 </resources>

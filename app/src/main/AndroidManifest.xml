@@ -26,6 +26,7 @@
         <activity
             android:name=".MainActivity"
             android:clearTaskOnLaunch="true"
+            android:windowSoftInputMode="stateHidden|adjustResize"
             android:exported="true"
             android:launchMode="singleTask">
             <intent-filter>

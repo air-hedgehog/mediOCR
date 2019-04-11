@@ -6,8 +6,8 @@
             <solid android:color="@color/colorAccent" />
             <corners android:radius="7dp" />
             <size
-                android:width="@dimen/default_button_edge"
-                android:height="@dimen/large_button_edge" />
+                android:width="@dimen/small_button_edge"
+                android:height="@dimen/default_button_edge" />
         </shape>
 
     </item>
