@@ -15,7 +15,6 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
-import com.akimchenko.antony.mediocr.fragments.LanguageFragment
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
@@ -23,11 +22,17 @@ import java.io.File
 import java.util.*
 
 
-class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<String>) :
+class LanguageDownloadAdapter(val activity: MainActivity) :
         RecyclerView.Adapter<LanguageDownloadAdapter.ViewHolder>(), NotificationCenter.Observer {
 
+    private val items = ArrayList<String>()
 
-    val activity: MainActivity? = fragment.activity as MainActivity?
+    init {
+        if (items.isEmpty()) {
+            items.add("eng")
+            items.addAll(activity.resources.getStringArray(R.array.tessdata_langs))
+        }
+    }
 
     fun resume() {
         NotificationCenter.addObserver(this)
@@ -60,7 +65,6 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
 
         init {
             itemView.setOnClickListener {
-                activity ?: return@setOnClickListener
                 val item = items[adapterPosition] as String? ?: return@setOnClickListener
                 if (!Utils.isLanguageDownloaded(activity, item) && item != "eng")
                     download(item, File(activity.getTesseractDataFolder(), "$item.traineddata"), Utils.getLocalizedLangName(item))
@@ -69,7 +73,6 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
                 notifyDataSetChanged()
             }
             downloadDeleteButton.setOnClickListener {
-                activity ?: return@setOnClickListener
                 val item = items[adapterPosition] as String? ?: return@setOnClickListener
                 val file = File(activity.getTesseractDataFolder(), "$item.traineddata")
                 if (Utils.isLanguageDownloaded(activity, item)) {
@@ -92,7 +95,6 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
         }
 
         override fun updateUI(position: Int) {
-            activity ?: return
             val item = items[position] as String? ?: return
             if (item != "eng") {
                 val isDownloaded = Utils.isLanguageDownloaded(activity, item)
@@ -119,7 +121,6 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
     }
 
     private fun download(lang: String, destFile: File, fileName: String) {
-        activity ?: return
         val request = DownloadManager.Request(Uri.parse("https://github.com/tesseract-ocr/tessdata/blob/master/$lang.traineddata?raw=true"))
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
                 .setTitle(fileName)
@@ -136,11 +137,11 @@ class LanguageDownloadAdapter(fragment: LanguageFragment, var items: ArrayList<S
         activity.downloadIdsLangs[downloadManager.enqueue(request)] = lang
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LanguageDownloadAdapter.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return AvailableLangViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_language, parent, false))
     }
 
     override fun getItemCount() = items.size
 
-    override fun onBindViewHolder(holder: LanguageDownloadAdapter.ViewHolder, position: Int) = holder.updateUI(position)
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.updateUI(position)
 }

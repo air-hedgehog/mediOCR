@@ -1,9 +1,11 @@
 package com.akimchenko.antony.mediocr.fragments
 
+import android.app.SearchManager
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.view.inputmethod.EditorInfo
+import android.widget.EditText
+import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.akimchenko.antony.mediocr.MainActivity
@@ -22,16 +24,33 @@ class LanguageFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity? ?: return
-        toolbar_title.text = activity.getString(R.string.download_languages)
-        back_button.setOnClickListener { activity.onBackPressed() }
+        toolbar.title = activity.getString(R.string.download_languages)
+        setHasOptionsMenu(true)
         recycler_view.layoutManager = LinearLayoutManager(activity)
         recycler_view.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))
-        val languages = activity.resources.getStringArray(R.array.tessdata_langs)
-        adapter = LanguageDownloadAdapter(this, ArrayList<String>().apply {
-            this.add("eng")
-            this.addAll(languages)
-        })
+
+        adapter = LanguageDownloadAdapter(activity)
         recycler_view.adapter = adapter
+
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+        super.onCreateOptionsMenu(menu, inflater)
+        menu ?: return
+        inflater ?: return
+
+        inflater.inflate(R.menu.search_menu, menu)
+        val searchItem = menu.findItem(R.id.search_view)
+        val searchView = searchItem.actionView as SearchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                return false
+            }
+        })
     }
 
     override fun onResume() {

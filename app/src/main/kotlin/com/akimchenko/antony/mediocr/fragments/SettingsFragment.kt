@@ -29,12 +29,10 @@ class SettingsFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity? ?: return
-        toolbar_title.text = activity.getString(R.string.settings)
-        back_button.setOnClickListener { activity.onBackPressed() }
+        toolbar.title = activity.getString(R.string.settings)
         recycler_view.layoutManager = LinearLayoutManager(activity)
         recycler_view.adapter = SettingsAdapter()
         recycler_view.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))
-
     }
 
     private inner class SettingsAdapter : RecyclerView.Adapter<SettingsAdapter.ViewHolder>() {
@@ -88,7 +86,7 @@ class SettingsFragment : BaseFragment() {
 
         override fun getItemViewType(position: Int): Int = position
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SettingsAdapter.ViewHolder {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             return when (viewType) {
                 ITEM_LANG_SETTINGS -> LanguageViewHolder(
                     LayoutInflater.from(parent.context)
@@ -107,7 +105,7 @@ class SettingsFragment : BaseFragment() {
 
         override fun getItemCount() = items.size
 
-        override fun onBindViewHolder(holder: SettingsAdapter.ViewHolder, position: Int) = holder.updateUI(position)
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.updateUI(position)
 
     }
 }

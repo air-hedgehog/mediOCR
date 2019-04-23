@@ -24,4 +24,5 @@
     <string name="use_app_camera">Use application camera</string>
     <string name="original_text_formatting">Original text formatting</string>
     <string name="share">Share</string>
+    <string name="search">Search</string>
 </resources>

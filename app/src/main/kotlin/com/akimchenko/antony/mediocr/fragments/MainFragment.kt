@@ -11,9 +11,7 @@ import android.hardware.camera2.CameraManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -50,6 +48,8 @@ class MainFragment : BaseFragment(), View.OnClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity? ?: return
+        activity.setSupportActionBar(toolbar)
+        setHasOptionsMenu(true)
         recycler_view.layoutManager = GridLayoutManager(
             activity, if (activity.resources.configuration.orientation ==
                 Configuration.ORIENTATION_PORTRAIT
@@ -72,9 +72,23 @@ class MainFragment : BaseFragment(), View.OnClickListener {
                 )!!.toBitmap()
             )
         )
-        settings_button.setOnClickListener(this)
         camera_button.setOnClickListener(this)
         gallery_button.setOnClickListener(this)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+        super.onCreateOptionsMenu(menu, inflater)
+        menu ?: return
+        inflater ?: return
+        return inflater.inflate(R.menu.main_screen_menu, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        val activity = activity as MainActivity? ?: return false
+        when (item?.itemId) {
+            R.id.settings -> activity.pushFragment(SettingsFragment())
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     override fun onResume() {
@@ -141,7 +155,6 @@ class MainFragment : BaseFragment(), View.OnClickListener {
                     }
                 })
             }
-            settings_button -> activity.pushFragment(SettingsFragment())
         }
     }
 
