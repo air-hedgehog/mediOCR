@@ -13,6 +13,7 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
+import com.akimchenko.antony.mediocr.utils.Utils
 import java.io.File
 
 
@@ -33,7 +34,11 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
             itemView.setOnClickListener {
                 Intent(Intent.ACTION_VIEW).apply {
                     val file = items[adapterPosition] as File? ?: return@setOnClickListener
-                    val fileUri = FileProvider.getUriForFile(activity, activity.applicationContext.packageName + ".provider", file)
+                    val fileUri = FileProvider.getUriForFile(
+                        activity,
+                        activity.applicationContext.packageName + ".provider",
+                        file
+                    )
                     val mimeType = activity.contentResolver.getType(fileUri)
                     this.setDataAndType(fileUri, mimeType)
                     this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -43,32 +48,29 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
             deleteButton.setOnClickListener {
                 val file = items[adapterPosition]
                 AlertDialog.Builder(activity)
-                        .setMessage("${activity.getString(R.string.do_you_want_to_delete)} ${file.name}")
-                        .setPositiveButton(activity.getString(R.string.delete)) { dialog, _ ->
-                            deleteItem(items[adapterPosition])
-                            dialog.dismiss()
-                        }.setNegativeButton(activity.getString(R.string.cancel)) { dialog, _ ->
-                            dialog.dismiss()
-                        }.create().show()
+                    .setMessage("${activity.getString(R.string.do_you_want_to_delete)} ${file.name}")
+                    .setPositiveButton(activity.getString(R.string.delete)) { dialog, _ ->
+                        deleteItem(items[adapterPosition])
+                        dialog.dismiss()
+                    }.setNegativeButton(activity.getString(R.string.cancel)) { dialog, _ ->
+                        dialog.dismiss()
+                    }.create().show()
 
             }
 
-            shareButton.setOnClickListener {
-                Intent(Intent.ACTION_SEND).apply {
-                    val file = items[adapterPosition]
-                    val fileUri = FileProvider.getUriForFile(activity, activity.applicationContext.packageName + ".provider", file)
-                    this.type = activity.contentResolver.getType(fileUri)
-                    this.putExtra(Intent.EXTRA_STREAM, fileUri)
-                    activity.startActivity(Intent.createChooser(this, null))
-                }
-            }
+            shareButton.setOnClickListener { Utils.shareFile(activity, items[adapterPosition]) }
         }
     }
 
-    override fun onBindViewHolder(holder: MainFragmentAdapter.ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val name = items[position].name
         holder.title.text = name
-        holder.icon.setImageDrawable(ContextCompat.getDrawable(activity, if (name.endsWith(".txt")) R.drawable.ic_txt else R.drawable.ic_pdf))
+        holder.icon.setImageDrawable(
+            ContextCompat.getDrawable(
+                activity,
+                if (name.endsWith(".txt")) R.drawable.ic_txt else R.drawable.ic_pdf
+            )
+        )
     }
 
     fun updateItems() {
@@ -85,8 +87,8 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
         items.remove(file)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MainFragmentAdapter.ViewHolder =
-            ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_main_file, parent, false))
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
+        ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_main_file, parent, false))
 
     override fun getItemCount() = items.size
 

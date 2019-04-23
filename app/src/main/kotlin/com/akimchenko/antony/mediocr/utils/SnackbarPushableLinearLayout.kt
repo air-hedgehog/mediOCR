@@ -1,0 +1,16 @@
+package com.akimchenko.antony.mediocr.utils
+
+import android.content.Context
+import android.util.AttributeSet
+import android.widget.LinearLayout
+import androidx.coordinatorlayout.widget.CoordinatorLayout
+
+
+@CoordinatorLayout.DefaultBehavior(MoveUpwardBehavior::class)
+class SnackbarPushableLinearLayout : LinearLayout {
+    constructor(context: Context) : super(context) {}
+
+    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {}
+
+    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {}
+}

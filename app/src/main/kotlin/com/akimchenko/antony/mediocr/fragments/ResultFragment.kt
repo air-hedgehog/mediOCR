@@ -2,6 +2,7 @@ package com.akimchenko.antony.mediocr.fragments
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -14,6 +15,7 @@ import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.Utils
+import com.google.android.material.snackbar.Snackbar
 import com.itextpdf.text.Document
 import com.itextpdf.text.Font
 import com.itextpdf.text.Paragraph
@@ -117,6 +119,7 @@ class ResultFragment : BaseFragment() {
             this.add(p1)
             this.close()
         }
+        showSnackbar(activity, file)
     }
 
     private fun saveAsTxt(activity: MainActivity, text: String, name: String) {
@@ -132,6 +135,12 @@ class ResultFragment : BaseFragment() {
         }
         output.flush()
         output.close()
+        showSnackbar(activity, file)
+    }
+
+    private fun showSnackbar(context: Context, file: File) {
+        Snackbar.make(pushable_layout, context.getString(R.string.saved),
+            Snackbar.LENGTH_LONG).setAction(context.getString(R.string.share)) { Utils.shareFile(context, file) }.show()
     }
 
     private fun getUniqueName(defaultDir: File, name: String, suffix: String): String {

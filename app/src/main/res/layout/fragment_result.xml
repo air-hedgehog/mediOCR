@@ -54,32 +54,48 @@
 
     </LinearLayout>
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:padding="@dimen/default_side_margin">
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
 
-        <EditText
-            android:id="@+id/edit_text"
+            android:layout_weight="1"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
-            android:gravity="center_vertical"
-            tools:text="some recognized text" />
+            android:layout_height="0dp">
 
-    </ScrollView>
+        <com.akimchenko.antony.mediocr.utils.SnackbarPushableLinearLayout
+                android:id="@+id/pushable_layout"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-    <Switch
-        android:id="@+id/formatting_switch"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/colorPrimary"
-        android:elevation="2dp"
-        android:padding="@dimen/default_side_margin"
-        android:text="@string/original_text_formatting"
-        android:textColor="@color/primary_color"
-        android:textSize="@dimen/primary_text" />
+            <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:clipToPadding="false"
+                    android:padding="@dimen/default_side_margin">
+
+                <EditText
+                        android:id="@+id/edit_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/transparent"
+                        android:gravity="center_vertical"
+                        tools:text="some recognized text" />
+
+            </ScrollView>
+
+            <Switch
+                    android:id="@+id/formatting_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/colorPrimary"
+                    android:elevation="2dp"
+                    android:padding="@dimen/default_side_margin"
+                    android:text="@string/original_text_formatting"
+                    android:textColor="@color/primary_color"
+                    android:textSize="@dimen/primary_text" />
+
+        </com.akimchenko.antony.mediocr.utils.SnackbarPushableLinearLayout>
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 </LinearLayout>
