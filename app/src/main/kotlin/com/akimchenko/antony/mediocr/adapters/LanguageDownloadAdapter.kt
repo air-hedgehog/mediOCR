@@ -25,13 +25,29 @@ import java.util.*
 class LanguageDownloadAdapter(val activity: MainActivity) :
         RecyclerView.Adapter<LanguageDownloadAdapter.ViewHolder>(), NotificationCenter.Observer {
 
-    private val items = ArrayList<String>()
-
+    private var items = ArrayList<String>()
+    private var searchQuery: String? = null
     init {
-        if (items.isEmpty()) {
-            items.add("eng")
-            items.addAll(activity.resources.getStringArray(R.array.tessdata_langs))
+        buildList()
+    }
+
+    private fun buildList() {
+        items.clear()
+        val list = arrayListOf("eng")
+        list.addAll(activity.resources.getStringArray(R.array.tessdata_langs))
+        if (searchQuery.isNullOrBlank()) {
+            items = list
+        } else {
+            list.forEach {
+                if (Utils.getLocalizedLangName(it).contains(searchQuery!!, true))
+                    items.add(it)
+            }
         }
+        notifyDataSetChanged()
+    }
+
+    private fun setInitialState() {
+
     }
 
     fun resume() {
@@ -144,4 +160,9 @@ class LanguageDownloadAdapter(val activity: MainActivity) :
     override fun getItemCount() = items.size
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.updateUI(position)
+
+    fun setQuery(query: String?) {
+        searchQuery = query
+        buildList()
+    }
 }
