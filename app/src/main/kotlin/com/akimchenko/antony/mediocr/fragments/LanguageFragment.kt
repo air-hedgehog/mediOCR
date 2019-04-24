@@ -4,12 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.adapters.LanguageDownloadAdapter
 import kotlinx.android.synthetic.main.fragment_recycler.*
+import kotlinx.android.synthetic.main.toolbar.*
 
 
 class LanguageFragment : BaseSearchFragment() {
@@ -23,6 +25,8 @@ class LanguageFragment : BaseSearchFragment() {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity? ?: return
         toolbar.title = activity.getString(R.string.download_languages)
+        toolbar.navigationIcon = ContextCompat.getDrawable(activity, R.drawable.arrow_back)
+        toolbar.setNavigationOnClickListener { activity.onBackPressed() }
         setHasOptionsMenu(true)
         recycler_view.layoutManager = LinearLayoutManager(activity)
         recycler_view.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))

@@ -15,6 +15,7 @@ import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import kotlinx.android.synthetic.main.fragment_recycler.*
+import kotlinx.android.synthetic.main.toolbar.*
 
 class SettingsFragment : BaseFragment() {
 
@@ -30,6 +31,8 @@ class SettingsFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity? ?: return
         toolbar.title = activity.getString(R.string.settings)
+        toolbar.navigationIcon = ContextCompat.getDrawable(activity, R.drawable.arrow_back)
+        toolbar.setNavigationOnClickListener { activity.onBackPressed() }
         recycler_view.layoutManager = LinearLayoutManager(activity)
         recycler_view.adapter = SettingsAdapter()
         recycler_view.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))

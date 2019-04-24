@@ -5,14 +5,7 @@
               android:layout_height="match_parent"
               android:orientation="vertical">
 
-    <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:elevation="2dp"
-            android:background="@color/colorPrimary"
-            app:titleTextColor="@color/colorAccent"
-            app:navigationIcon="@drawable/arrow_back"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"/>
+    <include layout="@layout/toolbar"/>
 
 
     <androidx.recyclerview.widget.RecyclerView

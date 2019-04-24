@@ -24,6 +24,7 @@ import com.akimchenko.antony.mediocr.adapters.MainFragmentAdapter
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_main.*
+import kotlinx.android.synthetic.main.toolbar.*
 import java.io.File
 
 
@@ -38,6 +39,8 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
         const val GALLERY_CHOOSER_REQUEST_CODE = 103
         const val READ_WRITE_REQUEST_CODE = 104
         private const val ITEM_SETTINGS = 0
+        private const val ITEM_SORT_TYPE_DATE = 1
+        private const val ITEM_SORT_TYPE_TITLE = 2
     }
 
     private var adapter: MainFragmentAdapter? = null
@@ -49,7 +52,7 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity? ?: return
-        activity.setSupportActionBar(toolbar)
+        toolbar.title = activity.getString(R.string.app_name)
         setHasOptionsMenu(true)
         recycler_view.layoutManager = GridLayoutManager(
             activity, if (activity.resources.configuration.orientation ==
@@ -79,7 +82,12 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
         super.onCreateOptionsMenu(menu, inflater)
-        menu?.add(0, ITEM_SETTINGS, menu.size(), R.string.settings)?.setIcon(R.drawable.settings)?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+        menu?.add(0, ITEM_SETTINGS, menu.size(), R.string.settings)?.setIcon(R.drawable.settings)?.setChecked(false)
+            ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+        menu?.add(0, ITEM_SORT_TYPE_TITLE, menu.size(), R.string.sort_by_name)?.setIcon(R.drawable.sort_alphabetically)
+            ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+        menu?.add(0, ITEM_SORT_TYPE_DATE, menu.size(), R.string.sort_by_date)?.setIcon(R.drawable.sort_by_date)
+            ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
     }
 
     override fun onQueryTextSubmit(query: String?): Boolean {
@@ -95,14 +103,21 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
         val activity = activity as MainActivity? ?: return false
         when (item?.itemId) {
             ITEM_SETTINGS -> activity.pushFragment(SettingsFragment())
+            ITEM_SORT_TYPE_TITLE -> AppSettings.savedFilesSortedAlphabetically = true
+            ITEM_SORT_TYPE_DATE -> AppSettings.savedFilesSortedAlphabetically = false
         }
         return super.onOptionsItemSelected(item)
     }
 
     override fun onResume() {
         super.onResume()
-        adapter?.updateItems()
+        adapter?.resume()
         hint.visibility = if (adapter != null && adapter!!.itemCount > 0) View.GONE else View.VISIBLE
+    }
+
+    override fun onPause() {
+        super.onPause()
+        adapter?.pause()
     }
 
     override fun onClick(v: View?) {

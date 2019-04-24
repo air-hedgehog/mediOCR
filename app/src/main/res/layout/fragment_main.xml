@@ -1,67 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                xmlns:app="http://schemas.android.com/apk/res-auto">
+                android:layout_height="match_parent">
 
-    <androidx.appcompat.widget.Toolbar
-            app:title="@string/app_name"
-            app:titleTextColor="@color/colorAccent"
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/colorPrimary"
-            android:elevation="2dp"
-            android:foregroundGravity="right"
-            android:orientation="horizontal"/>
+    <include layout="@layout/toolbar"/>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/toolbar"
-        android:clipToPadding="false"
-        android:paddingLeft="@dimen/default_side_margin_small"
-        android:paddingTop="@dimen/default_side_margin_small"
-        android:paddingRight="@dimen/default_side_margin_small"
-        android:paddingBottom="72dp" />
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/toolbar"
+            android:clipToPadding="false"
+            android:paddingLeft="@dimen/default_side_margin_small"
+            android:paddingTop="@dimen/default_side_margin_small"
+            android:paddingRight="@dimen/default_side_margin_small"
+            android:paddingBottom="72dp"/>
 
     <TextView
-        android:id="@+id/hint"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:gravity="center"
-        android:text="@string/empty_files_hint" />
+            android:id="@+id/hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:text="@string/empty_files_hint"/>
 
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:id="@+id/camera_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/default_side_margin"
-            android:layout_marginBottom="@dimen/default_side_margin"
-            android:background="@drawable/camera_button"
-            android:elevation="@dimen/default_elevation" />
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:orientation="horizontal">
+
+        <ImageView
+                android:id="@+id/camera_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/default_side_margin"
+                android:layout_marginBottom="@dimen/default_side_margin"
+                android:background="@drawable/camera_button"
+                android:elevation="@dimen/default_elevation"/>
 
         <View
-            android:layout_width="1dp"
-            android:layout_height="@dimen/default_button_edge" />
+                android:layout_width="1dp"
+                android:layout_height="@dimen/default_button_edge"/>
 
         <ImageView
-            android:id="@+id/gallery_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="@dimen/default_side_margin"
-            android:layout_marginBottom="@dimen/default_side_margin"
-            android:background="@drawable/gallery_button"
-            android:elevation="@dimen/default_elevation" />
+                android:id="@+id/gallery_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="@dimen/default_side_margin"
+                android:layout_marginBottom="@dimen/default_side_margin"
+                android:background="@drawable/gallery_button"
+                android:elevation="@dimen/default_elevation"/>
 
     </LinearLayout>
 

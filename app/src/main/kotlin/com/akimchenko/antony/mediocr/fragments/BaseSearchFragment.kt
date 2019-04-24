@@ -9,7 +9,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
-import kotlinx.android.synthetic.main.fragment_recycler.*
+import kotlinx.android.synthetic.main.toolbar.*
 
 abstract class BaseSearchFragment: BaseFragment(), SearchView.OnQueryTextListener {
 

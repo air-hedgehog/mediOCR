@@ -1,17 +1,11 @@
 package com.akimchenko.antony.mediocr.fragments
 
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuInflater
 import android.view.View
-import android.widget.ImageView
-import androidx.appcompat.widget.SearchView
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.akimchenko.antony.mediocr.MainActivity
-import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
-import kotlinx.android.synthetic.main.fragment_recycler.*
+import kotlinx.android.synthetic.main.toolbar.*
 
 
 abstract class BaseFragment: Fragment(), NotificationCenter.Observer {
@@ -25,8 +19,6 @@ abstract class BaseFragment: Fragment(), NotificationCenter.Observer {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity? ?: return
         activity.setSupportActionBar(toolbar)
-        if (toolbar?.navigationIcon != null)
-            toolbar.setNavigationOnClickListener { activity.onBackPressed() }
     }
 
     override fun onResume() {

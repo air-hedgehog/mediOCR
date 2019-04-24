@@ -2,6 +2,7 @@ package com.akimchenko.antony.mediocr.adapters
 
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.SharedPreferences
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,11 +14,13 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
+import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.Utils
 import java.io.File
 
 
-class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Adapter<MainFragmentAdapter.ViewHolder>() {
+class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Adapter<MainFragmentAdapter.ViewHolder>(),
+    SharedPreferences.OnSharedPreferenceChangeListener {
 
     private val items: ArrayList<File> = ArrayList()
     private var searchQuery: String? = null
@@ -63,6 +66,15 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
         }
     }
 
+    fun resume() {
+        updateItems()
+        AppSettings.registerListener(this)
+    }
+
+    fun pause() {
+        AppSettings.unregisterListener(this)
+    }
+
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val name = items[position].name
         holder.title.text = name
@@ -74,13 +86,17 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
         )
     }
 
-    fun updateItems() {
+    private fun updateItems() {
         val files = activity.getDefaultSavedFilesDirectory().listFiles()
         items.clear()
         if (searchQuery.isNullOrBlank())
             items.addAll(files)
         else
             items.addAll(files.filter { it.name.contains(searchQuery!!, true) })
+        if (AppSettings.savedFilesSortedAlphabetically)
+            items.sortBy { it.name }
+        else
+            items.sortByDescending { it.lastModified() }
         notifyDataSetChanged()
     }
 
@@ -99,6 +115,11 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
     fun setSearchQuery(query: String?) {
         searchQuery = query
         updateItems()
+    }
+
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+        if (key == AppSettings.SAVED_FILES_SORT_TYPE)
+            updateItems()
     }
 
 }
