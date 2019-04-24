@@ -20,6 +20,7 @@ import java.io.File
 class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Adapter<MainFragmentAdapter.ViewHolder>() {
 
     private val items: ArrayList<File> = ArrayList()
+    private var searchQuery: String? = null
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
@@ -74,9 +75,12 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
     }
 
     fun updateItems() {
-        val files = activity.getDefaultSavedFilesDirectory().listFiles() as Array<File>? ?: return
+        val files = activity.getDefaultSavedFilesDirectory().listFiles()
         items.clear()
-        items.addAll(files)
+        if (searchQuery.isNullOrBlank())
+            items.addAll(files)
+        else
+            items.addAll(files.filter { it.name.contains(searchQuery!!, true) })
         notifyDataSetChanged()
     }
 
@@ -91,5 +95,10 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
         ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_main_file, parent, false))
 
     override fun getItemCount() = items.size
+
+    fun setSearchQuery(query: String?) {
+        searchQuery = query
+        updateItems()
+    }
 
 }

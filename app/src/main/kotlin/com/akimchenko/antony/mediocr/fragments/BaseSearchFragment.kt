@@ -37,16 +37,17 @@ abstract class BaseSearchFragment: BaseFragment(), SearchView.OnQueryTextListene
 
         val searchIcon: ImageView? = searchView?.findViewById(androidx.appcompat.R.id.search_button)
         searchIcon?.setColorFilter(ContextCompat.getColor(activity, R.color.colorAccent))
-        if (searchQuery != null) {
+        if (!searchQuery.isNullOrBlank()) {
             searchItem.expandActionView()
             searchView?.setQuery(searchQuery, false)
+            searchView?.isIconified = false
             searchView?.clearFocus()
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        val searchView: SearchView? = toolbar.menu.findItem(R.id.search_view).actionView as SearchView? ?: return
+        val searchView: SearchView? = toolbar?.menu?.findItem(R.id.search_view)?.actionView as SearchView? ?: return
         outState.putString(SEARCH_INSTANCE_STATE, searchView?.query.toString())
     }
 }

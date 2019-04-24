@@ -28,7 +28,7 @@ import java.io.File
 
 
 @SuppressLint("InlinedApi")
-class MainFragment : BaseFragment(), View.OnClickListener {
+class MainFragment : BaseSearchFragment(), View.OnClickListener {
 
     private var newPhotoFile: File? = null
 
@@ -37,6 +37,7 @@ class MainFragment : BaseFragment(), View.OnClickListener {
         const val CAPTURE_IMAGE_REQUEST_CODE = 102
         const val GALLERY_CHOOSER_REQUEST_CODE = 103
         const val READ_WRITE_REQUEST_CODE = 104
+        private const val ITEM_SETTINGS = 0
     }
 
     private var adapter: MainFragmentAdapter? = null
@@ -78,15 +79,22 @@ class MainFragment : BaseFragment(), View.OnClickListener {
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
         super.onCreateOptionsMenu(menu, inflater)
-        menu ?: return
-        inflater ?: return
-        return inflater.inflate(R.menu.main_screen_menu, menu)
+        menu?.add(0, ITEM_SETTINGS, menu.size(), R.string.settings)?.setIcon(R.drawable.settings)?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+    }
+
+    override fun onQueryTextSubmit(query: String?): Boolean {
+        return false
+    }
+
+    override fun onQueryTextChange(newText: String?): Boolean {
+        adapter?.setSearchQuery(newText)
+        return false
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         val activity = activity as MainActivity? ?: return false
         when (item?.itemId) {
-            R.id.settings -> activity.pushFragment(SettingsFragment())
+            ITEM_SETTINGS -> activity.pushFragment(SettingsFragment())
         }
         return super.onOptionsItemSelected(item)
     }

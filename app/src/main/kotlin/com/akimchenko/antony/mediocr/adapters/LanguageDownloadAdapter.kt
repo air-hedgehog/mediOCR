@@ -27,27 +27,21 @@ class LanguageDownloadAdapter(val activity: MainActivity) :
 
     private var items = ArrayList<String>()
     private var searchQuery: String? = null
+
     init {
         buildList()
     }
 
     private fun buildList() {
-        items.clear()
         val list = arrayListOf("eng")
         list.addAll(activity.resources.getStringArray(R.array.tessdata_langs))
-        if (searchQuery.isNullOrBlank()) {
-            items = list
-        } else {
-            list.forEach {
-                if (Utils.getLocalizedLangName(it).contains(searchQuery!!, true))
-                    items.add(it)
-            }
-        }
+
+        items = if (searchQuery.isNullOrBlank())
+            list
+        else
+            list.filter { Utils.getLocalizedLangName(it).contains(searchQuery!!, true) } as ArrayList<String>
+
         notifyDataSetChanged()
-    }
-
-    private fun setInitialState() {
-
     }
 
     fun resume() {
