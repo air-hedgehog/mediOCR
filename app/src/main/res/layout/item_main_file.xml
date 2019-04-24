@@ -38,7 +38,7 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/default_button_edge"
             android:layout_weight="1"
-            android:background="?android:attr/selectableItemBackground"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/share"
             android:tint="@color/colorAccent" />
 
@@ -47,7 +47,7 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/default_button_edge"
             android:layout_weight="1"
-            android:background="?android:attr/selectableItemBackground"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/delete"
             android:tint="@color/colorAccent" />
 
