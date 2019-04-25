@@ -59,9 +59,9 @@ class ResultFragment : BaseFragment() {
             updateTextFormatting(resultString)
         }
         formatting_switch.isChecked = AppSettings.defaultResultFormatting
-        /*if (savedInstanceState?.getBoolean(ARG_TITLE_DIALOG_SHOWN, false) == true) {
+        if (savedInstanceState?.getBoolean(ARG_TITLE_DIALOG_SHOWN, false) == true) {
             showEnterNameAlert(activity, )
-        }*/
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -109,34 +109,7 @@ class ResultFragment : BaseFragment() {
 
     @SuppressLint("InflateParams")
     private fun showEnterNameAlert(activity: MainActivity, fileTypeId: Int) {
-        enterNameDialogEditText =
-            LayoutInflater.from(activity).inflate(R.layout.dialog_enter_name, null, false) as EditText
-        val currentDateName = Utils.formatDate(Calendar.getInstance().timeInMillis)
-        enterNameDialogEditText!!.hint = currentDateName
-        val alertDialog = AlertDialog.Builder(activity)
-            .setView(enterNameDialogEditText)
-            .setPositiveButton(activity.getString(R.string.save)) { dialog, _ ->
 
-                var editedText = enterNameDialogEditText!!.text.trim().toString()
-                if (editedText.isEmpty())
-                    editedText = currentDateName
-                when (fileTypeId) {
-                    SAVE_AS_TXT_ID -> saveAsTxt(activity, editedText)
-                    SAVE_AS_PDF_ID -> saveAsPdf(activity, editedText)
-                }
-
-                dialog.dismiss()
-            }.setNegativeButton(activity.getString(R.string.cancel)) { dialog, _ ->
-                dialog.dismiss()
-            }.create()
-        alertDialog.setOnDismissListener {
-            val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
-            imm?.toggleSoftInput(0, InputMethodManager.HIDE_IMPLICIT_ONLY)
-        }
-        alertDialog.window?.setSoftInputMode(
-            WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE
-        )
-        alertDialog.show()
     }
 
     @SuppressLint("NewApi")
