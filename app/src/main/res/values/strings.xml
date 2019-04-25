@@ -27,4 +27,6 @@
     <string name="search">Search</string>
     <string name="sort_by_name">Sort by name</string>
     <string name="sort_by_date">Sort by date</string>
+    <string name="downloaded">Downloaded</string>
+    <string name="available">Available</string>
 </resources>

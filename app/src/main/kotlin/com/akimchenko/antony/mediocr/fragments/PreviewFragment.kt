@@ -148,7 +148,7 @@ class PreviewFragment : BaseFragment() {
     override fun onNotification(id: Int, `object`: Any?) {
         super.onNotification(id, `object`)
         when (id) {
-            NotificationCenter.LANG_DOWNLOAD_STATUS_CHANGED -> {
+            NotificationCenter.LANG_DOWNLOADED -> {
                 if ((`object` as String) == AppSettings.getSelectedLanguage()) {
                     val activity = activity as MainActivity? ?: return
                     updateProgressVisibility(!isLangDownloaded(activity))

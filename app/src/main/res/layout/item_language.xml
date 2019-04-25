@@ -27,6 +27,7 @@
         android:paddingRight="@dimen/default_side_margin"
         android:singleLine="true"
         android:textSize="@dimen/primary_text"
+        android:textColor="@android:color/primary_text_light"
         tools:text="Hindi" />
 
     <ImageView

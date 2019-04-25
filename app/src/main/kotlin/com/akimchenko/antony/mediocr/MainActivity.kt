@@ -105,7 +105,7 @@ class MainActivity : AppCompatActivity() {
             val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
             if (downloadIdsLangs.containsKey(id)) {
                 val language = downloadIdsLangs[id]!!
-                NotificationCenter.notify(NotificationCenter.LANG_DOWNLOAD_STATUS_CHANGED, language)
+                NotificationCenter.notify(NotificationCenter.LANG_DOWNLOADED, language)
                 downloadIdsLangs.remove(id)
                 Toast.makeText(
                         this@MainActivity,

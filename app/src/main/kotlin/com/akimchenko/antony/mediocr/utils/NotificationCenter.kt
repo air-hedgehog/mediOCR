@@ -4,12 +4,12 @@ import androidx.annotation.IntDef
 
 object NotificationCenter {
 
-    const val LANG_DOWNLOAD_STATUS_CHANGED = 0
+    const val LANG_DOWNLOADED = 0
     const val LANG_DELETED = 1
     const val RECOGNITION_PROCESS_CANCELLED = 2
 
     @IntDef(
-        LANG_DOWNLOAD_STATUS_CHANGED,
+        LANG_DOWNLOADED,
         LANG_DELETED,
         RECOGNITION_PROCESS_CANCELLED
     )

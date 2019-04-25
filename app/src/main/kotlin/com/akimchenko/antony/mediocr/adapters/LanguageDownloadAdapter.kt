@@ -23,25 +23,50 @@ import java.util.*
 
 
 class LanguageDownloadAdapter(val activity: MainActivity) :
-        RecyclerView.Adapter<LanguageDownloadAdapter.ViewHolder>(), NotificationCenter.Observer {
+    RecyclerView.Adapter<LanguageDownloadAdapter.ViewHolder>(), NotificationCenter.Observer {
 
-    private var items = ArrayList<String>()
+    companion object {
+        private const val ITEM_TYPE_LANGUAGE = 0
+        private const val ITEM_TYPE_SEPARATOR = 2
+    }
+
+    private var items = ArrayList<Item>()
     private var searchQuery: String? = null
 
     init {
-        buildList()
+        updateItems()
     }
 
-    private fun buildList() {
-        val list = arrayListOf("eng")
-        list.addAll(activity.resources.getStringArray(R.array.tessdata_langs))
+    private fun updateItems() {
+        val itemsList = ArrayList<Item>()
+        val langList = arrayListOf("eng")
+        langList.addAll(activity.resources.getStringArray(R.array.tessdata_langs))
+        langList.forEach { itemsList.add(Item(ITEM_TYPE_LANGUAGE, it)) }
 
         items = if (searchQuery.isNullOrBlank())
-            list
+            separateList(itemsList)
         else
-            list.filter { Utils.getLocalizedLangName(it).contains(searchQuery!!, true) } as ArrayList<String>
+            separateList(itemsList.filter { it.title != null && it.title.contains(searchQuery!!, true) })
 
         notifyDataSetChanged()
+    }
+
+    private fun separateList(list: List<Item>): ArrayList<Item> {
+        return ArrayList<Item>().also { rv ->
+            list.partition { item ->
+                Utils.isLanguageDownloaded(activity, item.title!!)
+            }.also { pair ->
+                if (pair.first.isNotEmpty()) {
+                    rv.add(Item(ITEM_TYPE_SEPARATOR, activity.getString(R.string.downloaded)))
+                    rv.addAll(pair.first)
+                }
+
+                if (pair.second.isNotEmpty()) {
+                    rv.add(Item(ITEM_TYPE_SEPARATOR, activity.getString(R.string.available)))
+                    rv.addAll(pair.second)
+                }
+            }
+        }
     }
 
     fun resume() {
@@ -60,9 +85,9 @@ class LanguageDownloadAdapter(val activity: MainActivity) :
             NotificationCenter.LANG_DELETED -> {
                 if (`object` == AppSettings.getSelectedLanguage())
                     AppSettings.setSelectedLanguage(null)
-                notifyDataSetChanged()
+                updateItems()
             }
-            NotificationCenter.LANG_DOWNLOAD_STATUS_CHANGED -> notifyItemChanged(items.indexOf(`object` as String))
+            NotificationCenter.LANG_DOWNLOADED -> updateItems()
         }
     }
 
@@ -75,40 +100,51 @@ class LanguageDownloadAdapter(val activity: MainActivity) :
 
         init {
             itemView.setOnClickListener {
-                val item = items[adapterPosition] as String? ?: return@setOnClickListener
-                if (!Utils.isLanguageDownloaded(activity, item) && item != "eng")
-                    download(item, File(activity.getTesseractDataFolder(), "$item.traineddata"), Utils.getLocalizedLangName(item))
+                val lang = getLang(adapterPosition) ?: return@setOnClickListener
 
-                AppSettings.setSelectedLanguage(item)
+                if (!Utils.isLanguageDownloaded(activity, lang) && lang != "eng")
+                    download(lang, File(activity.getTesseractDataFolder(), "$lang.traineddata"))
+
+                AppSettings.setSelectedLanguage(lang)
                 notifyDataSetChanged()
             }
             downloadDeleteButton.setOnClickListener {
-                val item = items[adapterPosition] as String? ?: return@setOnClickListener
-                val file = File(activity.getTesseractDataFolder(), "$item.traineddata")
-                if (Utils.isLanguageDownloaded(activity, item)) {
+                val lang = getLang(adapterPosition) ?: return@setOnClickListener
+                val file = File(activity.getTesseractDataFolder(), "$lang.traineddata")
+                if (Utils.isLanguageDownloaded(activity, lang)) {
                     AlertDialog.Builder(activity)
-                            .setMessage("${activity.getString(R.string.do_you_want_to_delete)} ${Utils.getLocalizedLangName(item)}")
-                            .setPositiveButton(activity.getString(R.string.delete)) { dialog, _ ->
-                                if (file.exists())
-                                    file.delete()
-                                NotificationCenter.notify(NotificationCenter.LANG_DELETED, item)
-                                dialog.dismiss()
-                            }.setNegativeButton(activity.getString(R.string.cancel)) { dialog, _ ->
-                                dialog.dismiss()
-                            }.create().show()
+                        .setMessage(
+                            "${activity.getString(R.string.do_you_want_to_delete)} ${Utils.getLocalizedLangName(
+                                lang
+                            )}"
+                        )
+                        .setPositiveButton(activity.getString(R.string.delete)) { dialog, _ ->
+                            if (file.exists())
+                                file.delete()
+                            NotificationCenter.notify(NotificationCenter.LANG_DELETED, lang)
+                            dialog.dismiss()
+                        }.setNegativeButton(activity.getString(R.string.cancel)) { dialog, _ ->
+                            dialog.dismiss()
+                        }.create().show()
 
                 } else {
-                    download(items[adapterPosition], file, item)
+                    download(lang, file)
                 }
                 notifyItemChanged(adapterPosition)
             }
         }
 
+        private fun getLang(position: Int): String? {
+            if (position < 0 || position >= items.size) return null
+            return items[position].title
+        }
+
         override fun updateUI(position: Int) {
-            val item = items[position] as String? ?: return
-            if (item != "eng") {
-                val isDownloaded = Utils.isLanguageDownloaded(activity, item)
-                val isDownloading = activity.downloadIdsLangs.containsValue(item)
+            val lang = getLang(position) ?: return
+
+            if (lang != "eng") {
+                val isDownloaded = Utils.isLanguageDownloaded(activity, lang)
+                val isDownloading = activity.downloadIdsLangs.containsValue(lang)
                 downloadDeleteButton.isClickable = !isDownloading
                 downloadDeleteButton.isFocusable = !isDownloading
                 if (isDownloading) {
@@ -118,22 +154,41 @@ class LanguageDownloadAdapter(val activity: MainActivity) :
                     downloadDeleteButton.visibility = View.VISIBLE
                     progressbar.visibility = View.GONE
                 }
-                downloadDeleteButton.setImageDrawable(ContextCompat.getDrawable(activity, if (isDownloaded) R.drawable.delete else R.drawable.download))
+                downloadDeleteButton.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        activity,
+                        if (isDownloaded) R.drawable.delete else R.drawable.download
+                    )
+                )
             } else {
                 downloadDeleteButton.visibility = View.GONE
                 progressbar.visibility = View.GONE
             }
-            title.text = Utils.getLocalizedLangName(item)
-            val isSelected = AppSettings.getSelectedLanguage() == item
+            title.text = Utils.getLocalizedLangName(lang)
+            val isSelected = AppSettings.getSelectedLanguage() == lang
             checkMark.visibility = if (isSelected) View.VISIBLE else View.GONE
-            title.setPadding(if (isSelected) 0 else activity.resources.getDimensionPixelSize(R.dimen.default_side_margin), 0, 0, 0)
+            title.setPadding(
+                if (isSelected) 0 else activity.resources.getDimensionPixelSize(R.dimen.default_side_margin),
+                0, 0, 0
+            )
         }
     }
 
-    private fun download(lang: String, destFile: File, fileName: String) {
-        val request = DownloadManager.Request(Uri.parse("https://github.com/tesseract-ocr/tessdata/blob/master/$lang.traineddata?raw=true"))
+    private inner class SeparatorViewHolder(itemView: View): ViewHolder(itemView) {
+
+        val title: TextView = itemView.findViewById(R.id.text_view)
+
+        override fun updateUI(position: Int) {
+            if (position < 0 || position >= items.size) return
+            title.text = items[position].title
+        }
+    }
+
+    private fun download(lang: String, destFile: File) {
+        val request =
+            DownloadManager.Request(Uri.parse("https://github.com/tesseract-ocr/tessdata/blob/master/$lang.traineddata?raw=true"))
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-                .setTitle(fileName)
+                .setTitle(Utils.getLocalizedLangName(lang))
                 .setDestinationUri(Uri.fromFile(destFile))
                 .setAllowedOverRoaming(true)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
@@ -142,13 +197,32 @@ class LanguageDownloadAdapter(val activity: MainActivity) :
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
             request.setRequiresCharging(false)
 
-        val downloadManager = activity.getSystemService(DOWNLOAD_SERVICE) as DownloadManager?
-                ?: return
+        val downloadManager = activity.getSystemService(DOWNLOAD_SERVICE) as DownloadManager? ?: return
         activity.downloadIdsLangs[downloadManager.enqueue(request)] = lang
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return AvailableLangViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_language, parent, false))
+        return when (viewType) {
+            ITEM_TYPE_SEPARATOR ->
+                SeparatorViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_separator, parent, false))
+
+            ITEM_TYPE_LANGUAGE ->
+                AvailableLangViewHolder(
+                    LayoutInflater.from(parent.context).inflate(R.layout.item_language, parent, false)
+                )
+
+            else -> SeparatorViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.item_separator,
+                    parent,
+                    false
+                )
+            )
+        }
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return items[position].type
     }
 
     override fun getItemCount() = items.size
@@ -157,6 +231,8 @@ class LanguageDownloadAdapter(val activity: MainActivity) :
 
     fun setQuery(query: String?) {
         searchQuery = query
-        buildList()
+        updateItems()
     }
+
+    private inner class Item(val type: Int, val title: String?)
 }
