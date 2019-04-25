@@ -21,6 +21,7 @@ abstract class BaseSearchFragment: BaseFragment(), SearchView.OnQueryTextListene
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setHasOptionsMenu(true)
         searchQuery = savedInstanceState?.getString(SEARCH_INSTANCE_STATE, null)
     }
 

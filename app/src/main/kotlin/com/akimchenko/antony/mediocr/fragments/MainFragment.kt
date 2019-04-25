@@ -53,7 +53,6 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity? ?: return
         toolbar.title = activity.getString(R.string.app_name)
-        setHasOptionsMenu(true)
         recycler_view.layoutManager = GridLayoutManager(
             activity, if (activity.resources.configuration.orientation ==
                 Configuration.ORIENTATION_PORTRAIT
@@ -82,7 +81,7 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
         super.onCreateOptionsMenu(menu, inflater)
-        menu?.add(0, ITEM_SETTINGS, menu.size(), R.string.settings)?.setIcon(R.drawable.settings)?.setChecked(false)
+        menu?.add(0, ITEM_SETTINGS, menu.size(), R.string.settings)?.setIcon(R.drawable.settings)
             ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
         menu?.add(0, ITEM_SORT_TYPE_TITLE, menu.size(), R.string.sort_by_name)?.setIcon(R.drawable.sort_alphabetically)
             ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)

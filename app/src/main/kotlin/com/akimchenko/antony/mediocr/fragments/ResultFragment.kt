@@ -6,14 +6,15 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
-import android.widget.PopupMenu
+import androidx.core.content.ContextCompat
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.AppSettings
+import com.akimchenko.antony.mediocr.utils.NotificationCenter.SAVE_AS_PDF_ID
+import com.akimchenko.antony.mediocr.utils.NotificationCenter.SAVE_AS_TXT_ID
 import com.akimchenko.antony.mediocr.utils.Utils
 import com.google.android.material.snackbar.Snackbar
 import com.itextpdf.text.Document
@@ -21,6 +22,7 @@ import com.itextpdf.text.Font
 import com.itextpdf.text.Paragraph
 import com.itextpdf.text.pdf.PdfWriter
 import kotlinx.android.synthetic.main.fragment_result.*
+import kotlinx.android.synthetic.main.toolbar.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
@@ -31,11 +33,14 @@ class ResultFragment : BaseFragment() {
 
     companion object {
         const val ARG_OCR_RESULT = "arg_ocr_result"
-        const val SAVE_AS_TXT_ID = 0
-        const val SAVE_AS_PDF_ID = 1
+        private const val SHARE_BUTTON_ID = 2
+        private const val ARG_TITLE_DIALOG_SHOWN = "arg_title_dialog_shown"
+        private const val ARG_TITLE_DIALOG_TEXT = "arg_title_dialog_text"
     }
 
     private var counter: Int = 0
+    private var isTitleDialogShown = false
+    private var enterNameDialogEditText: EditText? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_result, container, false)
@@ -45,64 +50,97 @@ class ResultFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity? ?: return
         val resultString = arguments?.getString(ARG_OCR_RESULT) ?: return
-        close_button.setOnClickListener { activity.popFragment(MainFragment::class.java.name) }
-        save_button.setOnClickListener {
-            counter = 0
-            PopupMenu(activity, save_button).apply {
-                this.menu.add(0, SAVE_AS_TXT_ID, 0, activity.getString(R.string.save_as_txt))
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-                    this.menu.add(0, SAVE_AS_PDF_ID, 1, activity.getString(R.string.save_as_pdf))
-                this.setOnMenuItemClickListener {
-                    showEnterNameAlert(activity, edit_text.text.trim().toString(), it.itemId)
-                    false
-                }
-                this.show()
-            }
-        }
-        share_button.setOnClickListener {
-            startActivity(Intent(Intent.ACTION_SEND).apply {
-                this.type = "text/plain"
-                this.putExtra(Intent.EXTRA_TEXT, edit_text.text.toString())
-            })
-        }
+        setHasOptionsMenu(true)
+        toolbar.navigationIcon = ContextCompat.getDrawable(activity, R.drawable.close)
+        toolbar.setNavigationOnClickListener { activity.popFragment(MainFragment::class.java.name) }
         updateTextFormatting(resultString)
         formatting_switch.setOnCheckedChangeListener { _, isChecked ->
             AppSettings.defaultResultFormatting = isChecked
             updateTextFormatting(resultString)
         }
         formatting_switch.isChecked = AppSettings.defaultResultFormatting
+        /*if (savedInstanceState?.getBoolean(ARG_TITLE_DIALOG_SHOWN, false) == true) {
+            showEnterNameAlert(activity, )
+        }*/
     }
 
-    private fun updateTextFormatting(text: String) = edit_text.setText(if (AppSettings.defaultResultFormatting) text else text.removeRowBreaks())
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(ARG_TITLE_DIALOG_SHOWN, isTitleDialogShown)
+        outState.putString(ARG_TITLE_DIALOG_TEXT, enterNameDialogEditText?.text.toString())
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+        super.onCreateOptionsMenu(menu, inflater)
+        menu?.add(0, SHARE_BUTTON_ID, 0, R.string.share)?.setIcon(R.drawable.share)
+            ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+        menu?.add(0, SAVE_AS_TXT_ID, 1, R.string.save_as_txt)?.setIcon(R.drawable.save_as_txt)
+            ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+            menu?.add(0, SAVE_AS_PDF_ID, 1, R.string.save_as_pdf)?.setIcon(R.drawable.save_as_pdf)
+                ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        return when (item?.itemId) {
+            SHARE_BUTTON_ID -> {
+                startActivity(Intent(Intent.ACTION_SEND).apply {
+                    this.type = "text/plain"
+                    this.putExtra(Intent.EXTRA_TEXT, edit_text.text.toString())
+                })
+                false
+            }
+            SAVE_AS_TXT_ID,
+            SAVE_AS_PDF_ID -> {
+                val activity = activity as MainActivity? ?: return false
+                counter = 0
+                showEnterNameAlert(activity, item.itemId)
+                false
+            }
+            else -> return super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun updateTextFormatting(text: String) =
+        edit_text.setText(if (AppSettings.defaultResultFormatting) text else text.removeRowBreaks())
 
     private fun String.removeRowBreaks(): String = this.replace("\n", " ", true)
 
     @SuppressLint("InflateParams")
-    private fun showEnterNameAlert(activity: MainActivity, contentText: String, fileTypeId: Int) {
-        val editTextView: EditText =
+    private fun showEnterNameAlert(activity: MainActivity, fileTypeId: Int) {
+        enterNameDialogEditText =
             LayoutInflater.from(activity).inflate(R.layout.dialog_enter_name, null, false) as EditText
         val currentDateName = Utils.formatDate(Calendar.getInstance().timeInMillis)
-        editTextView.hint = currentDateName
-        AlertDialog.Builder(activity)
-            .setView(editTextView)
+        enterNameDialogEditText!!.hint = currentDateName
+        val alertDialog = AlertDialog.Builder(activity)
+            .setView(enterNameDialogEditText)
             .setPositiveButton(activity.getString(R.string.save)) { dialog, _ ->
 
-                var editedText = editTextView.text.trim().toString()
+                var editedText = enterNameDialogEditText!!.text.trim().toString()
                 if (editedText.isEmpty())
                     editedText = currentDateName
                 when (fileTypeId) {
-                    SAVE_AS_TXT_ID -> saveAsTxt(activity, contentText, editedText)
-                    SAVE_AS_PDF_ID -> saveAsPdf(activity, contentText, editedText)
+                    SAVE_AS_TXT_ID -> saveAsTxt(activity, editedText)
+                    SAVE_AS_PDF_ID -> saveAsPdf(activity, editedText)
                 }
 
                 dialog.dismiss()
             }.setNegativeButton(activity.getString(R.string.cancel)) { dialog, _ ->
                 dialog.dismiss()
-            }.create().show()
+            }.create()
+        alertDialog.setOnDismissListener {
+            val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
+            imm?.toggleSoftInput(0, InputMethodManager.HIDE_IMPLICIT_ONLY)
+        }
+        alertDialog.window?.setSoftInputMode(
+            WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE
+        )
+        alertDialog.show()
     }
 
     @SuppressLint("NewApi")
-    private fun saveAsPdf(activity: MainActivity, text: String, name: String) {
+    private fun saveAsPdf(activity: MainActivity, name: String) {
         val defaultDir = activity.getDefaultSavedFilesDirectory()
         val file = File(defaultDir, getUniqueName(defaultDir, name, ".pdf"))
         if (!file.exists())
@@ -112,7 +150,7 @@ class ResultFragment : BaseFragment() {
             val fOut = FileOutputStream(file)
             PdfWriter.getInstance(this, fOut)
             this.open()
-            val p1 = Paragraph(text)
+            val p1 = Paragraph(edit_text.text.trim().toString())
             val paraFont = Font(Font.FontFamily.UNDEFINED)
             p1.alignment = Paragraph.ALIGN_LEFT
             p1.font = paraFont
@@ -122,7 +160,7 @@ class ResultFragment : BaseFragment() {
         showSnackbar(activity, file)
     }
 
-    private fun saveAsTxt(activity: MainActivity, text: String, name: String) {
+    private fun saveAsTxt(activity: MainActivity, name: String) {
         val defaultDir = activity.getDefaultSavedFilesDirectory()
         val file = File(defaultDir, getUniqueName(defaultDir, name, ".txt"))
         if (!file.exists())
@@ -130,7 +168,7 @@ class ResultFragment : BaseFragment() {
 
         val output = FileOutputStream(file)
         OutputStreamWriter(output).apply {
-            this.append(text)
+            this.append(edit_text.text.trim().toString())
             this.close()
         }
         output.flush()
@@ -139,8 +177,10 @@ class ResultFragment : BaseFragment() {
     }
 
     private fun showSnackbar(context: Context, file: File) {
-        Snackbar.make(pushable_layout, context.getString(R.string.saved),
-            Snackbar.LENGTH_LONG).setAction(context.getString(R.string.share)) { Utils.shareFile(context, file) }.show()
+        Snackbar.make(
+            pushable_layout, context.getString(R.string.saved),
+            Snackbar.LENGTH_LONG
+        ).setAction(context.getString(R.string.share)) { Utils.shareFile(context, file) }.show()
     }
 
     private fun getUniqueName(defaultDir: File, name: String, suffix: String): String {

@@ -68,6 +68,7 @@
     <ImageView
         android:id="@+id/close_button"
         android:layout_width="@dimen/default_button_edge"
+        android:tint="@android:color/white"
         android:layout_height="@dimen/default_button_edge"
         android:layout_alignParentLeft="true"
         android:scaleType="center"

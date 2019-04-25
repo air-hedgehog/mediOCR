@@ -27,7 +27,6 @@ class LanguageFragment : BaseSearchFragment() {
         toolbar.title = activity.getString(R.string.download_languages)
         toolbar.navigationIcon = ContextCompat.getDrawable(activity, R.drawable.arrow_back)
         toolbar.setNavigationOnClickListener { activity.onBackPressed() }
-        setHasOptionsMenu(true)
         recycler_view.layoutManager = LinearLayoutManager(activity)
         recycler_view.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))
         adapter = LanguageDownloadAdapter(activity)
