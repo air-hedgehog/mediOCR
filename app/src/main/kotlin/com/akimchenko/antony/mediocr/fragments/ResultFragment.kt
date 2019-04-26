@@ -1,20 +1,17 @@
 package com.akimchenko.antony.mediocr.fragments
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.*
-import android.view.inputmethod.InputMethodManager
-import android.widget.EditText
 import androidx.core.content.ContextCompat
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
+import com.akimchenko.antony.mediocr.dialogs.EnterNameDialog
 import com.akimchenko.antony.mediocr.utils.AppSettings
-import com.akimchenko.antony.mediocr.utils.NotificationCenter.SAVE_AS_PDF_ID
-import com.akimchenko.antony.mediocr.utils.NotificationCenter.SAVE_AS_TXT_ID
+import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
 import com.google.android.material.snackbar.Snackbar
 import com.itextpdf.text.Document
@@ -26,7 +23,6 @@ import kotlinx.android.synthetic.main.toolbar.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
-import java.util.*
 
 
 class ResultFragment : BaseFragment() {
@@ -34,13 +30,10 @@ class ResultFragment : BaseFragment() {
     companion object {
         const val ARG_OCR_RESULT = "arg_ocr_result"
         private const val SHARE_BUTTON_ID = 2
-        private const val ARG_TITLE_DIALOG_SHOWN = "arg_title_dialog_shown"
-        private const val ARG_TITLE_DIALOG_TEXT = "arg_title_dialog_text"
     }
 
     private var counter: Int = 0
-    private var isTitleDialogShown = false
-    private var enterNameDialogEditText: EditText? = null
+    private var enterNameDialog: EnterNameDialog? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_result, container, false)
@@ -59,26 +52,17 @@ class ResultFragment : BaseFragment() {
             updateTextFormatting(resultString)
         }
         formatting_switch.isChecked = AppSettings.defaultResultFormatting
-        if (savedInstanceState?.getBoolean(ARG_TITLE_DIALOG_SHOWN, false) == true) {
-            showEnterNameAlert(activity, )
-        }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putBoolean(ARG_TITLE_DIALOG_SHOWN, isTitleDialogShown)
-        outState.putString(ARG_TITLE_DIALOG_TEXT, enterNameDialogEditText?.text.toString())
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
         super.onCreateOptionsMenu(menu, inflater)
         menu?.add(0, SHARE_BUTTON_ID, 0, R.string.share)?.setIcon(R.drawable.share)
             ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
-        menu?.add(0, SAVE_AS_TXT_ID, 1, R.string.save_as_txt)?.setIcon(R.drawable.save_as_txt)
+        menu?.add(0, NotificationCenter.SAVE_AS_TXT_ID, 1, R.string.save_as_txt)?.setIcon(R.drawable.save_as_txt)
             ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-            menu?.add(0, SAVE_AS_PDF_ID, 1, R.string.save_as_pdf)?.setIcon(R.drawable.save_as_pdf)
+            menu?.add(0, NotificationCenter.SAVE_AS_PDF_ID, 1, R.string.save_as_pdf)?.setIcon(R.drawable.save_as_pdf)
                 ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
     }
 
@@ -91,8 +75,8 @@ class ResultFragment : BaseFragment() {
                 })
                 false
             }
-            SAVE_AS_TXT_ID,
-            SAVE_AS_PDF_ID -> {
+            NotificationCenter.SAVE_AS_TXT_ID,
+            NotificationCenter.SAVE_AS_PDF_ID -> {
                 val activity = activity as MainActivity? ?: return false
                 counter = 0
                 showEnterNameAlert(activity, item.itemId)
@@ -109,7 +93,11 @@ class ResultFragment : BaseFragment() {
 
     @SuppressLint("InflateParams")
     private fun showEnterNameAlert(activity: MainActivity, fileTypeId: Int) {
-
+        enterNameDialog = EnterNameDialog()
+        enterNameDialog!!.arguments = Bundle().apply {
+            this.putInt(EnterNameDialog.FILE_TYPE_ID_ARG, fileTypeId)
+        }
+        enterNameDialog!!.show(activity.supportFragmentManager, EnterNameDialog::class.java.name)
     }
 
     @SuppressLint("NewApi")
@@ -131,6 +119,15 @@ class ResultFragment : BaseFragment() {
             this.close()
         }
         showSnackbar(activity, file)
+    }
+
+    override fun onNotification(id: Int, `object`: Any?) {
+        super.onNotification(id, `object`)
+        val activity = activity as MainActivity? ?: return
+        when (id) {
+            NotificationCenter.SAVE_AS_TXT_ID -> saveAsTxt(activity, `object` as String)
+            NotificationCenter.SAVE_AS_PDF_ID -> saveAsPdf(activity, `object` as String)
+        }
     }
 
     private fun saveAsTxt(activity: MainActivity, name: String) {
