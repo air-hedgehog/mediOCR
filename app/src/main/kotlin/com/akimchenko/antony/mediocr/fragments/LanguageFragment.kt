@@ -19,7 +19,7 @@ class LanguageFragment : BaseSearchFragment() {
     private lateinit var adapter: LanguageDownloadAdapter
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
-            inflater.inflate(R.layout.fragment_recycler, container, false)
+        inflater.inflate(R.layout.fragment_recycler, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -29,8 +29,12 @@ class LanguageFragment : BaseSearchFragment() {
         toolbar.setNavigationOnClickListener { activity.onBackPressed() }
         recycler_view.layoutManager = LinearLayoutManager(activity)
         recycler_view.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))
-        adapter = LanguageDownloadAdapter(activity)
+        adapter = LanguageDownloadAdapter(this)
         recycler_view.adapter = adapter
+    }
+
+    fun updateProgressBar(isVisible: Boolean) {
+        progress_bar.visibility = if (isVisible) View.VISIBLE else View.GONE
     }
 
     override fun onQueryTextSubmit(query: String?): Boolean {

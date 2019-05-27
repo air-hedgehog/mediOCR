@@ -15,43 +15,60 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
+import com.akimchenko.antony.mediocr.fragments.LanguageFragment
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
 
 
-class LanguageDownloadAdapter(val activity: MainActivity) :
+class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
     RecyclerView.Adapter<LanguageDownloadAdapter.ViewHolder>(), NotificationCenter.Observer {
 
     companion object {
         private const val ITEM_TYPE_LANGUAGE = 0
-        private const val ITEM_TYPE_SEPARATOR = 2
+        private const val ITEM_TYPE_SEPARATOR = 1
     }
 
     private var items = ArrayList<Item>()
     private var searchQuery: String? = null
+    private val activity: MainActivity? = fragment.activity as MainActivity?
+    private var job: Job? = null
 
     init {
         updateItems()
     }
 
     private fun updateItems() {
-        val itemsList = ArrayList<Item>()
-        val langList = arrayListOf("eng")
-        langList.addAll(activity.resources.getStringArray(R.array.tessdata_langs))
-        langList.forEach { itemsList.add(Item(ITEM_TYPE_LANGUAGE, it)) }
+        activity ?: return
+        job = GlobalScope.launch {
+            activity.runOnUiThread {
+                fragment.updateProgressBar(true)
+            }
+            val itemsList = ArrayList<Item>()
+            val langList = arrayListOf("eng")
+            langList.addAll(activity.resources.getStringArray(R.array.tessdata_langs))
+            langList.forEach { itemsList.add(Item(ITEM_TYPE_LANGUAGE, it)) }
 
-        items = if (searchQuery.isNullOrBlank())
-            separateList(itemsList)
-        else
-            separateList(itemsList.filter { it.title != null && it.title.contains(searchQuery!!, true) })
-
-        notifyDataSetChanged()
+            items = if (searchQuery.isNullOrBlank())
+                separateList(activity, itemsList)
+            else
+                separateList(activity, itemsList.filter { it.title != null && it.title.contains(searchQuery!!, true) })
+        }
+        job?.invokeOnCompletion {
+            activity.runOnUiThread {
+                notifyDataSetChanged()
+                fragment.updateProgressBar(false)
+            }
+            job = null
+        }
     }
 
-    private fun separateList(list: List<Item>): ArrayList<Item> {
+    private fun separateList(activity: MainActivity, list: List<Item>): ArrayList<Item> {
         return ArrayList<Item>().also { rv ->
             list.partition { item ->
                 Utils.isLanguageDownloaded(activity, item.title!!)
@@ -71,7 +88,12 @@ class LanguageDownloadAdapter(val activity: MainActivity) :
 
     fun resume() {
         NotificationCenter.addObserver(this)
-        notifyDataSetChanged()
+        if (job != null && job!!.isActive) {
+            fragment.updateProgressBar(true)
+        } else {
+            fragment.updateProgressBar(false)
+            notifyDataSetChanged()
+        }
     }
 
     fun pause() = NotificationCenter.removeObserver(this)
@@ -100,6 +122,7 @@ class LanguageDownloadAdapter(val activity: MainActivity) :
 
         init {
             itemView.setOnClickListener {
+                activity ?: return@setOnClickListener
                 val lang = getLang(adapterPosition) ?: return@setOnClickListener
 
                 if (!Utils.isLanguageDownloaded(activity, lang) && lang != "eng")
@@ -109,6 +132,7 @@ class LanguageDownloadAdapter(val activity: MainActivity) :
                 notifyDataSetChanged()
             }
             downloadDeleteButton.setOnClickListener {
+                activity ?: return@setOnClickListener
                 val lang = getLang(adapterPosition) ?: return@setOnClickListener
                 val file = File(activity.getTesseractDataFolder(), "$lang.traineddata")
                 if (Utils.isLanguageDownloaded(activity, lang)) {
@@ -140,6 +164,7 @@ class LanguageDownloadAdapter(val activity: MainActivity) :
         }
 
         override fun updateUI(position: Int) {
+            activity ?: return
             val lang = getLang(position) ?: return
 
             if (lang != "eng") {
@@ -174,7 +199,7 @@ class LanguageDownloadAdapter(val activity: MainActivity) :
         }
     }
 
-    private inner class SeparatorViewHolder(itemView: View): ViewHolder(itemView) {
+    private inner class SeparatorViewHolder(itemView: View) : ViewHolder(itemView) {
 
         val title: TextView = itemView.findViewById(R.id.text_view)
 
@@ -185,6 +210,7 @@ class LanguageDownloadAdapter(val activity: MainActivity) :
     }
 
     private fun download(lang: String, destFile: File) {
+        activity ?: return
         val request =
             DownloadManager.Request(Uri.parse("https://github.com/tesseract-ocr/tessdata/blob/master/$lang.traineddata?raw=true"))
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
