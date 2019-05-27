@@ -165,12 +165,15 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.popBackStackImmediate(fragmentName, 0)
     }
 
-    @SuppressLint("InflateParams")
     fun showProgress(message: String? = getString(R.string.please_wait)) {
         runOnUiThread {
             if (progressDialog == null || progressDialog!!.dialog == null || !progressDialog!!.dialog.isShowing) {
-                progressDialog = ProgressDialog(message)
-                progressDialog!!.show(this.supportFragmentManager, ProgressDialog::class.java.name)
+                progressDialog = ProgressDialog().also { dialog ->
+                    dialog.arguments = Bundle().apply {
+                        this.putString(ProgressDialog.INITIAL_TEXT_ARG, message)
+                        progressDialog!!.show(this@MainActivity.supportFragmentManager, ProgressDialog::class.java.name)
+                    }
+                }
             }
             if (message != progressDialog!!.getMessage())
                 progressDialog!!.setMessage(message)

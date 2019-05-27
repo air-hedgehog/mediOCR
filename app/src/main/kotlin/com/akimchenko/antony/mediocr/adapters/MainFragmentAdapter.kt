@@ -87,7 +87,7 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
     }
 
     private fun updateItems() {
-        val files = activity.getDefaultSavedFilesDirectory().listFiles()
+        val files = activity.getDefaultSavedFilesDirectory().listFiles() ?: return
         items.clear()
         if (searchQuery.isNullOrBlank())
             items.addAll(files)
