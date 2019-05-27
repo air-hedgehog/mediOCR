@@ -34,10 +34,6 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
     private var newPhotoFile: File? = null
 
     companion object {
-        const val READ_WRITE_CAMERA_REQUEST_CODE = 101
-        const val CAPTURE_IMAGE_REQUEST_CODE = 102
-        const val GALLERY_CHOOSER_REQUEST_CODE = 103
-        const val READ_WRITE_REQUEST_CODE = 104
         private const val ITEM_SETTINGS = 0
         private const val ITEM_SORT_TYPE_DATE = 1
         private const val ITEM_SORT_TYPE_TITLE = 2
@@ -128,7 +124,7 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
                     Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     Manifest.permission.CAMERA
                 ),
-                    READ_WRITE_CAMERA_REQUEST_CODE,
+                    Utils.READ_WRITE_CAMERA_REQUEST_CODE,
                     object : MainActivity.OnRequestPermissionCallback {
                         override fun onPermissionReturned(isGranted: Boolean) {
                             if (isGranted)
@@ -164,7 +160,7 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
                 activity.requestPermissions(arrayOf(
                     Manifest.permission.READ_EXTERNAL_STORAGE,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE
-                ), READ_WRITE_REQUEST_CODE, object : MainActivity.OnRequestPermissionCallback {
+                ), Utils.READ_WRITE_GALLERY_REQUEST_CODE, object : MainActivity.OnRequestPermissionCallback {
                     override fun onPermissionReturned(isGranted: Boolean) {
                         if (isGranted)
                             sendGalleryChooserIntent()
@@ -194,7 +190,7 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
                         newPhotoFile!!
                     )
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri)
-                    startActivityForResult(takePictureIntent, CAPTURE_IMAGE_REQUEST_CODE)
+                    startActivityForResult(takePictureIntent, Utils.CAPTURE_IMAGE_REQUEST_CODE)
                 }
             }
         }
@@ -210,14 +206,14 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
         Intent().apply {
             this.type = "image/*"
             this.action = Intent.ACTION_GET_CONTENT
-            startActivityForResult(Intent.createChooser(this, null), GALLERY_CHOOSER_REQUEST_CODE)
+            startActivityForResult(Intent.createChooser(this, null), Utils.GALLERY_CHOOSER_REQUEST_CODE)
         }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         val activity = activity as MainActivity? ?: return
         when (requestCode) {
-            CAPTURE_IMAGE_REQUEST_CODE -> {
+            Utils.CAPTURE_IMAGE_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK && newPhotoFile != null) {
                     activity.pushFragment(PreviewFragment().also { fragment ->
                         fragment.arguments = Bundle().also { args ->
@@ -229,7 +225,7 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
                     })
                 }
             }
-            GALLERY_CHOOSER_REQUEST_CODE -> {
+            Utils.GALLERY_CHOOSER_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK) {
                     val uri = data?.data ?: return
                     activity.pushFragment(PreviewFragment().also { fragment ->

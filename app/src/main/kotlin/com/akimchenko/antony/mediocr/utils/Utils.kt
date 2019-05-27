@@ -15,6 +15,13 @@ import java.text.DateFormat
 import java.util.*
 
 object Utils {
+
+    const val READ_WRITE_CAMERA_REQUEST_CODE = 101
+    const val CAPTURE_IMAGE_REQUEST_CODE = 102
+    const val GALLERY_CHOOSER_REQUEST_CODE = 103
+    const val READ_WRITE_GALLERY_REQUEST_CODE = 104
+    const val READ_WRITE_INTENT_REQUEST_CODE = 105
+
     @JvmStatic
     val customLanguageTags: HashMap<String, String> = hashMapOf(
         Pair("aze_cyrl", "Azerbaijani - Cyrillic"),

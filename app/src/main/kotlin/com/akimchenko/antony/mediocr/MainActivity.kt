@@ -1,6 +1,6 @@
 package com.akimchenko.antony.mediocr
 
-import android.annotation.SuppressLint
+import android.Manifest
 import android.app.DownloadManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -48,26 +48,38 @@ class MainActivity : AppCompatActivity() {
     private fun handleIntent(intent: Intent?) {
         intent ?: return
         if (intent.type == "image/*") {
-            var scheme: String? = intent.scheme
-            var uriString: String? = intent.dataString
-            if (scheme == null) {
-                val receiveUri = intent.getParcelableExtra(Intent.EXTRA_STREAM) as Uri?
-                uriString = receiveUri.toString()
-                scheme = receiveUri?.scheme
-            }
-            scheme ?: return
-            uriString ?: return
-            when (scheme) {
-                "content",
-                "file" -> {
-                    pushFragment(PreviewFragment().also { fragment ->
-                        fragment.arguments = Bundle().also { args ->
-                            args.putString(PreviewFragment.ARG_IMAGE_FILE_URI, uriString)
+            requestPermissions(arrayOf(
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ), Utils.READ_WRITE_INTENT_REQUEST_CODE, object: OnRequestPermissionCallback {
+                override fun onPermissionReturned(isGranted: Boolean) {
+                    if (isGranted) {
+                        var scheme: String? = intent.scheme
+                        var uriString: String? = intent.dataString
+                        if (scheme == null) {
+                            val receiveUri = intent.getParcelableExtra(Intent.EXTRA_STREAM) as Uri?
+                            uriString = receiveUri.toString()
+                            scheme = receiveUri?.scheme
                         }
-                    })
-                    setIntent(null)
+                        scheme ?: return
+                        uriString ?: return
+                        when (scheme) {
+                            "content",
+                            "file" -> {
+                                pushFragment(PreviewFragment().also { fragment ->
+                                    fragment.arguments = Bundle().also { args ->
+                                        args.putString(PreviewFragment.ARG_IMAGE_FILE_URI, uriString)
+                                    }
+                                })
+                                setIntent(null)
+                            }
+                        }
+                    } else {
+                        Toast.makeText(this@MainActivity, getString(R.string.you_need_to_allow_permissions_read_write), Toast.LENGTH_LONG).show()
+                    }
                 }
-            }
+            })
+
         }
     }
 
@@ -171,7 +183,7 @@ class MainActivity : AppCompatActivity() {
                 progressDialog = ProgressDialog().also { dialog ->
                     dialog.arguments = Bundle().apply {
                         this.putString(ProgressDialog.INITIAL_TEXT_ARG, message)
-                        progressDialog!!.show(this@MainActivity.supportFragmentManager, ProgressDialog::class.java.name)
+                        dialog.show(this@MainActivity.supportFragmentManager, ProgressDialog::class.java.name)
                     }
                 }
             }
