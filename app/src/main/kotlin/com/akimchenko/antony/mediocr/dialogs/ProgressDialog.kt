@@ -23,9 +23,12 @@ class ProgressDialog : DialogFragment() {
         val view = LayoutInflater.from(activity).inflate(R.layout.dialog_progress, null, false)
         textView = view.findViewById(R.id.text_view)
         setMessage(arguments?.getString(INITIAL_TEXT_ARG))
-        return AlertDialog.Builder(activity)
+        val dialog = AlertDialog.Builder(activity)
             .setView(view)
             .create()
+        dialog.setCancelable(false)
+        dialog.setCanceledOnTouchOutside(false)
+        return dialog
     }
 
     fun setMessage(message: String?) {
