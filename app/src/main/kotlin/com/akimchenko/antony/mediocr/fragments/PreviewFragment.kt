@@ -20,6 +20,7 @@ import com.edmodo.cropper.CropImageView
 import com.googlecode.tesseract.android.TessBaseAPI
 import kotlinx.android.synthetic.main.fragment_preview.*
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -35,6 +36,8 @@ class PreviewFragment : BaseFragment() {
 
     private var doWhenDownloaded: Runnable? = null
     private var tessBaseApi: TessBaseAPI? = null
+    private var savingCroppedImageJob: Job? = null
+    private var recognizingJob: Job? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_preview, container, false)
@@ -104,13 +107,19 @@ class PreviewFragment : BaseFragment() {
         recognise_button.setOnClickListener {
             val runnable = Runnable {
                 activity.showProgress(activity.getString(R.string.saving_cropped_image))
-                GlobalScope.launch {
+                savingCroppedImageJob = GlobalScope.launch {
                     if (imageFile.exists())
                         imageFile.delete()
                     imageFile.createNewFile()
                     Utils.writeBitmapToFile(crop_image_view.croppedImage, imageFile)
-                }.invokeOnCompletion {
-                    recognise(imageFile.toUri())
+                }
+                savingCroppedImageJob?.invokeOnCompletion {
+                    if (savingCroppedImageJob != null && !savingCroppedImageJob!!.isCancelled) {
+                        recognise(imageFile.toUri())
+                        savingCroppedImageJob = null
+                    } else {
+                        activity.hideProgress()
+                    }
                 }
             }
             updateProgressVisibility(true)
@@ -163,7 +172,10 @@ class PreviewFragment : BaseFragment() {
             }
             NotificationCenter.RECOGNITION_PROCESS_CANCELLED -> {
                 tessBaseApi?.stop()
-                tessBaseApi?.end()
+                savingCroppedImageJob?.cancel()
+                savingCroppedImageJob = null
+                recognizingJob?.cancel()
+                recognizingJob = null
             }
         }
     }
@@ -171,14 +183,18 @@ class PreviewFragment : BaseFragment() {
     private fun recognise(fileUri: Uri) {
         val activity = activity as MainActivity? ?: return
         var result: String? = null
-        GlobalScope.launch {
+        recognizingJob = GlobalScope.launch {
             result = startOCR(fileUri)
-        }.invokeOnCompletion {
-            activity.hideProgress()
-            if (result != null) {
-                activity.pushFragment(ResultFragment().also {
-                    it.arguments = Bundle().also { args -> args.putString(ResultFragment.ARG_OCR_RESULT, result) }
-                })
+        }
+        recognizingJob?.invokeOnCompletion {
+            if (recognizingJob != null && !recognizingJob!!.isCancelled) {
+                if (result != null) {
+                    activity.pushFragment(ResultFragment().also {
+                        it.arguments = Bundle().also { args -> args.putString(ResultFragment.ARG_OCR_RESULT, result) }
+                    })
+                }
+            } else {
+                activity.hideProgress()
             }
         }
     }
@@ -252,9 +268,9 @@ class PreviewFragment : BaseFragment() {
 
         Log.d(this::class.java.name, "Training file loaded")
         tessBaseApi!!.setImage(bitmap)
-        var extractedText = "empty result"
+        var extractedText: String? = null
         try {
-            extractedText = tessBaseApi!!.utF8Text
+            extractedText = tessBaseApi?.utF8Text
         } catch (e: Exception) {
             Log.e(this::class.java.name, "Error in recognizing text.")
         }
