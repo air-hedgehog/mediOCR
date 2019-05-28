@@ -88,15 +88,12 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
 
     fun resume() {
         NotificationCenter.addObserver(this)
-        if (job != null && job!!.isActive) {
-            fragment.updateProgressBar(true)
-        } else {
-            fragment.updateProgressBar(false)
-            notifyDataSetChanged()
-        }
     }
 
-    fun pause() = NotificationCenter.removeObserver(this)
+    fun pause() {
+        NotificationCenter.removeObserver(this)
+        job?.cancel()
+    }
 
     abstract inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         abstract fun updateUI(position: Int)

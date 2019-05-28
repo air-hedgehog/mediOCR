@@ -67,28 +67,28 @@ class PreviewFragment : BaseFragment() {
         crop_image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
 
         close_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.close)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.close)!!.toBitmap()
+            )
         )
         rotate_left_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.rotate_left)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.rotate_left)!!.toBitmap()
+            )
         )
         rotate_right_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.rotate_right)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.rotate_right)!!.toBitmap()
+            )
         )
         recognise_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.recognition_button)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.recognition_button)!!.toBitmap()
+            )
         )
         language_button.text = Utils.getLocalizedLangName(AppSettings.getSelectedLanguage())
         language_button.setOnClickListener { activity.pushFragment(LanguageFragment()) }
@@ -121,6 +121,11 @@ class PreviewFragment : BaseFragment() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        (activity as MainActivity?)?.hideProgress()
+    }
+
     override fun onResume() {
         super.onResume()
         val activity = activity as MainActivity? ?: return
@@ -143,7 +148,7 @@ class PreviewFragment : BaseFragment() {
     }
 
     private fun isLangDownloaded(activity: MainActivity): Boolean = activity.getTesseractDataFolder().listFiles()
-            .contains(File(activity.getTesseractDataFolder(), "${AppSettings.getSelectedLanguage()}.traineddata"))
+        .contains(File(activity.getTesseractDataFolder(), "${AppSettings.getSelectedLanguage()}.traineddata"))
 
     override fun onNotification(id: Int, `object`: Any?) {
         super.onNotification(id, `object`)
@@ -159,7 +164,6 @@ class PreviewFragment : BaseFragment() {
             NotificationCenter.RECOGNITION_PROCESS_CANCELLED -> {
                 tessBaseApi?.stop()
                 tessBaseApi?.end()
-                (activity as MainActivity?)?.hideProgress()
             }
         }
     }
@@ -224,7 +228,7 @@ class PreviewFragment : BaseFragment() {
 
     private fun extractText(bitmap: Bitmap): String? {
         val activity = activity as MainActivity? ?: return null
-        tessBaseApi = TessBaseAPI(TessBaseAPI.ProgressNotifier {progressValues ->
+        tessBaseApi = TessBaseAPI(TessBaseAPI.ProgressNotifier { progressValues ->
             //TODO
             /*it.currentRect
             it.currentWordRect*/
@@ -242,8 +246,8 @@ class PreviewFragment : BaseFragment() {
 
         //banned special symbols
         tessBaseApi!!.setVariable(
-                TessBaseAPI.VAR_CHAR_BLACKLIST,
-                "№×⦂‒�–⎯—―~⁓•°%‰‱&⅋§÷‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓"
+            TessBaseAPI.VAR_CHAR_BLACKLIST,
+            "№×⦂‒�–⎯—―~⁓•°%‰‱&⅋§÷‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓"
         )
 
         Log.d(this::class.java.name, "Training file loaded")
