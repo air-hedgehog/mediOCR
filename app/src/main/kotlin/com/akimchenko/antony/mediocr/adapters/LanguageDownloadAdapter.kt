@@ -36,7 +36,7 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
 
     private var items = ArrayList<Item>()
     private var searchQuery: String? = null
-    private val activity: MainActivity? = fragment.activity as MainActivity?
+    private val activity = fragment.activity as MainActivity
     private var job: Job? = null
 
     init {
@@ -44,7 +44,6 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
     }
 
     private fun updateItems() {
-        activity ?: return
         job = GlobalScope.launch {
             activity.runOnUiThread {
                 fragment.updateProgressBar(true)
@@ -119,7 +118,6 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
 
         init {
             itemView.setOnClickListener {
-                activity ?: return@setOnClickListener
                 val lang = getLang(adapterPosition) ?: return@setOnClickListener
 
                 if (!Utils.isLanguageDownloaded(activity, lang) && lang != "eng")
@@ -129,7 +127,6 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
                 notifyDataSetChanged()
             }
             downloadDeleteButton.setOnClickListener {
-                activity ?: return@setOnClickListener
                 val lang = getLang(adapterPosition) ?: return@setOnClickListener
                 val file = File(activity.getTesseractDataFolder(), "$lang.traineddata")
                 if (Utils.isLanguageDownloaded(activity, lang)) {
@@ -161,7 +158,6 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
         }
 
         override fun updateUI(position: Int) {
-            activity ?: return
             val lang = getLang(position) ?: return
 
             if (lang != "eng") {
@@ -207,7 +203,6 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
     }
 
     private fun download(lang: String, destFile: File) {
-        activity ?: return
         val request =
             DownloadManager.Request(Uri.parse("https://github.com/tesseract-ocr/tessdata/blob/master/$lang.traineddata?raw=true"))
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)

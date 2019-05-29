@@ -107,6 +107,10 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
     override fun onResume() {
         super.onResume()
         adapter?.resume()
+        updateHint()
+    }
+
+    fun updateHint() {
         hint.visibility = if (adapter != null && adapter!!.itemCount > 0) View.GONE else View.VISIBLE
     }
 

@@ -180,6 +180,11 @@ class PreviewFragment : BaseFragment() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        tessBaseApi?.end()
+    }
+
     private fun recognise(fileUri: Uri) {
         val activity = activity as MainActivity? ?: return
         var result: String? = null
@@ -249,7 +254,6 @@ class PreviewFragment : BaseFragment() {
             /*it.currentRect
             it.currentWordRect*/
             activity.showProgress("${activity.getString(R.string.recognising)} ${progressValues.percent}%")
-
         })
         tessBaseApi ?: return null
         //tessBaseApi.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_COLUMN)
@@ -270,12 +274,12 @@ class PreviewFragment : BaseFragment() {
         tessBaseApi!!.setImage(bitmap)
         var extractedText: String? = null
         try {
-            extractedText = tessBaseApi?.utF8Text
+            //TODO parse HOCR string
+            extractedText = tessBaseApi?.getHOCRText(0)
         } catch (e: Exception) {
-            Log.e(this::class.java.name, "Error in recognizing text.")
+            Log.e(this::class.java.name, "Error in recognizing text.", e)
         }
 
-        tessBaseApi!!.end()
         return extractedText
     }
 

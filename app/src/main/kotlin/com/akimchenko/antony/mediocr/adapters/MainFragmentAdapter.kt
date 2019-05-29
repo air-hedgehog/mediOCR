@@ -14,16 +14,18 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
+import com.akimchenko.antony.mediocr.fragments.MainFragment
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.Utils
 import java.io.File
 
 
-class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Adapter<MainFragmentAdapter.ViewHolder>(),
+class MainFragmentAdapter(private val fragment: MainFragment) : RecyclerView.Adapter<MainFragmentAdapter.ViewHolder>(),
     SharedPreferences.OnSharedPreferenceChangeListener {
 
     private val items: ArrayList<File> = ArrayList()
     private var searchQuery: String? = null
+    private val activity = fragment.activity as MainActivity
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
@@ -105,6 +107,7 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
         file.delete()
         notifyItemRemoved(items.indexOf(file))
         items.remove(file)
+        fragment.updateHint()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
