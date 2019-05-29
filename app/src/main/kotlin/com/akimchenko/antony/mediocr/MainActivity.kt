@@ -17,7 +17,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
-import com.akimchenko.antony.mediocr.dialogs.ProgressDialog
 import com.akimchenko.antony.mediocr.fragments.MainFragment
 import com.akimchenko.antony.mediocr.fragments.PreviewFragment
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
@@ -28,7 +27,6 @@ import java.util.*
 class MainActivity : AppCompatActivity() {
 
     private val permissionCallbacks: SparseArray<OnRequestPermissionCallback> = SparseArray()
-    private var progressDialog: ProgressDialog? = null
     val downloadIdsLangs: HashMap<Long, String> = HashMap()
 
     interface OnRequestPermissionCallback {
@@ -175,28 +173,6 @@ class MainActivity : AppCompatActivity() {
 
     fun popFragment(fragmentName: String) {
         supportFragmentManager.popBackStackImmediate(fragmentName, 0)
-    }
-
-    fun showProgress(message: String? = getString(R.string.please_wait)) {
-        runOnUiThread {
-            if (progressDialog == null || progressDialog!!.dialog == null || !progressDialog!!.dialog.isShowing) {
-                progressDialog = ProgressDialog().also { dialog ->
-                    dialog.arguments = Bundle().apply {
-                        this.putString(ProgressDialog.INITIAL_TEXT_ARG, message)
-                        dialog.show(this@MainActivity.supportFragmentManager, ProgressDialog::class.java.name)
-                    }
-                }
-            }
-            if (message != progressDialog!!.getMessage())
-                progressDialog!!.setMessage(message)
-        }
-    }
-
-    fun hideProgress() {
-        runOnUiThread {
-            progressDialog?.dismiss()
-            progressDialog = null
-        }
     }
 
     fun getFileForBitmap() = File("${getDefaultCroppedImagesDirectory()}/${Calendar.getInstance().timeInMillis}.jpg")

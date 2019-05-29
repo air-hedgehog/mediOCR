@@ -41,9 +41,8 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
 
     private var adapter: MainFragmentAdapter? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_main, container, false)
-    }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
+        inflater.inflate(R.layout.fragment_main, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -54,7 +53,7 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
                 Configuration.ORIENTATION_PORTRAIT
             ) 2 else 3
         )
-        adapter = MainFragmentAdapter(activity)
+        adapter = MainFragmentAdapter(this)
         recycler_view.adapter = adapter
         camera_button.setImageDrawable(
             Utils.makeSelector(

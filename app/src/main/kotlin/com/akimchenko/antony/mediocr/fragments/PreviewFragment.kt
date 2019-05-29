@@ -21,6 +21,8 @@ import com.googlecode.tesseract.android.TessBaseAPI
 import kotlinx.android.synthetic.main.fragment_preview.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.broadcast
+import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -106,7 +108,8 @@ class PreviewFragment : BaseFragment() {
 
         recognise_button.setOnClickListener {
             val runnable = Runnable {
-                activity.showProgress(activity.getString(R.string.saving_cropped_image))
+                //activity.showProgress(activity.getString(R.string.saving_cropped_image))
+                //TODO refactor to asyncTask due to 'GlobalScope.broadcast()' and 'GlobalScope.produce()' are experimental
                 savingCroppedImageJob = GlobalScope.launch {
                     if (imageFile.exists())
                         imageFile.delete()
@@ -118,7 +121,7 @@ class PreviewFragment : BaseFragment() {
                         recognise(imageFile.toUri())
                         savingCroppedImageJob = null
                     } else {
-                        activity.hideProgress()
+                        //activity.hideProgress()
                     }
                 }
             }
@@ -132,7 +135,7 @@ class PreviewFragment : BaseFragment() {
 
     override fun onPause() {
         super.onPause()
-        (activity as MainActivity?)?.hideProgress()
+        //(activity as MainActivity?)?.hideProgress()
     }
 
     override fun onResume() {
@@ -199,7 +202,7 @@ class PreviewFragment : BaseFragment() {
                     })
                 }
             } else {
-                activity.hideProgress()
+                //activity.hideProgress()
             }
         }
     }
@@ -253,7 +256,9 @@ class PreviewFragment : BaseFragment() {
             //TODO
             /*it.currentRect
             it.currentWordRect*/
-            activity.showProgress("${activity.getString(R.string.recognising)} ${progressValues.percent}%")
+
+
+            //activity.showProgress("${activity.getString(R.string.recognising)} ${progressValues.percent}%")
         })
         tessBaseApi ?: return null
         //tessBaseApi.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_COLUMN)
