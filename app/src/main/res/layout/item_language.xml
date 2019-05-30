@@ -11,7 +11,7 @@
         android:layout_width="@dimen/default_list_item_height"
         android:layout_height="@dimen/default_list_item_height"
         android:scaleType="center"
-        android:src="@drawable/check"
+        android:src="@drawable/checkmark"
         android:tint="@color/colorAccent"
         android:visibility="gone"
         tools:visibility="visible" />

@@ -6,14 +6,12 @@ object NotificationCenter {
 
     const val LANG_DOWNLOADED = 0
     const val LANG_DELETED = 1
-    const val RECOGNITION_PROCESS_CANCELLED = 2
-    const val SAVE_AS_TXT_ID = 3
-    const val SAVE_AS_PDF_ID = 4
+    const val SAVE_AS_TXT_ID = 2
+    const val SAVE_AS_PDF_ID = 3
 
     @IntDef(
         LANG_DOWNLOADED,
         LANG_DELETED,
-        RECOGNITION_PROCESS_CANCELLED,
         SAVE_AS_PDF_ID,
         SAVE_AS_TXT_ID
     )

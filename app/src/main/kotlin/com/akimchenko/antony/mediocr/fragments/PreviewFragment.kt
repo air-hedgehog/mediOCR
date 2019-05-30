@@ -2,6 +2,7 @@ package com.akimchenko.antony.mediocr.fragments
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.PorterDuff
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -21,15 +22,13 @@ import com.googlecode.tesseract.android.TessBaseAPI
 import kotlinx.android.synthetic.main.fragment_preview.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.broadcast
-import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
 
-class PreviewFragment : BaseFragment() {
+class PreviewFragment : BaseFragment(), View.OnClickListener{
 
     companion object {
         const val TESSDATA = "tessdata"
@@ -40,6 +39,7 @@ class PreviewFragment : BaseFragment() {
     private var tessBaseApi: TessBaseAPI? = null
     private var savingCroppedImageJob: Job? = null
     private var recognizingJob: Job? = null
+    private lateinit var imageFile: File
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_preview, container, false)
@@ -50,7 +50,6 @@ class PreviewFragment : BaseFragment() {
         val activity = activity as MainActivity? ?: return
         val uriString = arguments?.getString(ARG_IMAGE_FILE_URI) ?: return
         val uri: Uri = Uri.parse(uriString)
-        val imageFile: File
         when {
             uri.scheme == "file" -> imageFile = File(uri.path)
             uri.scheme == "content" -> {
@@ -72,95 +71,107 @@ class PreviewFragment : BaseFragment() {
         crop_image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
 
         close_button.setImageDrawable(
-            Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(activity, R.drawable.close)!!.toBitmap()
-            )
+                Utils.makeSelector(
+                        activity,
+                        ContextCompat.getDrawable(activity, R.drawable.close)!!.toBitmap()
+                )
         )
         rotate_left_button.setImageDrawable(
-            Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(activity, R.drawable.rotate_left)!!.toBitmap()
-            )
+                Utils.makeSelector(
+                        activity,
+                        ContextCompat.getDrawable(activity, R.drawable.rotate_left)!!.toBitmap()
+                )
         )
         rotate_right_button.setImageDrawable(
-            Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(activity, R.drawable.rotate_right)!!.toBitmap()
-            )
+                Utils.makeSelector(
+                        activity,
+                        ContextCompat.getDrawable(activity, R.drawable.rotate_right)!!.toBitmap()
+                )
         )
-        recognise_button.setImageDrawable(
-            Utils.makeSelector(
+        recognise_button.background = Utils.makeSelector(
                 activity,
-                ContextCompat.getDrawable(activity, R.drawable.recognition_button)!!.toBitmap()
-            )
+                ContextCompat.getDrawable(activity, R.drawable.square_button_bg)!!.toBitmap()
         )
-        language_button.text = Utils.getLocalizedLangName(AppSettings.getSelectedLanguage())
-        language_button.setOnClickListener { activity.pushFragment(LanguageFragment()) }
 
-        close_button.setOnClickListener { activity.popFragment(MainFragment::class.java.name) }
-        rotate_left_button.setOnClickListener {
-            crop_image_view.rotateImage(-90)
-        }
-        rotate_right_button.setOnClickListener {
-            crop_image_view.rotateImage(90)
-        }
+        language_button.setOnClickListener(this)
+        close_button.setOnClickListener(this)
+        rotate_left_button.setOnClickListener(this)
+        rotate_right_button.setOnClickListener(this)
+        recognise_button.setOnClickListener(this)
+    }
 
-        recognise_button.setOnClickListener {
-            val runnable = Runnable {
-                //activity.showProgress(activity.getString(R.string.saving_cropped_image))
-                //TODO refactor to asyncTask due to 'GlobalScope.broadcast()' and 'GlobalScope.produce()' are experimental
-                savingCroppedImageJob = GlobalScope.launch {
-                    if (imageFile.exists())
-                        imageFile.delete()
-                    imageFile.createNewFile()
-                    Utils.writeBitmapToFile(crop_image_view.croppedImage, imageFile)
-                }
-                savingCroppedImageJob?.invokeOnCompletion {
-                    if (savingCroppedImageJob != null && !savingCroppedImageJob!!.isCancelled) {
-                        recognise(imageFile.toUri())
-                        savingCroppedImageJob = null
-                    } else {
-                        //activity.hideProgress()
+    override fun onClick(v: View?) {
+        val activity = activity as MainActivity? ?: return
+        when (v) {
+            close_button -> activity.popFragment(MainFragment::class.java.name)
+            rotate_left_button -> crop_image_view.rotateImage(-90)
+            rotate_right_button -> crop_image_view.rotateImage(90)
+            language_button -> activity.pushFragment(LanguageFragment())
+            recognise_button -> {
+                if (isRecognitionStarted()) {
+                    cancelRecognition()
+                } else {
+                    val runnable = Runnable {
+                        updateProgressVisibility(true)
+                        //TODO refactor to asyncTask due to 'GlobalScope.broadcast()' and 'GlobalScope.produce()' are experimental
+                        savingCroppedImageJob = GlobalScope.launch {
+                            if (imageFile.exists())
+                                imageFile.delete()
+                            imageFile.createNewFile()
+                            Utils.writeBitmapToFile(crop_image_view.croppedImage, imageFile)
+                        }
+                        savingCroppedImageJob?.invokeOnCompletion {
+                            if (savingCroppedImageJob != null && !savingCroppedImageJob!!.isCancelled) {
+                                recognise(imageFile.toUri())
+                                savingCroppedImageJob = null
+                            } else {
+                                updateProgressVisibility(false)
+                            }
+                        }
                     }
+                    if (activity.downloadIdsLangs.containsValue(AppSettings.getSelectedLanguage()))
+                        doWhenDownloaded = runnable
+                    else
+                        runnable.run()
                 }
+
+                updateProgressVisibility(true)
             }
-            updateProgressVisibility(true)
-            if (activity.downloadIdsLangs.containsValue(AppSettings.getSelectedLanguage()))
-                doWhenDownloaded = runnable
-            else
-                runnable.run()
         }
+    }
+
+    private fun cancelRecognition() {
+        doWhenDownloaded = null
+        tessBaseApi?.stop()
+        savingCroppedImageJob?.cancel()
+        savingCroppedImageJob = null
+        recognizingJob?.cancel()
+        recognizingJob = null
+    }
+
+    private fun updateRecognizeButton() {
+        val activity = activity as MainActivity? ?: return
+        val background = ContextCompat.getDrawable(activity, R.drawable.square_button_bg) ?: return
+        background.setColorFilter(ContextCompat.getColor(activity, if (isRecognitionStarted()) R.color.red else R.color.colorAccent), PorterDuff.Mode.SRC_ATOP)
+        recognise_button.background = Utils.makeSelector(activity, background.toBitmap())
     }
 
     override fun onPause() {
         super.onPause()
-        //(activity as MainActivity?)?.hideProgress()
+        updateProgressVisibility(false)
     }
 
-    override fun onResume() {
-        super.onResume()
-        val activity = activity as MainActivity? ?: return
-        updateProgressVisibility(activity.downloadIdsLangs.containsValue(AppSettings.getSelectedLanguage()))
-    }
+    private fun isRecognitionStarted(): Boolean = (savingCroppedImageJob != null && savingCroppedImageJob!!.isActive) || (recognizingJob != null && recognizingJob!!.isActive)
 
     private fun updateProgressVisibility(isVisible: Boolean) {
-        val activity = activity as MainActivity? ?: return
-        if (isVisible && AppSettings.getSelectedLanguage() != "eng") {
-            recognise_button.setColorFilter(ContextCompat.getColor(activity, R.color.selected_tint))
-            progress_bar.visibility = View.VISIBLE
-            recognise_button.isClickable = false
-            recognise_button.isFocusable = false
-        } else {
-            recognise_button.clearColorFilter()
-            progress_bar.visibility = View.GONE
-            recognise_button.isClickable = true
-            recognise_button.isFocusable = true
+        activity?.runOnUiThread {
+            updateRecognizeButton()
+            progress_bar.visibility = if (isVisible) View.VISIBLE else View.GONE
         }
     }
 
     private fun isLangDownloaded(activity: MainActivity): Boolean = activity.getTesseractDataFolder().listFiles()
-        .contains(File(activity.getTesseractDataFolder(), "${AppSettings.getSelectedLanguage()}.traineddata"))
+            .contains(File(activity.getTesseractDataFolder(), "${AppSettings.getSelectedLanguage()}.traineddata"))
 
     override fun onNotification(id: Int, `object`: Any?) {
         super.onNotification(id, `object`)
@@ -172,13 +183,6 @@ class PreviewFragment : BaseFragment() {
                     doWhenDownloaded?.run()
                     doWhenDownloaded = null
                 }
-            }
-            NotificationCenter.RECOGNITION_PROCESS_CANCELLED -> {
-                tessBaseApi?.stop()
-                savingCroppedImageJob?.cancel()
-                savingCroppedImageJob = null
-                recognizingJob?.cancel()
-                recognizingJob = null
             }
         }
     }
@@ -201,9 +205,8 @@ class PreviewFragment : BaseFragment() {
                         it.arguments = Bundle().also { args -> args.putString(ResultFragment.ARG_OCR_RESULT, result) }
                     })
                 }
-            } else {
-                //activity.hideProgress()
             }
+            updateProgressVisibility(false)
         }
     }
 
@@ -257,8 +260,7 @@ class PreviewFragment : BaseFragment() {
             /*it.currentRect
             it.currentWordRect*/
 
-
-            //activity.showProgress("${activity.getString(R.string.recognising)} ${progressValues.percent}%")
+            //showProgress("${activity.getString(R.string.recognising)} ${progressValues.percent}%")
         })
         tessBaseApi ?: return null
         //tessBaseApi.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_COLUMN)
@@ -271,8 +273,8 @@ class PreviewFragment : BaseFragment() {
 
         //banned special symbols
         tessBaseApi!!.setVariable(
-            TessBaseAPI.VAR_CHAR_BLACKLIST,
-            "№×⦂‒�–⎯—―~⁓•°%‰‱&⅋§÷‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓"
+                TessBaseAPI.VAR_CHAR_BLACKLIST,
+                "№×⦂‒�–⎯—―~⁓•°%‰‱&⅋§÷‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓"
         )
 
         Log.d(this::class.java.name, "Training file loaded")

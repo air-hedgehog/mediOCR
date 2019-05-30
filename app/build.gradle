@@ -7,7 +7,7 @@ android {
     buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "com.akimchenko.antony.mediocr"
-        minSdkVersion 15
+        minSdkVersion 16
         targetSdkVersion 28
         versionCode 10
         versionName "1.10"

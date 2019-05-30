@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="default_side_margin">16dp</dimen>
     <dimen name="toolbar_height">56dp</dimen>
-    <dimen name="small_button_edge">38dp</dimen>
-    <dimen name="default_button_edge">52dp</dimen>
+
     <dimen name="default_elevation">4dp</dimen>
-    <dimen name="large_button_edge">72dp</dimen>
+
+
+    <dimen name="default_side_margin">16dp</dimen>
     <dimen name="default_side_margin_small">8dp</dimen>
+
+    <dimen name="small_button_edge">32dp</dimen>
+    <dimen name="default_button_edge">52dp</dimen>
+    <dimen name="large_button_edge">72dp</dimen>
     <dimen name="default_list_item_height">48dp</dimen>
+
     <dimen name="primary_text">16sp</dimen>
     <dimen name="secondary_text">14sp</dimen>
 </resources>
