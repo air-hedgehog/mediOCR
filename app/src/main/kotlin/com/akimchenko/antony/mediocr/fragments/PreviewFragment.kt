@@ -2,6 +2,7 @@ package com.akimchenko.antony.mediocr.fragments
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.graphics.PorterDuff
 import android.net.Uri
 import android.os.Bundle
@@ -17,7 +18,6 @@ import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
-import com.edmodo.cropper.CropImageView
 import com.googlecode.tesseract.android.TessBaseAPI
 import kotlinx.android.synthetic.main.fragment_preview.*
 import kotlinx.coroutines.GlobalScope
@@ -68,8 +68,7 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
             else -> return
         }
 
-        crop_image_view.setGuidelines(CropImageView.DEFAULT_GUIDELINES)
-        crop_image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
+        image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
 
         close_button.setImageDrawable(
             Utils.makeSelector(
@@ -105,8 +104,8 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
         val activity = activity as MainActivity? ?: return
         when (v) {
             close_button -> activity.popFragment(MainFragment::class.java.name)
-            rotate_left_button -> crop_image_view.rotateImage(-90)
-            rotate_right_button -> crop_image_view.rotateImage(90)
+            rotate_left_button -> image_view.setImageBitmap(image_view.drawable.toBitmap().rotate(90.0f))
+            rotate_right_button -> image_view.setImageBitmap(image_view.drawable.toBitmap().rotate(-90.0f))
             language_button -> activity.pushFragment(LanguageFragment())
             recognise_button -> {
                 if (isRecognitionStarted()) {
@@ -119,7 +118,9 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
                             if (imageFile.exists())
                                 imageFile.delete()
                             imageFile.createNewFile()
-                            Utils.writeBitmapToFile(crop_image_view.croppedImage, imageFile)
+                            //TODO own custom cropper
+                            //Utils.writeBitmapToFile(crop_image_view.croppedImage, imageFile)
+                            Utils.writeBitmapToFile(image_view.drawable.toBitmap(), imageFile)
                         }
                         savingCroppedImageJob?.invokeOnCompletion {
                             if (savingCroppedImageJob != null && !savingCroppedImageJob!!.isCancelled) {
@@ -140,6 +141,9 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
             }
         }
     }
+
+    private fun Bitmap.rotate(degrees: Float): Bitmap =
+            Bitmap.createBitmap(this, 0, 0, width, height, Matrix().apply { postRotate(degrees) }, true)
 
     private fun cancelRecognition() {
         doWhenDownloaded = null
