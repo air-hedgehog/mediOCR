@@ -33,12 +33,6 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
 
     private var newPhotoFile: File? = null
 
-    companion object {
-        private const val ITEM_SETTINGS = 0
-        private const val ITEM_SORT_TYPE_DATE = 1
-        private const val ITEM_SORT_TYPE_TITLE = 2
-    }
-
     private var adapter: MainFragmentAdapter? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =

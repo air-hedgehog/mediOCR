@@ -10,6 +10,13 @@ import kotlinx.android.synthetic.main.toolbar.*
 
 abstract class BaseFragment: Fragment(), NotificationCenter.Observer {
 
+    companion object {
+        const val ITEM_SETTINGS = 0
+        const val ITEM_SORT_TYPE_DATE = 1
+        const val ITEM_SORT_TYPE_TITLE = 2
+        const val ITEM_SEARCH = 3
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         retainInstance = true

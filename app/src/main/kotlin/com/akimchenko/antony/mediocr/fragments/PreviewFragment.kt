@@ -23,12 +23,13 @@ import kotlinx.android.synthetic.main.fragment_preview.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import org.jsoup.Jsoup
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
 
-class PreviewFragment : BaseFragment(), View.OnClickListener{
+class PreviewFragment : BaseFragment(), View.OnClickListener {
 
     companion object {
         const val TESSDATA = "tessdata"
@@ -71,26 +72,26 @@ class PreviewFragment : BaseFragment(), View.OnClickListener{
         crop_image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
 
         close_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.close)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.close)!!.toBitmap()
+            )
         )
         rotate_left_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.rotate_left)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.rotate_left)!!.toBitmap()
+            )
         )
         rotate_right_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.rotate_right)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.rotate_right)!!.toBitmap()
+            )
         )
         recognise_button.background = Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(activity, R.drawable.square_button_bg)!!.toBitmap()
+            activity,
+            ContextCompat.getDrawable(activity, R.drawable.square_button_bg)!!.toBitmap()
         )
 
         language_button.setOnClickListener(this)
@@ -152,8 +153,13 @@ class PreviewFragment : BaseFragment(), View.OnClickListener{
     private fun updateRecognizeButton() {
         val activity = activity as MainActivity? ?: return
         val background = ContextCompat.getDrawable(activity, R.drawable.square_button_bg) ?: return
-        background.setColorFilter(ContextCompat.getColor(activity, if (isRecognitionStarted()) R.color.red else R.color.colorAccent), PorterDuff.Mode.SRC_ATOP)
-        recognise_button.background = Utils.makeSelector(activity, background.toBitmap())
+        background.setColorFilter(
+            ContextCompat.getColor(
+                activity,
+                if (isRecognitionStarted()) R.color.red else R.color.colorAccent
+            ), PorterDuff.Mode.SRC_ATOP
+        )
+        recognise_button?.background = Utils.makeSelector(activity, background.toBitmap())
     }
 
     override fun onPause() {
@@ -161,17 +167,19 @@ class PreviewFragment : BaseFragment(), View.OnClickListener{
         updateProgressVisibility(false)
     }
 
-    private fun isRecognitionStarted(): Boolean = (savingCroppedImageJob != null && savingCroppedImageJob!!.isActive) || (recognizingJob != null && recognizingJob!!.isActive)
+    private fun isRecognitionStarted(): Boolean =
+        (savingCroppedImageJob != null && savingCroppedImageJob!!.isActive && !savingCroppedImageJob!!.isCancelled) ||
+                (recognizingJob != null && recognizingJob!!.isActive && !recognizingJob!!.isCancelled)
 
     private fun updateProgressVisibility(isVisible: Boolean) {
         activity?.runOnUiThread {
             updateRecognizeButton()
-            progress_bar.visibility = if (isVisible) View.VISIBLE else View.GONE
+            progress_bar?.visibility = if (isVisible) View.VISIBLE else View.GONE
         }
     }
 
     private fun isLangDownloaded(activity: MainActivity): Boolean = activity.getTesseractDataFolder().listFiles()
-            .contains(File(activity.getTesseractDataFolder(), "${AppSettings.getSelectedLanguage()}.traineddata"))
+        .contains(File(activity.getTesseractDataFolder(), "${AppSettings.getSelectedLanguage()}.traineddata"))
 
     override fun onNotification(id: Int, `object`: Any?) {
         super.onNotification(id, `object`)
@@ -196,13 +204,15 @@ class PreviewFragment : BaseFragment(), View.OnClickListener{
         val activity = activity as MainActivity? ?: return
         var result: String? = null
         recognizingJob = GlobalScope.launch {
-            result = startOCR(fileUri)
+            result = getHOCRString(fileUri)
         }
         recognizingJob?.invokeOnCompletion {
             if (recognizingJob != null && !recognizingJob!!.isCancelled) {
                 if (result != null) {
+
+                    val text = Jsoup.parse(result).wholeText()
                     activity.pushFragment(ResultFragment().also {
-                        it.arguments = Bundle().also { args -> args.putString(ResultFragment.ARG_OCR_RESULT, result) }
+                        it.arguments = Bundle().also { args -> args.putString(ResultFragment.ARG_OCR_RESULT, text) }
                     })
                 }
             }
@@ -241,7 +251,7 @@ class PreviewFragment : BaseFragment(), View.OnClickListener{
         }
     }
 
-    private fun startOCR(fileUri: Uri): String? {
+    private fun getHOCRString(fileUri: Uri): String? {
         try {
             val options = BitmapFactory.Options()
             options.inSampleSize = 1
@@ -273,8 +283,8 @@ class PreviewFragment : BaseFragment(), View.OnClickListener{
 
         //banned special symbols
         tessBaseApi!!.setVariable(
-                TessBaseAPI.VAR_CHAR_BLACKLIST,
-                "№×⦂‒�–⎯—―~⁓•°%‰‱&⅋§÷‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓"
+            TessBaseAPI.VAR_CHAR_BLACKLIST,
+            "№×⦂‒�–⎯—―~⁓•°%‰‱&⅋§÷‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓"
         )
 
         Log.d(this::class.java.name, "Training file loaded")
