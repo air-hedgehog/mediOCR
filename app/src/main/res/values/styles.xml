@@ -21,4 +21,32 @@
         <item name="android:theme">@style/MainMenu</item>
     </style>
 
+    <style name="PreviewButtonsStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:scaleType">center</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:tint">@color/colorAccent</item>
+    </style>
+
+    <style name="EmptyLangStyle">
+        <item name="android:scaleType">center</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">72dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:src">@drawable/plus_circle</item>
+        <item name="android:background">@drawable/empty_item_background</item>
+        <item name="android:layout_margin">@dimen/default_side_margin_small</item>
+    </style>
+
+    <style name="TextAlignButtonStyle">
+        <item name="android:scaleType">center</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:tint">@color/colorAccent</item>
+        <item name="android:background">@drawable/main_item_background</item>
+        <item name="android:layout_margin">@dimen/default_side_margin_small</item>
+    </style>
+
 </resources>

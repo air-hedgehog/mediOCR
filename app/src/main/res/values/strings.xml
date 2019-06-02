@@ -29,4 +29,6 @@
     <string name="sort_by_date">Sort by date</string>
     <string name="downloaded">Downloaded</string>
     <string name="available">Available</string>
+    <string name="choose_languages">Choose languages to recognize</string>
+    <string name="Text_alignment">Text alignment</string>
 </resources>

@@ -13,12 +13,15 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
+import com.akimchenko.antony.mediocr.BuildConfig
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.googlecode.tesseract.android.TessBaseAPI
+import kotlinx.android.synthetic.main.bottom_sheet_header.*
 import kotlinx.android.synthetic.main.fragment_preview.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -41,6 +44,7 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
     private var savingCroppedImageJob: Job? = null
     private var recognizingJob: Job? = null
     private lateinit var imageFile: File
+    private lateinit var bottomSheetBehavior: BottomSheetBehavior<View>
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_preview, container, false)
@@ -71,42 +75,59 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
         image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
 
         close_button.setImageDrawable(
-            Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(activity, R.drawable.close)!!.toBitmap()
-            )
+                Utils.makeSelector(
+                        activity,
+                        ContextCompat.getDrawable(activity, R.drawable.close)!!.toBitmap()
+                )
         )
         rotate_left_button.setImageDrawable(
-            Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(activity, R.drawable.rotate_left)!!.toBitmap()
-            )
+                Utils.makeSelector(
+                        activity,
+                        ContextCompat.getDrawable(activity, R.drawable.rotate_left)!!.toBitmap()
+                )
         )
         rotate_right_button.setImageDrawable(
-            Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(activity, R.drawable.rotate_right)!!.toBitmap()
-            )
+                Utils.makeSelector(
+                        activity,
+                        ContextCompat.getDrawable(activity, R.drawable.rotate_right)!!.toBitmap()
+                )
         )
         recognise_button.background = Utils.makeSelector(
-            activity,
-            ContextCompat.getDrawable(activity, R.drawable.square_button_bg)!!.toBitmap()
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.square_button_bg)!!.toBitmap()
         )
 
-        language_button.setOnClickListener(this)
+        bottomSheetBehavior = BottomSheetBehavior.from(view.findViewById<View>(R.id.bottom_sheet)).apply {
+            this.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+                override fun onSlide(p0: View, p1: Float) {
+
+                }
+
+                override fun onStateChanged(p0: View, p1: Int) {
+
+                }
+            })
+        }
+
+        language_layout.setOnClickListener(this)
         close_button.setOnClickListener(this)
         rotate_left_button.setOnClickListener(this)
         rotate_right_button.setOnClickListener(this)
         recognise_button.setOnClickListener(this)
+        align_layout.setOnClickListener(this)
     }
 
     override fun onClick(v: View?) {
         val activity = activity as MainActivity? ?: return
         when (v) {
             close_button -> activity.popFragment(MainFragment::class.java.name)
-            rotate_left_button -> image_view.setImageBitmap(image_view.drawable.toBitmap().rotate(90.0f))
-            rotate_right_button -> image_view.setImageBitmap(image_view.drawable.toBitmap().rotate(-90.0f))
-            language_button -> activity.pushFragment(LanguageFragment())
+            rotate_left_button -> image_view.setImageBitmap(image_view.drawable.toBitmap().rotate(-90.0f))
+            rotate_right_button -> image_view.setImageBitmap(image_view.drawable.toBitmap().rotate(90.0f))
+
+            language_layout,
+            align_layout -> bottomSheetBehavior.state = if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_EXPANDED)
+                BottomSheetBehavior.STATE_EXPANDED else BottomSheetBehavior.STATE_COLLAPSED
+
             recognise_button -> {
                 if (isRecognitionStarted()) {
                     cancelRecognition()
@@ -158,10 +179,10 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
         val activity = activity as MainActivity? ?: return
         val background = ContextCompat.getDrawable(activity, R.drawable.square_button_bg) ?: return
         background.setColorFilter(
-            ContextCompat.getColor(
-                activity,
-                if (isRecognitionStarted()) R.color.red else R.color.colorAccent
-            ), PorterDuff.Mode.SRC_ATOP
+                ContextCompat.getColor(
+                        activity,
+                        if (isRecognitionStarted()) R.color.red else R.color.colorAccent
+                ), PorterDuff.Mode.SRC_ATOP
         )
         recognise_button?.background = Utils.makeSelector(activity, background.toBitmap())
     }
@@ -172,8 +193,8 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
     }
 
     private fun isRecognitionStarted(): Boolean =
-        (savingCroppedImageJob != null && savingCroppedImageJob!!.isActive && !savingCroppedImageJob!!.isCancelled) ||
-                (recognizingJob != null && recognizingJob!!.isActive && !recognizingJob!!.isCancelled)
+            (savingCroppedImageJob != null && savingCroppedImageJob!!.isActive && !savingCroppedImageJob!!.isCancelled) ||
+                    (recognizingJob != null && recognizingJob!!.isActive && !recognizingJob!!.isCancelled)
 
     private fun updateProgressVisibility(isVisible: Boolean) {
         activity?.runOnUiThread {
@@ -183,7 +204,7 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
     }
 
     private fun isLangDownloaded(activity: MainActivity): Boolean = activity.getTesseractDataFolder().listFiles()
-        .contains(File(activity.getTesseractDataFolder(), "${AppSettings.getSelectedLanguage()}.traineddata"))
+            .contains(File(activity.getTesseractDataFolder(), "${AppSettings.getSelectedLanguage()}.traineddata"))
 
     override fun onNotification(id: Int, `object`: Any?) {
         super.onNotification(id, `object`)
@@ -213,6 +234,8 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
         recognizingJob?.invokeOnCompletion {
             if (recognizingJob != null && !recognizingJob!!.isCancelled) {
                 if (result != null) {
+                    if (BuildConfig.DEBUG)
+                        Log.d(PreviewFragment::class.java.name, "OCR_result:\n$result")
 
                     val text = Jsoup.parse(result).wholeText()
                     activity.pushFragment(ResultFragment().also {
@@ -277,7 +300,7 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
             //showProgress("${activity.getString(R.string.recognising)} ${progressValues.percent}%")
         })
         tessBaseApi ?: return null
-        //tessBaseApi.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_COLUMN)
+        tessBaseApi!!.pageSegMode = TessBaseAPI.PageSegMode.PSM_SINGLE_BLOCK_VERT_TEXT
         val path: String? = Utils.getInternalDirs(activity)[0]?.path ?: return null
         val lang = AppSettings.getSelectedLanguage()
         if (lang == "eng")
@@ -287,8 +310,8 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
 
         //banned special symbols
         tessBaseApi!!.setVariable(
-            TessBaseAPI.VAR_CHAR_BLACKLIST,
-            "№×⦂‒�–⎯—―~⁓•°%‰‱&⅋§÷‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓"
+                TessBaseAPI.VAR_CHAR_BLACKLIST,
+                "№×⦂‒�–⎯—―~⁓•°%‰‱&⅋§÷‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓"
         )
 
         Log.d(this::class.java.name, "Training file loaded")

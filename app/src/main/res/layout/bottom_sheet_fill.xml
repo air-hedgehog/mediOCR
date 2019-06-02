@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/default_side_margin"
+        android:paddingTop="@dimen/default_side_margin"
+        android:paddingRight="@dimen/default_side_margin"
+        android:text="@string/choose_languages"
+        android:textColor="@color/colorAccent"
+        android:textSize="@dimen/primary_text" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="@dimen/default_side_margin_small">
+
+        <ImageView
+            android:id="@+id/first_lang_slot"
+            style="@style/EmptyLangStyle" />
+
+        <ImageView
+            android:id="@+id/second_lang_slot"
+            style="@style/EmptyLangStyle" />
+
+        <ImageView
+            android:id="@+id/third_lang_slot"
+            style="@style/EmptyLangStyle" />
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/default_side_margin"
+        android:paddingRight="@dimen/default_side_margin"
+        android:text="@string/Text_alignment"
+        android:textColor="@color/colorAccent"
+        android:textSize="@dimen/primary_text" />
+
+    <Spinner
+        android:id="@+id/align_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/toolbar_height" />
+
+</LinearLayout>

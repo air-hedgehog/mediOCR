@@ -240,7 +240,7 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
     }
 
     override fun getItemViewType(position: Int): Int {
-        return items[position].type
+        return items[position.coerceIn(0, items.size - 1)].type
     }
 
     override fun getItemCount() = items.size
