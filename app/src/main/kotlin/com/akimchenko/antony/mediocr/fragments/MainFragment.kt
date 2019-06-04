@@ -24,6 +24,7 @@ import com.akimchenko.antony.mediocr.adapters.MainFragmentAdapter
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_main.*
+import kotlinx.android.synthetic.main.toobar_progress_bar.*
 import kotlinx.android.synthetic.main.toolbar.*
 import java.io.File
 
@@ -68,6 +69,11 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
         gallery_button.setOnClickListener(this)
     }
 
+    fun updateProgressBar(isVisible: Boolean) {
+        progress_bar.visibility = if (isVisible) View.VISIBLE else View.GONE
+        hint.visibility = if (adapter != null && adapter!!.itemCount > 0) View.GONE else View.VISIBLE
+    }
+
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
         super.onCreateOptionsMenu(menu, inflater)
         menu?.add(0, ITEM_SETTINGS, menu.size(), R.string.settings)?.setIcon(R.drawable.settings)
@@ -100,11 +106,6 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
     override fun onResume() {
         super.onResume()
         adapter?.resume()
-        updateHint()
-    }
-
-    fun updateHint() {
-        hint.visibility = if (adapter != null && adapter!!.itemCount > 0) View.GONE else View.VISIBLE
     }
 
     override fun onPause() {
@@ -126,19 +127,7 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
                         override fun onPermissionReturned(isGranted: Boolean) {
                             if (isGranted)
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && AppSettings.useApplicationCamera) {
-                                    val manager =
-                                        activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager? ?: return
-                                    var isCamera2Supported = false
-
-                                    for (cameraId in manager.cameraIdList) {
-                                        val characteristics: Int? = manager.getCameraCharacteristics(cameraId)
-                                            .get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL)
-                                        isCamera2Supported =
-                                            characteristics == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY
-                                        break
-                                    }
-
-                                    if (isCamera2Supported)
+                                    if (Utils.isCamera2APISupported(activity))
                                         activity.pushFragment(CameraFragment())
                                     else
                                         sendCameraIntent()

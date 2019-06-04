@@ -11,6 +11,7 @@ import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.adapters.LanguageDownloadAdapter
 import kotlinx.android.synthetic.main.fragment_recycler.*
+import kotlinx.android.synthetic.main.toobar_progress_bar.*
 import kotlinx.android.synthetic.main.toolbar.*
 
 
