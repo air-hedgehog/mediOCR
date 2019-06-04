@@ -40,7 +40,7 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
 
     private var items = ArrayList<Item>()
     private var searchQuery: String? = null
-    private val activity: MainActivity? = fragment.activity as MainActivity?
+    private val activity = fragment.activity as MainActivity?
     private var downloadJob: Job? = null
     private val itemsList = ArrayList<Item>()
 
@@ -147,6 +147,7 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
 
         init {
             itemView.setOnClickListener {
+                activity ?: return@setOnClickListener
                 val lang = getLang(adapterPosition) ?: return@setOnClickListener
 
                 if (!Utils.isLanguageDownloaded(activity, lang) && lang != "eng")
@@ -156,6 +157,7 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
                 notifyDataSetChanged()
             }
             downloadDeleteButton.setOnClickListener {
+                activity ?: return@setOnClickListener
                 val lang = getLang(adapterPosition) ?: return@setOnClickListener
                 val file = File(activity.getTesseractDataFolder(), "$lang.traineddata")
                 if (Utils.isLanguageDownloaded(activity, lang)) {
@@ -187,6 +189,7 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
         }
 
         override fun updateUI(position: Int) {
+            activity ?: return
             val lang = getLang(position) ?: return
 
             if (lang != "eng") {
@@ -232,6 +235,7 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
     }
 
     private fun download(lang: String, destFile: File) {
+        activity ?: return
         val request =
                 DownloadManager.Request(Uri.parse("${activity.getString(R.string.tessdata_url)}$lang.traineddata"))
                         .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)

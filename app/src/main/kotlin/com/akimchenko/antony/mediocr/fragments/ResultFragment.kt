@@ -31,7 +31,7 @@ class ResultFragment : BaseFragment() {
 
     companion object {
         const val ARG_OCR_RESULT = "arg_ocr_result"
-        private const val SHARE_BUTTON_ID = 2
+        private const val SHARE_BUTTON_ID = -1
     }
 
     private var counter: Int = 0
