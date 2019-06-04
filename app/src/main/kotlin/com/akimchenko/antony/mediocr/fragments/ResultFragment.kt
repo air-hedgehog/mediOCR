@@ -5,7 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.view.*
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
@@ -34,6 +36,7 @@ class ResultFragment : BaseFragment() {
 
     private var counter: Int = 0
     private var enterNameDialog: EnterNameDialog? = null
+    private var isFirstBackPressed: Boolean = false
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_result, container, false)
@@ -45,7 +48,15 @@ class ResultFragment : BaseFragment() {
         val resultString = arguments?.getString(ARG_OCR_RESULT) ?: return
         setHasOptionsMenu(true)
         toolbar.navigationIcon = ContextCompat.getDrawable(activity, R.drawable.close)
-        toolbar.setNavigationOnClickListener { activity.popFragment(MainFragment::class.java.name) }
+        toolbar.setNavigationOnClickListener {
+            if (isFirstBackPressed) {
+                activity.popFragment(MainFragment::class.java.name)
+            } else {
+                isFirstBackPressed = true
+                Handler().postDelayed({ isFirstBackPressed = false }, 2000)
+                Toast.makeText(activity, activity.getString(R.string.click_again_to_exit), Toast.LENGTH_SHORT).show()
+            }
+        }
         updateTextFormatting(resultString)
         formatting_switch.setOnCheckedChangeListener { _, isChecked ->
             AppSettings.defaultResultFormatting = isChecked
@@ -57,13 +68,13 @@ class ResultFragment : BaseFragment() {
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
         super.onCreateOptionsMenu(menu, inflater)
         menu?.add(0, SHARE_BUTTON_ID, 0, R.string.share)?.setIcon(R.drawable.share)
-            ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+                ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
         menu?.add(0, NotificationCenter.SAVE_AS_TXT_ID, 1, R.string.save_as_txt)?.setIcon(R.drawable.save_as_txt)
-            ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+                ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
             menu?.add(0, NotificationCenter.SAVE_AS_PDF_ID, 1, R.string.save_as_pdf)?.setIcon(R.drawable.save_as_pdf)
-                ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+                    ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
@@ -87,7 +98,7 @@ class ResultFragment : BaseFragment() {
     }
 
     private fun updateTextFormatting(text: String) =
-        edit_text.setText(if (AppSettings.defaultResultFormatting) text else text.removeRowBreaks())
+            edit_text.setText(if (AppSettings.defaultResultFormatting) text else text.removeRowBreaks())
 
     private fun String.removeRowBreaks(): String = this.replace("\n", " ", true)
 
@@ -148,8 +159,8 @@ class ResultFragment : BaseFragment() {
 
     private fun showSnackbar(context: Context, file: File) {
         Snackbar.make(
-            pushable_layout, context.getString(R.string.saved),
-            Snackbar.LENGTH_LONG
+                pushable_layout, context.getString(R.string.saved),
+                Snackbar.LENGTH_LONG
         ).setAction(context.getString(R.string.share)) { Utils.shareFile(context, file) }.show()
     }
 

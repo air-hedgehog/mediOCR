@@ -134,19 +134,7 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
                         override fun onPermissionReturned(isGranted: Boolean) {
                             if (isGranted)
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && AppSettings.useApplicationCamera) {
-                                    val manager =
-                                        activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager? ?: return
-                                    var isCamera2Supported = false
-
-                                    for (cameraId in manager.cameraIdList) {
-                                        val characteristics: Int? = manager.getCameraCharacteristics(cameraId)
-                                            .get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL)
-                                        isCamera2Supported =
-                                            characteristics == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY
-                                        break
-                                    }
-
-                                    if (isCamera2Supported)
+                                    if (Utils.isCamera2APISupported(activity))
                                         activity.pushFragment(CameraFragment())
                                     else
                                         sendCameraIntent()

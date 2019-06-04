@@ -6,6 +6,9 @@ import android.graphics.Bitmap
 import android.graphics.PorterDuff
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.StateListDrawable
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
+import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.akimchenko.antony.mediocr.MainActivity
@@ -105,4 +108,20 @@ object Utils {
                 this.putExtra(Intent.EXTRA_STREAM, fileUri)
                 context.startActivity(Intent.createChooser(this, null))
             }
+
+    @JvmStatic
+    fun isCamera2APISupported(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && AppSettings.useApplicationCamera) {
+            val manager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager?
+                    ?: return false
+            for (cameraId in manager.cameraIdList) {
+                val characteristics: Int? = manager.getCameraCharacteristics(cameraId)
+                        .get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL)
+                if (characteristics == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
 }

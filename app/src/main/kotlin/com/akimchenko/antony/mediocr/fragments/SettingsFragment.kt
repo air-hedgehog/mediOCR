@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.AppSettings
+import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_recycler.*
 import kotlinx.android.synthetic.main.toolbar.*
 
@@ -34,13 +35,19 @@ class SettingsFragment : BaseFragment() {
         toolbar.navigationIcon = ContextCompat.getDrawable(activity, R.drawable.arrow_back)
         toolbar.setNavigationOnClickListener { activity.onBackPressed() }
         recycler_view.layoutManager = LinearLayoutManager(activity)
-        recycler_view.adapter = SettingsAdapter()
+        recycler_view.adapter = SettingsAdapter(activity)
         recycler_view.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))
     }
 
-    private inner class SettingsAdapter : RecyclerView.Adapter<SettingsAdapter.ViewHolder>() {
+    private inner class SettingsAdapter(activity: MainActivity) : RecyclerView.Adapter<SettingsAdapter.ViewHolder>() {
 
-        private val items = arrayListOf(ITEM_LANG_SETTINGS, ITEM_DEFAULT_CAMERA_SWITCH)
+        private val items = ArrayList<Int>()
+
+        init {
+            items.add(ITEM_LANG_SETTINGS)
+            if (Utils.isCamera2APISupported(activity))
+                items.add(ITEM_DEFAULT_CAMERA_SWITCH)
+        }
 
         abstract inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             abstract fun updateUI(position: Int)
