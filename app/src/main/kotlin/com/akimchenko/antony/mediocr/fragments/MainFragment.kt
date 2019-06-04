@@ -24,6 +24,7 @@ import com.akimchenko.antony.mediocr.adapters.MainFragmentAdapter
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_main.*
+import kotlinx.android.synthetic.main.toobar_progress_bar.*
 import kotlinx.android.synthetic.main.toolbar.*
 import java.io.File
 
@@ -54,7 +55,7 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
                 Configuration.ORIENTATION_PORTRAIT
             ) 2 else 3
         )
-        adapter = MainFragmentAdapter(activity)
+        adapter = MainFragmentAdapter(this)
         recycler_view.adapter = adapter
         camera_button.setImageDrawable(
             Utils.makeSelector(
@@ -73,6 +74,11 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
         )
         camera_button.setOnClickListener(this)
         gallery_button.setOnClickListener(this)
+    }
+
+    fun updateProgressBar(isVisible: Boolean) {
+        progress_bar.visibility = if (isVisible) View.VISIBLE else View.GONE
+        hint.visibility = if (adapter != null && adapter!!.itemCount > 0) View.GONE else View.VISIBLE
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
@@ -107,7 +113,6 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
     override fun onResume() {
         super.onResume()
         adapter?.resume()
-        hint.visibility = if (adapter != null && adapter!!.itemCount > 0) View.GONE else View.VISIBLE
     }
 
     override fun onPause() {

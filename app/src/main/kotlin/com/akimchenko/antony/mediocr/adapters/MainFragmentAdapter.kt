@@ -14,16 +14,22 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
+import com.akimchenko.antony.mediocr.fragments.MainFragment
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.Utils
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.io.File
 
 
-class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Adapter<MainFragmentAdapter.ViewHolder>(),
+class MainFragmentAdapter(private val fragment: MainFragment) : RecyclerView.Adapter<MainFragmentAdapter.ViewHolder>(),
     SharedPreferences.OnSharedPreferenceChangeListener {
 
     private val items: ArrayList<File> = ArrayList()
     private var searchQuery: String? = null
+    private var fileLoadJob: Job? = null
+    private val activity = fragment.activity as MainActivity?
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
@@ -37,7 +43,10 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
 
             itemView.setOnClickListener {
                 Intent(Intent.ACTION_VIEW).apply {
-                    val file = items[adapterPosition] as File? ?: return@setOnClickListener
+                    activity ?: return@apply
+                    val position = adapterPosition
+                    if (position < 0 || position >= items.size) return@setOnClickListener
+                    val file = items[position] as File? ?: return@setOnClickListener
                     val fileUri = FileProvider.getUriForFile(
                         activity,
                         activity.applicationContext.packageName + ".provider",
@@ -50,11 +59,14 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
                 }
             }
             deleteButton.setOnClickListener {
-                val file = items[adapterPosition]
+                activity ?: return@setOnClickListener
+                val position = adapterPosition
+                if (position < 0 || position >= items.size) return@setOnClickListener
+                val file = items[position]
                 AlertDialog.Builder(activity)
                     .setMessage("${activity.getString(R.string.do_you_want_to_delete)} ${file.name}")
                     .setPositiveButton(activity.getString(R.string.delete)) { dialog, _ ->
-                        deleteItem(items[adapterPosition])
+                        deleteItem(items[position])
                         dialog.dismiss()
                     }.setNegativeButton(activity.getString(R.string.cancel)) { dialog, _ ->
                         dialog.dismiss()
@@ -62,7 +74,7 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
 
             }
 
-            shareButton.setOnClickListener { Utils.shareFile(activity, items[adapterPosition]) }
+            activity?.let { activity -> shareButton.setOnClickListener { Utils.shareFile(activity, items[adapterPosition]) } }
         }
     }
 
@@ -76,28 +88,40 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        if (position < 0 || position >= items.size) return
         val name = items[position].name
         holder.title.text = name
-        holder.icon.setImageDrawable(
-            ContextCompat.getDrawable(
-                activity,
-                if (name.endsWith(".txt")) R.drawable.ic_txt else R.drawable.ic_pdf
+        activity?.let { activity ->
+            holder.icon.setImageDrawable(
+                    ContextCompat.getDrawable(
+                            activity,
+                            if (name.endsWith(".txt")) R.drawable.ic_txt else R.drawable.ic_pdf
+                    )
             )
-        )
+        }
     }
 
     private fun updateItems() {
-        val files = activity.getDefaultSavedFilesDirectory().listFiles() ?: return
-        items.clear()
-        if (searchQuery.isNullOrBlank())
-            items.addAll(files)
-        else
-            items.addAll(files.filter { it.name.contains(searchQuery!!, true) })
-        if (AppSettings.savedFilesSortedAlphabetically)
-            items.sortBy { it.name }
-        else
-            items.sortByDescending { it.lastModified() }
-        notifyDataSetChanged()
+        activity ?: return
+        fragment.updateProgressBar(true)
+        fileLoadJob = GlobalScope.launch {
+            val files = activity.getDefaultSavedFilesDirectory().listFiles()
+            items.clear()
+            if (searchQuery.isNullOrBlank())
+                items.addAll(files)
+            else
+                items.addAll(files.filter { it.name.contains(searchQuery!!, true) })
+            if (AppSettings.savedFilesSortedAlphabetically)
+                items.sortBy { it.name }
+            else
+                items.sortByDescending { it.lastModified() }
+        }
+        fileLoadJob?.invokeOnCompletion {
+            activity.runOnUiThread {
+                notifyDataSetChanged()
+                fragment.updateProgressBar(false)
+            }
+        }
     }
 
     fun deleteItem(file: File) {
@@ -105,6 +129,7 @@ class MainFragmentAdapter(private val activity: MainActivity) : RecyclerView.Ada
         file.delete()
         notifyItemRemoved(items.indexOf(file))
         items.remove(file)
+        fragment.updateProgressBar(false)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
