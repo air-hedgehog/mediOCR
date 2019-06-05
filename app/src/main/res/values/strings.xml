@@ -34,5 +34,5 @@
     <string name="choose_languages">Choose languages to recognize</string>
     <string name="Text_alignment">Text alignment</string>
     <string name="internet_error_occurred">Internet error occurred. Please check your internet connection and try again.</string>
-    <string name="click_again_to_exit">Click BACK again to discard result</string>
+    <string name="click_again_to_exit">Click again to discard result</string>
 </resources>
