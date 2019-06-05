@@ -6,4 +6,5 @@
     <color name="selected_tint">#6D000000</color>
     <color name="primary_color">#333333</color>
     <color name="red">#D32F2F</color>
+    <color name="cropper_fill">#5400E4FF</color>
 </resources>
