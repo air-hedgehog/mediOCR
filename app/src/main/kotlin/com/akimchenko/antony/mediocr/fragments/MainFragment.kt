@@ -69,6 +69,10 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
         gallery_button.setOnClickListener(this)
     }
 
+    override fun onBackPressed() {
+        activity?.finish()
+    }
+
     fun updateProgressBar(isVisible: Boolean) {
         progress_bar.visibility = if (isVisible) View.VISIBLE else View.GONE
         hint.visibility = if (adapter != null && adapter!!.itemCount > 0) View.GONE else View.VISIBLE

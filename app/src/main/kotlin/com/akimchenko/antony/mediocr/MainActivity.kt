@@ -167,7 +167,7 @@ class MainActivity : AppCompatActivity() {
     override fun onBackPressed() {
         if (isFinishing) return
 
-        if (supportFragmentManager.backStackEntryCount <= 1)
+        if (supportFragmentManager.backStackEntryCount <= 0)
             finish()
         else {
             val fragment = supportFragmentManager.fragments.last() as BaseFragment?
