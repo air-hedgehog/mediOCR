@@ -49,13 +49,10 @@ class ResultFragment : BaseFragment() {
         setHasOptionsMenu(true)
         toolbar.navigationIcon = ContextCompat.getDrawable(activity, R.drawable.close)
         toolbar.setNavigationOnClickListener {
-            if (isFirstBackPressed) {
+            if (isFirstBackPressed)
                 activity.popFragment(MainFragment::class.java.name)
-            } else {
-                isFirstBackPressed = true
-                Handler().postDelayed({ isFirstBackPressed = false }, 2000)
-                Toast.makeText(activity, activity.getString(R.string.click_again_to_exit), Toast.LENGTH_SHORT).show()
-            }
+            else
+                exitConfirmationAction()
         }
         updateTextFormatting(resultString)
         formatting_switch.setOnCheckedChangeListener { _, isChecked ->
@@ -65,16 +62,35 @@ class ResultFragment : BaseFragment() {
         formatting_switch.isChecked = AppSettings.defaultResultFormatting
     }
 
+    override fun onBackPressed() {
+        if (isFirstBackPressed)
+            super.onBackPressed()
+        else
+            exitConfirmationAction()
+    }
+
+    private fun exitConfirmationAction() {
+        isFirstBackPressed = true
+        Handler().postDelayed({ isFirstBackPressed = false }, 2000)
+        activity?.let { activity ->
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.click_again_to_exit),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
         super.onCreateOptionsMenu(menu, inflater)
         menu?.add(0, SHARE_BUTTON_ID, 0, R.string.share)?.setIcon(R.drawable.share)
-                ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+            ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
         menu?.add(0, NotificationCenter.SAVE_AS_TXT_ID, 1, R.string.save_as_txt)?.setIcon(R.drawable.save_as_txt)
-                ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+            ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
             menu?.add(0, NotificationCenter.SAVE_AS_PDF_ID, 1, R.string.save_as_pdf)?.setIcon(R.drawable.save_as_pdf)
-                    ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+                ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
@@ -98,7 +114,7 @@ class ResultFragment : BaseFragment() {
     }
 
     private fun updateTextFormatting(text: String) =
-            edit_text.setText(if (AppSettings.defaultResultFormatting) text else text.removeRowBreaks())
+        edit_text.setText(if (AppSettings.defaultResultFormatting) text else text.removeRowBreaks())
 
     private fun String.removeRowBreaks(): String = this.replace("\n", " ", true)
 
@@ -159,8 +175,8 @@ class ResultFragment : BaseFragment() {
 
     private fun showSnackbar(context: Context, file: File) {
         Snackbar.make(
-                pushable_layout, context.getString(R.string.saved),
-                Snackbar.LENGTH_LONG
+            pushable_layout, context.getString(R.string.saved),
+            Snackbar.LENGTH_LONG
         ).setAction(context.getString(R.string.share)) { Utils.shareFile(context, file) }.show()
     }
 

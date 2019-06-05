@@ -34,4 +34,8 @@ abstract class BaseFragment: Fragment(), NotificationCenter.Observer {
     override fun onNotification(id: Int, `object`: Any?) {
         //catch notification where it need
     }
+
+    open fun onBackPressed() {
+        activity?.supportFragmentManager?.popBackStack()
+    }
 }

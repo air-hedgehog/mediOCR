@@ -18,6 +18,7 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import com.akimchenko.antony.mediocr.dialogs.ProgressDialog
+import com.akimchenko.antony.mediocr.fragments.BaseFragment
 import com.akimchenko.antony.mediocr.fragments.MainFragment
 import com.akimchenko.antony.mediocr.fragments.PreviewFragment
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
@@ -51,7 +52,7 @@ class MainActivity : AppCompatActivity() {
             requestPermissions(arrayOf(
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ), Utils.READ_WRITE_INTENT_REQUEST_CODE, object: OnRequestPermissionCallback {
+            ), Utils.READ_WRITE_INTENT_REQUEST_CODE, object : OnRequestPermissionCallback {
                 override fun onPermissionReturned(isGranted: Boolean) {
                     if (isGranted) {
                         var scheme: String? = intent.scheme
@@ -75,7 +76,11 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                     } else {
-                        Toast.makeText(this@MainActivity, getString(R.string.you_need_to_allow_permissions_read_write), Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            this@MainActivity,
+                            getString(R.string.you_need_to_allow_permissions_read_write),
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                 }
             })
@@ -106,10 +111,10 @@ class MainActivity : AppCompatActivity() {
         if (isFinishing || Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed) return
         val name = fragment::class.java.name
         supportFragmentManager.beginTransaction()
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .replace(R.id.main_activity_container, fragment, name)
-                .addToBackStack(name)
-                .commitAllowingStateLoss()
+            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+            .replace(R.id.main_activity_container, fragment, name)
+            .addToBackStack(name)
+            .commitAllowingStateLoss()
     }
 
     private val onDownloadComplete = object : BroadcastReceiver() {
@@ -120,9 +125,9 @@ class MainActivity : AppCompatActivity() {
                 NotificationCenter.notify(NotificationCenter.LANG_DOWNLOADED, language)
                 downloadIdsLangs.remove(id)
                 Toast.makeText(
-                        this@MainActivity,
-                        "${getString(R.string.download_completed)}: ${Utils.getLocalizedLangName(language)}",
-                        Toast.LENGTH_SHORT
+                    this@MainActivity,
+                    "${getString(R.string.download_completed)}: ${Utils.getLocalizedLangName(language)}",
+                    Toast.LENGTH_SHORT
                 ).show()
             }
         }
@@ -164,13 +169,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         if (isFinishing) return
-        val entryCount = supportFragmentManager.backStackEntryCount
-        val fragment =
-                supportFragmentManager.findFragmentByTag(supportFragmentManager.getBackStackEntryAt(entryCount - 1).name)
-        if (fragment is MainFragment || entryCount == 0)
+
+        if (supportFragmentManager.backStackEntryCount <= 1)
             finish()
-        else
-            super.onBackPressed()
+        else {
+            val fragment = supportFragmentManager.fragments.last() as BaseFragment?
+            fragment?.onBackPressed()
+        }
     }
 
     fun popFragment(fragmentName: String) {
