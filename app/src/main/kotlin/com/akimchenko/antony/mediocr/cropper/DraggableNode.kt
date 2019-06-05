@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Point
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 
 
 class DraggableNode(context: Context, resourceId: Int, val point: Point) {
@@ -17,7 +19,7 @@ class DraggableNode(context: Context, resourceId: Int, val point: Point) {
 
     init {
         this.id = count++
-        bitmap = BitmapFactory.decodeResource(context.resources, resourceId)
+        bitmap = ContextCompat.getDrawable(context, resourceId)!!.toBitmap()
     }
 
     fun getWidthOfNode(): Int = bitmap.width

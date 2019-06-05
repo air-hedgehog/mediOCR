@@ -16,6 +16,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+        <com.akimchenko.antony.mediocr.cropper.CropperView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
         <ProgressBar
             android:id="@+id/progress_bar"
             android:layout_width="100dp"
@@ -30,9 +34,9 @@
         android:id="@+id/bottom_sheet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@android:color/white"
         app:behavior_hideable="false"
         app:behavior_peekHeight="@dimen/toolbar_height"
-        android:background="@android:color/white"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
         <ScrollView

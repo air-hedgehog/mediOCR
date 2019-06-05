@@ -2,12 +2,15 @@ package com.akimchenko.antony.mediocr.cropper
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Point
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.akimchenko.antony.mediocr.R
+
 
 class CropperView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
@@ -16,11 +19,12 @@ class CropperView @JvmOverloads constructor(
     private val point1: Point = Point(50, 20)
     private val point2: Point = Point(150, 20)
     private val point3: Point = Point(150, 120)
-    private val point4: Point = Point(50, 102)
+    private val point4: Point = Point(50, 120)
 
     private val canvas = Canvas()
     private val paint = Paint()
     private var groupId: Int = -1
+    private var touchedNodeId: Int = -1
 
     private val nodesList = arrayListOf(
         DraggableNode(context, R.drawable.node_cross, point1),
@@ -46,17 +50,108 @@ class CropperView @JvmOverloads constructor(
         paint.strokeWidth = 5.0f
         canvas.drawPaint(paint)
         if (groupId == 1) {
-            canvas.drawRect(point1.x + nodesList[0].getWidthOfNode() / 2.0f,
-                    point3.y + nodesList[2].getWidthOfNode() / 2.0f,
-                    point3.x + nodesList[2].getWidthOfNode() / 2.0f,
-                    point1.y + nodesList[0].getWidthOfNode() /2.0f, paint)
+            canvas.drawRect(
+                point1.x + nodesList[0].getWidthOfNode() / 2.0f,
+                point3.y + nodesList[2].getWidthOfNode() / 2.0f,
+                point3.x + nodesList[2].getWidthOfNode() / 2.0f,
+                point1.y + nodesList[0].getWidthOfNode() / 2.0f, paint
+            )
         } else {
-            canvas.drawRect(point2.x + nodesList[1].getWidthOfNode() / 2.0f,
-                    point4.y + nodesList[3].getWidthOfNode() / 2.0f,
-                    point4.x + nodesList[3].getWidthOfNode() / 2.0f,
-                    point2.y + nodesList[1].getWidthOfNode() /2.0f, paint)
+            canvas.drawRect(
+                point2.x + nodesList[1].getWidthOfNode() / 2.0f,
+                point4.y + nodesList[3].getWidthOfNode() / 2.0f,
+                point4.x + nodesList[3].getWidthOfNode() / 2.0f,
+                point2.y + nodesList[1].getWidthOfNode() / 2.0f, paint
+            )
         }
         //val bitmapDrawable = BitmapDrawable()
-        nodesList.forEach { canvas.drawBitmap(it.bitmap, it.point.x, it.point.y, Paint()) }
+        nodesList.forEach { canvas.drawBitmap(it.bitmap, it.point.x.toFloat(), it.point.y.toFloat(), Paint()) }
+    }
+
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        //return super.onTouchEvent(event)
+        event ?: return false
+        val eventAction = event.action
+        val x = event.x
+        val y = event.y
+
+        when (eventAction) {
+            MotionEvent.ACTION_DOWN -> {
+                touchedNodeId = -1
+                groupId = -1
+                for (node in nodesList) {
+                    val centerX = node.point.x + node.getWidthOfNode() / 2
+                    val centerY = node.point.y + node.getHeightOfNode() / 2
+                    val radCircle =
+                        Math.sqrt(((centerX - x) * (centerX - x) + (centerY - y) * (centerY - y)).toDouble())
+                    if (radCircle < node.getWidthOfNode()) {
+                        touchedNodeId = node.getId()
+                        if (touchedNodeId == 1 || touchedNodeId == 3) {
+                            groupId = 2
+                            canvas.drawRect(
+                                point1.x.toFloat(),
+                                point3.y.toFloat(),
+                                point3.x.toFloat(),
+                                point1.y.toFloat(),
+                                paint
+                            )
+                        } else {
+                            groupId = 1
+                            canvas.drawRect(
+                                point2.x.toFloat(),
+                                point4.y.toFloat(),
+                                point4.x.toFloat(),
+                                point2.y.toFloat(),
+                                paint
+                            )
+                        }
+                        invalidate()
+                        break
+                    }
+                    invalidate()
+                }
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                if (touchedNodeId >= 0) {
+                    nodesList[touchedNodeId].point.x = x.toInt()
+                    nodesList[touchedNodeId].point.y = y.toInt()
+
+                    //paint.color = Color.TRANSPARENT
+
+                    if (groupId == 1) {
+                        nodesList[1].point.x = nodesList[0].point.x
+                        nodesList[1].point.y = nodesList[2].point.y
+                        nodesList[3].point.x = nodesList[2].point.x
+                        nodesList[3].point.y = nodesList[0].point.y
+                        canvas.drawRect(
+                            point1.x.toFloat(),
+                            point3.y.toFloat(),
+                            point3.x.toFloat(),
+                            point1.y.toFloat(),
+                            paint
+                        )
+                    } else {
+                        nodesList[0].point.x = nodesList[1].point.x
+                        nodesList[0].point.y = nodesList[3].point.y
+                        nodesList[2].point.x = nodesList[3].point.x
+                        nodesList[2].point.y = nodesList[1].point.y
+                        canvas.drawRect(
+                            point2.x.toFloat(),
+                            point4.y.toFloat(),
+                            point4.x.toFloat(),
+                            point2.y.toFloat(),
+                            paint
+                        )
+                    }
+                    invalidate()
+                }
+            }
+
+            MotionEvent.ACTION_UP -> {
+            }
+        }
+        invalidate()
+        return true
     }
 }
