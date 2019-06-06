@@ -1,20 +1,20 @@
 package com.akimchenko.antony.mediocr.cropper
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Point
 import android.util.AttributeSet
 import android.view.MotionEvent
-import android.view.View
+import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import com.akimchenko.antony.mediocr.R
 
 
 class CropperView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
-) : View(context, attrs, defStyleAttr) {
+) : ImageView(context, attrs, defStyleAttr) {
 
     private val point1: Point = Point(50, 20)
     private val point2: Point = Point(150, 20)
@@ -43,11 +43,11 @@ class CropperView @JvmOverloads constructor(
 
         paint.isAntiAlias = true
         paint.isDither = true
-        paint.color = ContextCompat.getColor(context, R.color.cropper_fill)
+        paint.color = ContextCompat.getColor(context, R.color.cropper_fill1)
         paint.style = Paint.Style.FILL
         paint.strokeJoin = Paint.Join.ROUND
-        //paint.strokeCap = Paint.Cap.ROUND
-        paint.strokeWidth = 5.0f
+        paint.strokeCap = Paint.Cap.ROUND
+        paint.strokeWidth = 1.0f
         canvas.drawPaint(paint)
         if (groupId == 1) {
             canvas.drawRect(
@@ -72,8 +72,12 @@ class CropperView @JvmOverloads constructor(
         //return super.onTouchEvent(event)
         event ?: return false
         val eventAction = event.action
-        val x = event.x
-        val y = event.y
+        val x = event.x.coerceIn(left.toFloat(), right.toFloat())
+        val y = event.y.coerceIn(top.toFloat(), bottom.toFloat())
+
+        val randomNode = nodesList.first()
+        val halfHeight = randomNode.getHeightOfNode() / 2
+        val halfWidth = randomNode.getWidthOfNode() / 2
 
         when (eventAction) {
             MotionEvent.ACTION_DOWN -> {
@@ -113,11 +117,11 @@ class CropperView @JvmOverloads constructor(
             }
 
             MotionEvent.ACTION_MOVE -> {
-                if (touchedNodeId >= 0) {
-                    nodesList[touchedNodeId].point.x = x.toInt()
-                    nodesList[touchedNodeId].point.y = y.toInt()
 
-                    //paint.color = Color.TRANSPARENT
+                if (touchedNodeId >= 0) {
+
+                    nodesList[touchedNodeId].point.x = x.toInt() - halfWidth
+                    nodesList[touchedNodeId].point.y = y.toInt() - halfHeight
 
                     if (groupId == 1) {
                         nodesList[1].point.x = nodesList[0].point.x

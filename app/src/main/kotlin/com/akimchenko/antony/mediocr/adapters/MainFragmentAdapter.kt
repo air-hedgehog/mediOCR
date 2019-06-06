@@ -19,6 +19,7 @@ import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -107,14 +108,16 @@ class MainFragmentAdapter(private val fragment: MainFragment) : RecyclerView.Ada
         fileLoadJob = GlobalScope.launch {
             val files = activity.getDefaultSavedFilesDirectory().listFiles()
             items.clear()
-            if (searchQuery.isNullOrBlank())
-                items.addAll(files)
-            else
-                items.addAll(files.filter { it.name.contains(searchQuery!!, true) })
-            if (AppSettings.savedFilesSortedAlphabetically)
-                items.sortBy { it.name }
-            else
-                items.sortByDescending { it.lastModified() }
+            if (files != null) {
+                if (searchQuery.isNullOrBlank())
+                    items.addAll(files)
+                else
+                    items.addAll(files.filter { it.name.contains(searchQuery!!, true) })
+                if (AppSettings.savedFilesSortedAlphabetically)
+                    items.sortBy { it.name }
+                else
+                    items.sortByDescending { it.lastModified() }
+            }
         }
         fileLoadJob?.invokeOnCompletion {
             activity.runOnUiThread {
