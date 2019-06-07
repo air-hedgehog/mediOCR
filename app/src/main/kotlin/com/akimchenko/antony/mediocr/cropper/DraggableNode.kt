@@ -8,21 +8,29 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 
 
-class DraggableNode(context: Context, resourceId: Int, val point: Point) {
+class DraggableNode(val context: Context, val resourceId: Int, val point: Point) {
 
     companion object {
         private var count = 0
     }
 
     private var id: Int = 0
-    var bitmap: Bitmap
+    var bitmap: Bitmap? = null
 
     init {
         this.id = count++
+        show()
+    }
+
+    fun show() {
         bitmap = ContextCompat.getDrawable(context, resourceId)!!.toBitmap()
     }
 
-    fun getWidthOfNode(): Int = bitmap.width
-    fun getHeightOfNode(): Int = bitmap.height
+    fun hide() {
+        bitmap = null
+    }
+
+    fun getWidthOfNode(): Int = bitmap?.width ?: 0
+    fun getHeightOfNode(): Int = bitmap?.height ?: 0
     fun getId() = id
 }

@@ -1,7 +1,7 @@
 package com.akimchenko.antony.mediocr.cropper
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Point
@@ -25,22 +25,32 @@ class CropperView @JvmOverloads constructor(
     private val paint = Paint()
     private var groupId: Int = -1
     private var touchedNodeId: Int = -1
+    private var currentRectangle: CropRectangle? = null
 
-    private val nodesList = arrayListOf(
-        DraggableNode(context, R.drawable.node_cross, point1),
-        DraggableNode(context, R.drawable.node_cross, point2),
-        DraggableNode(context, R.drawable.node_cross, point3),
-        DraggableNode(context, R.drawable.node_cross, point4)
-    )
+    private val rectanglesList = ArrayList<CropRectangle>()
 
     init {
         isFocusable = true
+        currentRectangle = CropRectangle()
     }
 
+    fun addRectangle() {
+        //TODO new color init, disabling previous rectangles nodes
+        rectanglesList.add(CropRectangle())
+    }
+
+    override fun onVisibilityAggregated(isVisible: Boolean) {
+        super.onVisibilityAggregated(isVisible)
+        this.setOnClickListener {
+            currentRectangle?.setNodesEnabled(!(currentRectangle?.isNodesEnabled() ?: false))
+        }
+    }
+
+    @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas ?: return
-
+        val nodesList = currentRectangle?.nodesList ?: return
         paint.isAntiAlias = true
         paint.isDither = true
         paint.color = ContextCompat.getColor(context, R.color.cropper_fill1)
@@ -64,13 +74,17 @@ class CropperView @JvmOverloads constructor(
                 point2.y + nodesList[1].getWidthOfNode() / 2.0f, paint
             )
         }
-        //val bitmapDrawable = BitmapDrawable()
-        nodesList.forEach { canvas.drawBitmap(it.bitmap, it.point.x.toFloat(), it.point.y.toFloat(), Paint()) }
+        nodesList.forEach {
+            it.bitmap?.let {bitmap ->
+                canvas.drawBitmap(bitmap, it.point.x.toFloat(), it.point.y.toFloat(), Paint())
+            }
+        }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        //return super.onTouchEvent(event)
         event ?: return false
+        val nodesList = currentRectangle?.nodesList ?: return false
         val eventAction = event.action
         val x = event.x.coerceIn(left.toFloat(), right.toFloat())
         val y = event.y.coerceIn(top.toFloat(), bottom.toFloat())
@@ -158,4 +172,24 @@ class CropperView @JvmOverloads constructor(
         invalidate()
         return true
     }
+
+    private inner class CropRectangle {
+
+        private var isNodesEnabled: Boolean = true
+
+        val nodesList = arrayListOf(
+            DraggableNode(context, R.drawable.node_cross, point1),
+            DraggableNode(context, R.drawable.node_cross, point2),
+            DraggableNode(context, R.drawable.node_cross, point3),
+            DraggableNode(context, R.drawable.node_cross, point4)
+        )
+
+        fun setNodesEnabled(isEnabled: Boolean) {
+            this.isNodesEnabled = isEnabled
+            nodesList.forEach { if (isEnabled) it.show() else it.hide() }
+        }
+
+        fun isNodesEnabled(): Boolean = isNodesEnabled
+    }
+
 }
