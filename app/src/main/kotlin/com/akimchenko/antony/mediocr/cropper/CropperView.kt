@@ -16,13 +16,13 @@ class CropperView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : ImageView(context, attrs, defStyleAttr) {
 
-    private val point1: Point = Point(50, 20)
-    private val point2: Point = Point(150, 20)
-    private val point3: Point = Point(150, 120)
-    private val point4: Point = Point(50, 120)
-
     private val canvas = Canvas()
     private val paint = Paint()
+    private val threeColors = arrayOf(
+        R.color.cropper_fill1,
+        R.color.cropper_fill2,
+        R.color.cropper_fill3
+    )
     private var groupId: Int = -1
     private var touchedNodeId: Int = -1
     private var currentRectangle: CropRectangle? = null
@@ -31,13 +31,17 @@ class CropperView @JvmOverloads constructor(
 
     init {
         isFocusable = true
-        currentRectangle = CropRectangle()
+        currentRectangle = CropRectangle(threeColors[0])
     }
 
     fun addRectangle() {
-        //TODO new color init, disabling previous rectangles nodes
-        rectanglesList.add(CropRectangle())
+        rectanglesList.forEach { it.setNodesEnabled(false) }
+        rectanglesList.add(CropRectangle(rectanglesList.size - 1))
     }
+
+    fun getRectanglesList(): ArrayList<CropRectangle> = rectanglesList
+
+    fun removeRectangle(rectangle: CropRectangle) = rectanglesList.remove(rectangle)
 
     override fun onVisibilityAggregated(isVisible: Boolean) {
         super.onVisibilityAggregated(isVisible)
@@ -61,21 +65,21 @@ class CropperView @JvmOverloads constructor(
         canvas.drawPaint(paint)
         if (groupId == 1) {
             canvas.drawRect(
-                point1.x + nodesList[0].getWidthOfNode() / 2.0f,
-                point3.y + nodesList[2].getWidthOfNode() / 2.0f,
-                point3.x + nodesList[2].getWidthOfNode() / 2.0f,
-                point1.y + nodesList[0].getWidthOfNode() / 2.0f, paint
+                currentRectangle!!.point1.x + nodesList[0].getWidthOfNode() / 2.0f,
+                currentRectangle!!.point3.y + nodesList[2].getWidthOfNode() / 2.0f,
+                currentRectangle!!.point3.x + nodesList[2].getWidthOfNode() / 2.0f,
+                currentRectangle!!.point1.y + nodesList[0].getWidthOfNode() / 2.0f, paint
             )
         } else {
             canvas.drawRect(
-                point2.x + nodesList[1].getWidthOfNode() / 2.0f,
-                point4.y + nodesList[3].getWidthOfNode() / 2.0f,
-                point4.x + nodesList[3].getWidthOfNode() / 2.0f,
-                point2.y + nodesList[1].getWidthOfNode() / 2.0f, paint
+                currentRectangle!!.point2.x + nodesList[1].getWidthOfNode() / 2.0f,
+                currentRectangle!!.point4.y + nodesList[3].getWidthOfNode() / 2.0f,
+                currentRectangle!!.point4.x + nodesList[3].getWidthOfNode() / 2.0f,
+                currentRectangle!!.point2.y + nodesList[1].getWidthOfNode() / 2.0f, paint
             )
         }
         nodesList.forEach {
-            it.bitmap?.let {bitmap ->
+            it.bitmap?.let { bitmap ->
                 canvas.drawBitmap(bitmap, it.point.x.toFloat(), it.point.y.toFloat(), Paint())
             }
         }
@@ -107,19 +111,19 @@ class CropperView @JvmOverloads constructor(
                         if (touchedNodeId == 1 || touchedNodeId == 3) {
                             groupId = 2
                             canvas.drawRect(
-                                point1.x.toFloat(),
-                                point3.y.toFloat(),
-                                point3.x.toFloat(),
-                                point1.y.toFloat(),
+                                currentRectangle!!.point1.x.toFloat(),
+                                currentRectangle!!.point3.y.toFloat(),
+                                currentRectangle!!.point3.x.toFloat(),
+                                currentRectangle!!.point1.y.toFloat(),
                                 paint
                             )
                         } else {
                             groupId = 1
                             canvas.drawRect(
-                                point2.x.toFloat(),
-                                point4.y.toFloat(),
-                                point4.x.toFloat(),
-                                point2.y.toFloat(),
+                                currentRectangle!!.point2.x.toFloat(),
+                                currentRectangle!!.point4.y.toFloat(),
+                                currentRectangle!!.point4.x.toFloat(),
+                                currentRectangle!!.point2.y.toFloat(),
                                 paint
                             )
                         }
@@ -132,7 +136,7 @@ class CropperView @JvmOverloads constructor(
 
             MotionEvent.ACTION_MOVE -> {
 
-                if (touchedNodeId >= 0) {
+                if (touchedNodeId >= 0 && touchedNodeId < nodesList.size) {
 
                     nodesList[touchedNodeId].point.x = x.toInt() - halfWidth
                     nodesList[touchedNodeId].point.y = y.toInt() - halfHeight
@@ -143,10 +147,10 @@ class CropperView @JvmOverloads constructor(
                         nodesList[3].point.x = nodesList[2].point.x
                         nodesList[3].point.y = nodesList[0].point.y
                         canvas.drawRect(
-                            point1.x.toFloat(),
-                            point3.y.toFloat(),
-                            point3.x.toFloat(),
-                            point1.y.toFloat(),
+                            currentRectangle!!.point1.x.toFloat(),
+                            currentRectangle!!.point3.y.toFloat(),
+                            currentRectangle!!.point3.x.toFloat(),
+                            currentRectangle!!.point1.y.toFloat(),
                             paint
                         )
                     } else {
@@ -155,10 +159,10 @@ class CropperView @JvmOverloads constructor(
                         nodesList[2].point.x = nodesList[3].point.x
                         nodesList[2].point.y = nodesList[1].point.y
                         canvas.drawRect(
-                            point2.x.toFloat(),
-                            point4.y.toFloat(),
-                            point4.x.toFloat(),
-                            point2.y.toFloat(),
+                            currentRectangle!!.point2.x.toFloat(),
+                            currentRectangle!!.point4.y.toFloat(),
+                            currentRectangle!!.point4.x.toFloat(),
+                            currentRectangle!!.point2.y.toFloat(),
                             paint
                         )
                     }
@@ -173,7 +177,15 @@ class CropperView @JvmOverloads constructor(
         return true
     }
 
-    private inner class CropRectangle {
+    inner class CropRectangle(colorResId: Int) {
+
+        val point1: Point = Point(50, 20)
+        val point2: Point = Point(150, 20)
+        val point3: Point = Point(150, 120)
+        val point4: Point = Point(50, 120)
+        private val color = ContextCompat.getColor(context, colorResId)
+
+        fun getColor() = color
 
         private var isNodesEnabled: Boolean = true
 
