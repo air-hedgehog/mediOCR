@@ -53,6 +53,8 @@
 
                 <include layout="@layout/bottom_sheet_header" />
 
+                <include layout="@layout/horizontal_separator" />
+
                 <include layout="@layout/bottom_sheet_fill" />
 
             </LinearLayout>

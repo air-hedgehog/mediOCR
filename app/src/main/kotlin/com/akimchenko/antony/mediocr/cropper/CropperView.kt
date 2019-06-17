@@ -62,7 +62,7 @@ class CropperView @JvmOverloads constructor(
         paint.strokeJoin = Paint.Join.ROUND
         paint.strokeCap = Paint.Cap.ROUND
         paint.strokeWidth = 1.0f
-        canvas.drawPaint(paint)
+        //canvas.drawPaint(paint)
         if (groupId == 1) {
             canvas.drawRect(
                 currentRectangle!!.point1.x + nodesList[0].getWidthOfNode() / 2.0f,

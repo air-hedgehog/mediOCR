@@ -8,7 +8,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingLeft="@dimen/default_side_margin"
-        android:paddingTop="@dimen/default_side_margin"
         android:paddingRight="@dimen/default_side_margin"
         android:text="@string/choose_languages"
         android:textColor="@color/colorAccent"
