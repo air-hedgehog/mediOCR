@@ -49,4 +49,12 @@
         <item name="android:layout_margin">@dimen/default_side_margin_small</item>
     </style>
 
+    <style name="BottomSheetTextViewStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingLeft">@dimen/default_side_margin</item>
+        <item name="android:paddingRight">@dimen/default_side_margin</item>
+        <item name="android:textColor">@color/colorAccent</item>
+        <item name="android:textSize">@dimen/primary_text</item>
+    </style>
 </resources>

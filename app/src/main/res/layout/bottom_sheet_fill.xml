@@ -5,19 +5,15 @@
     android:orientation="vertical">
 
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingLeft="@dimen/default_side_margin"
-        android:paddingRight="@dimen/default_side_margin"
-        android:text="@string/choose_languages"
-        android:textColor="@color/colorAccent"
-        android:textSize="@dimen/primary_text" />
+        style="@style/BottomSheetTextViewStyle"
+        android:text="@string/choose_languages" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="@dimen/default_side_margin_small">
+        android:paddingLeft="@dimen/default_side_margin_small"
+        android:paddingRight="@dimen/default_side_margin_small">
 
         <ImageView
             android:id="@+id/first_lang_slot"
@@ -33,14 +29,33 @@
 
     </LinearLayout>
 
-    <TextView
+    <include layout="@layout/horizontal_separator"/>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingLeft="@dimen/default_side_margin"
-        android:paddingRight="@dimen/default_side_margin"
-        android:text="@string/Text_alignment"
-        android:textColor="@color/colorAccent"
-        android:textSize="@dimen/primary_text" />
+        android:orientation="horizontal"
+        android:paddingLeft="@dimen/default_side_margin_small"
+        android:paddingRight="@dimen/default_side_margin_small">
+
+        <ImageView
+            android:id="@+id/first_rect_slot"
+            style="@style/EmptyLangStyle" />
+
+        <ImageView
+            android:id="@+id/second_rect_slot"
+            style="@style/EmptyLangStyle" />
+
+        <ImageView
+            android:id="@+id/third_rect_slot"
+            style="@style/EmptyLangStyle" />
+
+    </LinearLayout>
+
+
+    <TextView
+        style="@style/BottomSheetTextViewStyle"
+        android:text="@string/Text_alignment" />
 
     <Spinner
         android:id="@+id/align_spinner"

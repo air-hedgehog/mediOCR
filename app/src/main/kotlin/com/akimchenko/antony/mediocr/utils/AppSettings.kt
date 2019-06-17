@@ -7,7 +7,7 @@ import com.akimchenko.antony.mediocr.MediocrApp
 object AppSettings {
 
     private const val SHARED_PREFERENCES_NAME = "mediocr_shared_preferences"
-    private const val TESSERACT_SELECTED_LANGUAGE = "tesseract_selected_language"
+    private const val TESSERACT_SELECTED_LANGUAGEES = "tesseract_selected_language"
     private const val USE_APPLICATION_CAMERA = "use_application_camera"
     private const val DEFAULT_RESULT_FORMATTING = "default_result_formatting"
     const val SAVED_FILES_SORT_TYPE = "saved_files_sort_type"
@@ -27,10 +27,34 @@ object AppSettings {
     fun unregisterListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) = sp.unregisterOnSharedPreferenceChangeListener(listener)
 
     @JvmStatic
-    fun getSelectedLanguage(): String = sp.getString(TESSERACT_SELECTED_LANGUAGE, "eng")!!
+    fun getSelectedLanguageList(): ArrayList<String> {
+        val langsString = sp.getString(TESSERACT_SELECTED_LANGUAGEES, "eng")!!
+        return langsString.split(",") as ArrayList<String>
+    }
 
     @JvmStatic
-    fun setSelectedLanguage(lang: String?) = sp.edit().putString(TESSERACT_SELECTED_LANGUAGE, lang).apply()
+    fun addSelectedLanguage(lang: String) {
+
+        val list = getSelectedLanguageList()
+        val resultList: List<String>
+        if (list.size < 3) {
+            list.add(lang)
+            resultList = list
+        } else {
+            resultList = list.subList(0, 3)
+            resultList.add(2, lang)
+        }
+
+        sp.edit().putString(TESSERACT_SELECTED_LANGUAGEES, resultList.joinToString(",")).apply()
+    }
+
+    @JvmStatic
+    fun removeSelectedLanguage(lang: String) {
+        val list = getSelectedLanguageList()
+
+        if (list.remove(lang))
+            sp.edit().putString(TESSERACT_SELECTED_LANGUAGEES, list.joinToString(",")).apply()
+    }
 
     @JvmStatic
     var useApplicationCamera: Boolean

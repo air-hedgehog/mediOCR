@@ -39,7 +39,6 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
         const val ARG_IMAGE_FILE_URI = "arg_image_file"
     }
 
-    private var doWhenDownloaded: Runnable? = null
     private var tessBaseApi: TessBaseAPI? = null
     private var savingCroppedImageJob: Job? = null
     private var recognizingJob: Job? = null
@@ -132,7 +131,14 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
                 if (isRecognitionStarted()) {
                     cancelRecognition()
                 } else {
-                    val runnable = Runnable {
+                    var isDownloaded = true
+                    for (lang in AppSettings.getSelectedLanguageList()) {
+                        if (activity.downloadIdsLangs.containsValue(lang)) {
+                            isDownloaded = false
+                            break
+                        }
+                    }
+                    if (isDownloaded) {
                         updateProgressVisibility(true)
                         //TODO refactor to asyncTask due to 'GlobalScope.broadcast()' and 'GlobalScope.produce()' are experimental
                         savingCroppedImageJob = GlobalScope.launch {
@@ -152,10 +158,6 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
                             }
                         }
                     }
-                    if (activity.downloadIdsLangs.containsValue(AppSettings.getSelectedLanguage()))
-                        doWhenDownloaded = runnable
-                    else
-                        runnable.run()
                 }
 
                 updateProgressVisibility(true)
@@ -167,7 +169,6 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
             Bitmap.createBitmap(this, 0, 0, width, height, Matrix().apply { postRotate(degrees) }, true)
 
     private fun cancelRecognition() {
-        doWhenDownloaded = null
         tessBaseApi?.stop()
         savingCroppedImageJob?.cancel()
         savingCroppedImageJob = null
