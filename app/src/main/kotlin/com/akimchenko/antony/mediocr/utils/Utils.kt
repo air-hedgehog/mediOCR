@@ -26,7 +26,7 @@ object Utils {
     const val READ_WRITE_INTENT_REQUEST_CODE = 105
 
     @JvmStatic
-    val customLanguageTags: HashMap<String, String> = hashMapOf(
+    private val customLanguageTags: HashMap<String, String> = hashMapOf(
             Pair("aze_cyrl", "Azerbaijani - Cyrillic"),
             Pair("chi_sim", "Chinese - Simplified"),
             Pair("chi_sim_vert", "Chinese - Simplified Vertical"),

@@ -31,6 +31,10 @@
 
     <include layout="@layout/horizontal_separator"/>
 
+    <TextView
+        style="@style/BottomSheetTextViewStyle"
+        android:text="@string/select_text_blocks_in_desired_order" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -55,7 +59,7 @@
 
     <TextView
         style="@style/BottomSheetTextViewStyle"
-        android:text="@string/Text_alignment" />
+        android:text="@string/text_alignment" />
 
     <Spinner
         android:id="@+id/align_spinner"

@@ -130,8 +130,9 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
     override fun onNotification(id: Int, `object`: Any?) {
         when (id) {
             NotificationCenter.LANG_DELETED -> {
-                if (`object` == AppSettings.getSelectedLanguage())
-                    AppSettings.setSelectedLanguage(null)
+                if (`object` == AppSettings.getSelectedLanguageList().contains(`object` as String)) {
+                    AppSettings.removeSelectedLanguage(`object`)
+                }
                 updateItems()
             }
             NotificationCenter.LANG_DOWNLOADED -> updateItems()
@@ -153,7 +154,6 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
                 if (!Utils.isLanguageDownloaded(activity, lang) && lang != "eng")
                     download(lang, File(activity.getTesseractDataFolder(), "$lang.traineddata"))
 
-                AppSettings.setSelectedLanguage(lang)
                 notifyDataSetChanged()
             }
             downloadDeleteButton.setOnClickListener {
@@ -215,7 +215,7 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
                 progressbar.visibility = View.GONE
             }
             title.text = Utils.getLocalizedLangName(lang)
-            val isSelected = AppSettings.getSelectedLanguage() == lang
+            val isSelected = AppSettings.getSelectedLanguageList().contains(lang)
             checkMark.visibility = if (isSelected) View.VISIBLE else View.GONE
             title.setPadding(
                     if (isSelected) 0 else activity.resources.getDimensionPixelSize(R.dimen.default_side_margin),

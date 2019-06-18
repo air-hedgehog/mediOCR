@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
@@ -21,6 +22,7 @@ import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.googlecode.tesseract.android.TessBaseAPI
+import kotlinx.android.synthetic.main.bottom_sheet_fill.*
 import kotlinx.android.synthetic.main.bottom_sheet_header.*
 import kotlinx.android.synthetic.main.fragment_preview.*
 import kotlinx.coroutines.GlobalScope
@@ -117,9 +119,11 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
     }
 
     override fun onClick(v: View?) {
-        val activity = activity as MainActivity? ?: return
         when (v) {
-            close_button -> activity.popFragment(MainFragment::class.java.name)
+            close_button -> {
+                val activity = activity as MainActivity? ?: return
+                activity.popFragment(MainFragment::class.java.name)
+            }
             rotate_left_button -> image_view.setImageBitmap(image_view.drawable.toBitmap().rotate(-90.0f))
             rotate_right_button -> image_view.setImageBitmap(image_view.drawable.toBitmap().rotate(90.0f))
 
@@ -131,14 +135,8 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
                 if (isRecognitionStarted()) {
                     cancelRecognition()
                 } else {
-                    var isDownloaded = true
-                    for (lang in AppSettings.getSelectedLanguageList()) {
-                        if (activity.downloadIdsLangs.containsValue(lang)) {
-                            isDownloaded = false
-                            break
-                        }
-                    }
-                    if (isDownloaded) {
+
+                    if (isSelectedLangsDownloaded()) {
                         updateProgressVisibility(true)
                         //TODO refactor to asyncTask due to 'GlobalScope.broadcast()' and 'GlobalScope.produce()' are experimental
                         savingCroppedImageJob = GlobalScope.launch {
@@ -161,6 +159,18 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
                 }
 
                 updateProgressVisibility(true)
+            }
+
+            first_lang_slot,
+            second_lang_slot,
+            third_lang_slot -> {
+                val langNumber = when (v) {
+                    first_lang_slot -> 0
+                    second_lang_slot -> 1
+                    else -> 2
+                }
+
+                //TODO alertDialog with non-selected languages or LanguageFragment with onClick allowance attribute
             }
         }
     }
@@ -199,24 +209,29 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
 
     private fun updateProgressVisibility(isVisible: Boolean) {
         activity?.runOnUiThread {
-            updateRecognizeButton()
             progress_bar?.visibility = if (isVisible) View.VISIBLE else View.GONE
+            updateRecognizeButton()
         }
     }
 
-    private fun isLangDownloaded(activity: MainActivity): Boolean = activity.getTesseractDataFolder().listFiles()
-            .contains(File(activity.getTesseractDataFolder(), "${AppSettings.getSelectedLanguage()}.traineddata"))
+    private fun isSelectedLangsDownloaded(): Boolean {
+        val activity = activity as MainActivity? ?: return false
+        for (lang in AppSettings.getSelectedLanguageList()) {
+            if (!activity.getTesseractDataFolder().listFiles()
+                            .contains(File(activity.getTesseractDataFolder(), "$lang.traineddata")) ||
+                    activity.downloadIdsLangs.containsValue(lang)) {
+                return false
+            }
+        }
+        return true
+    }
 
     override fun onNotification(id: Int, `object`: Any?) {
         super.onNotification(id, `object`)
         when (id) {
             NotificationCenter.LANG_DOWNLOADED -> {
-                if ((`object` as String) == AppSettings.getSelectedLanguage()) {
-                    val activity = activity as MainActivity? ?: return
-                    updateProgressVisibility(!isLangDownloaded(activity))
-                    doWhenDownloaded?.run()
-                    doWhenDownloaded = null
-                }
+                if (AppSettings.getSelectedLanguageList().contains((`object` as String)))
+                    updateProgressVisibility(!isSelectedLangsDownloaded())
             }
         }
     }
@@ -303,11 +318,14 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
         tessBaseApi ?: return null
         tessBaseApi!!.pageSegMode = TessBaseAPI.PageSegMode.PSM_SINGLE_BLOCK_VERT_TEXT
         val path: String? = Utils.getInternalDirs(activity)[0]?.path ?: return null
-        val lang = AppSettings.getSelectedLanguage()
-        if (lang == "eng")
+
+        if (AppSettings.getSelectedLanguageList().contains("eng"))
             checkDefaultTessdata()
 
+        val lang = AppSettings.getSelectedLanguageList().joinToString("+")
+
         tessBaseApi!!.init(path, lang)
+        tessBaseApi!!.initLanguagesAsString
 
         //banned special symbols
         tessBaseApi!!.setVariable(
@@ -319,7 +337,6 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
         tessBaseApi!!.setImage(bitmap)
         var extractedText: String? = null
         try {
-            //TODO parse HOCR string
             extractedText = tessBaseApi?.getHOCRText(0)
         } catch (e: Exception) {
             Log.e(this::class.java.name, "Error in recognizing text.", e)
