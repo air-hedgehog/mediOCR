@@ -8,12 +8,14 @@ object NotificationCenter {
     const val LANG_DELETED = 1
     const val SAVE_AS_TXT_ID = 2
     const val SAVE_AS_PDF_ID = 3
+    const val LANGUAGE_REPLACED = 4
 
     @IntDef(
-        LANG_DOWNLOADED,
-        LANG_DELETED,
-        SAVE_AS_PDF_ID,
-        SAVE_AS_TXT_ID
+            LANG_DOWNLOADED,
+            LANG_DELETED,
+            SAVE_AS_PDF_ID,
+            SAVE_AS_TXT_ID,
+            LANGUAGE_REPLACED
     )
     @Retention(AnnotationRetention.SOURCE)
     annotation class Id
@@ -32,5 +34,5 @@ object NotificationCenter {
     fun removeObserver(observer: Observer) = observers.remove(observer)
 
     @JvmStatic
-    fun notify(@Id id: Int, `object`: Any?) = observers.forEach { it.onNotification(id, `object`) }
+    fun notify(@Id id: Int, `object`: Any? = null) = observers.forEach { it.onNotification(id, `object`) }
 }

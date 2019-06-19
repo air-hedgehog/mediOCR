@@ -33,6 +33,17 @@ object AppSettings {
     }
 
     @JvmStatic
+    fun replaceSelectedLanguage(lang: String, index: Int) {
+        val list = getSelectedLanguageList()
+        try {
+            list.add(index, lang)
+            sp.edit().putString(TESSERACT_SELECTED_LANGUAGEES, list.joinToString(",")).apply()
+        } catch (e: IndexOutOfBoundsException) {
+            e.printStackTrace()
+        }
+    }
+
+    @JvmStatic
     fun addSelectedLanguage(lang: String) {
 
         val list = getSelectedLanguageList()

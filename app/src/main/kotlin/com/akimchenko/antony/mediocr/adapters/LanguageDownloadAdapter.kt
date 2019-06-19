@@ -27,7 +27,6 @@ import org.jsoup.Jsoup
 import java.io.File
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
-import java.util.*
 
 
 class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
@@ -36,6 +35,7 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
     companion object {
         private const val ITEM_TYPE_LANGUAGE = 0
         private const val ITEM_TYPE_SEPARATOR = 1
+        private const val ITEM_TYPE_CHOSEN_LANGUAGE = 2
     }
 
     private var items = ArrayList<Item>()
@@ -98,18 +98,39 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
 
     private fun separateList(activity: MainActivity, list: List<Item>): ArrayList<Item> {
         return ArrayList<Item>().also { rv ->
-            list.partition { item ->
-                Utils.isLanguageDownloaded(activity, item.title!!)
-            }.also { pair ->
-                if (pair.first.isNotEmpty()) {
-                    rv.add(Item(ITEM_TYPE_SEPARATOR, activity.getString(R.string.downloaded)))
-                    rv.addAll(pair.first)
-                }
 
-                if (pair.second.isNotEmpty()) {
-                    rv.add(Item(ITEM_TYPE_SEPARATOR, activity.getString(R.string.available)))
-                    rv.addAll(pair.second)
+            val chosenLangs = AppSettings.getSelectedLanguageList()
+            val downloadedLangs = ArrayList<Item>()
+            val availableLangs = ArrayList<Item>()
+
+            list.forEach {
+                if (!chosenLangs.contains(it.title)) {
+                    if (Utils.isLanguageDownloaded(activity, it.title!!))
+                        downloadedLangs.add(it)
+                    else
+                        availableLangs.add(it)
                 }
+            }
+
+            rv.add(Item(ITEM_TYPE_SEPARATOR, activity.getString(R.string.chosen_languages)))
+
+            for (i in 0..2) {
+                val item = try {
+                    Item(ITEM_TYPE_CHOSEN_LANGUAGE, chosenLangs[i])
+                } catch (e: IndexOutOfBoundsException) {
+                    Item(ITEM_TYPE_CHOSEN_LANGUAGE, null)
+                }
+                rv.add(item)
+            }
+
+            if (downloadedLangs.isNotEmpty()) {
+                rv.add(Item(ITEM_TYPE_SEPARATOR, activity.getString(R.string.downloaded)))
+                rv.addAll(downloadedLangs)
+            }
+
+            if (availableLangs.isNotEmpty()) {
+                rv.add(Item(ITEM_TYPE_SEPARATOR, activity.getString(R.string.available)))
+                rv.addAll(availableLangs)
             }
         }
     }
@@ -143,7 +164,6 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
 
         val downloadDeleteButton: ImageView = itemView.findViewById(R.id.download_button)
         val title: TextView = itemView.findViewById(R.id.text_view)
-        val checkMark: ImageView = itemView.findViewById(R.id.checkmark)
         val progressbar: ProgressBar = itemView.findViewById(R.id.progress_bar)
 
         init {
@@ -154,6 +174,11 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
                 if (!Utils.isLanguageDownloaded(activity, lang) && lang != "eng")
                     download(lang, File(activity.getTesseractDataFolder(), "$lang.traineddata"))
 
+                if (AppSettings.getSelectedLanguageList().size < 3) {
+                    AppSettings.addSelectedLanguage(lang)
+                } else {
+                    //TODO select language to replace alertDialog
+                }
                 notifyDataSetChanged()
             }
             downloadDeleteButton.setOnClickListener {
@@ -215,12 +240,6 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
                 progressbar.visibility = View.GONE
             }
             title.text = Utils.getLocalizedLangName(lang)
-            val isSelected = AppSettings.getSelectedLanguageList().contains(lang)
-            checkMark.visibility = if (isSelected) View.VISIBLE else View.GONE
-            title.setPadding(
-                    if (isSelected) 0 else activity.resources.getDimensionPixelSize(R.dimen.default_side_margin),
-                    0, 0, 0
-            )
         }
     }
 
@@ -258,6 +277,7 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
             ITEM_TYPE_SEPARATOR ->
                 SeparatorViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_separator, parent, false))
 
+            ITEM_TYPE_CHOSEN_LANGUAGE,
             ITEM_TYPE_LANGUAGE ->
                 AvailableLangViewHolder(
                         LayoutInflater.from(parent.context).inflate(R.layout.item_language, parent, false)
