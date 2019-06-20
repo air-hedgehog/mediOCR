@@ -7,6 +7,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -14,6 +17,7 @@ import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
+import com.akimchenko.antony.mediocr.utils.Utils
 
 class ReplaceLanguageDialog : DialogFragment() {
 
@@ -36,12 +40,19 @@ class ReplaceLanguageDialog : DialogFragment() {
     private inner class ChosenLangsAdapter : RecyclerView.Adapter<ChosenLangsAdapter.ViewHolder>() {
 
         private inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+
+            internal val textView = itemView.findViewById<TextView>(R.id.text_view)
+            internal val progressBar = itemView.findViewById<ProgressBar>(R.id.progress_bar)
+            internal val downloadButton = itemView.findViewById<ImageView>(R.id.download_button)
             init {
                 itemView.setOnClickListener {
-                    val newLang = arguments?.getString(ARG_NEW_LANGUAGE, null) ?: return@setOnClickListener
-                    val position = adapterPosition
-                    if (position < 0 || position >= itemCount) return@setOnClickListener
-                    AppSettings.replaceSelectedLanguage(newLang, position)
+                    val newLang = arguments?.getString(ARG_NEW_LANGUAGE, null)
+                    if (newLang != null) {
+                        val position = adapterPosition
+                        if (position in 0 until itemCount)
+                            AppSettings.replaceSelectedLanguage(newLang, position)
+                    }
+                    dismissAllowingStateLoss()
                 }
             }
         }
@@ -52,7 +63,10 @@ class ReplaceLanguageDialog : DialogFragment() {
         override fun getItemCount(): Int = AppSettings.getSelectedLanguageList().size
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            if (position < 0 || position >= itemCount) return
+            holder.textView.text = Utils.getLocalizedLangName(AppSettings.getSelectedLanguageList()[position])
+            holder.progressBar.visibility = View.GONE
+            holder.downloadButton.visibility = View.GONE
         }
 
     }

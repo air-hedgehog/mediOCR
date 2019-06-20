@@ -29,7 +29,7 @@ object AppSettings {
     @JvmStatic
     fun getSelectedLanguageList(): ArrayList<String> {
         val langsString = sp.getString(TESSERACT_SELECTED_LANGUAGEES, "eng")!!
-        return langsString.split(",") as ArrayList<String>
+        return ArrayList(langsString.split(","))
     }
 
     @JvmStatic

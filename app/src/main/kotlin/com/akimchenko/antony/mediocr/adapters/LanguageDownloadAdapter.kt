@@ -5,6 +5,7 @@ import android.app.DownloadManager
 import android.content.Context.DOWNLOAD_SERVICE
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
+import com.akimchenko.antony.mediocr.dialogs.ReplaceLanguageDialog
 import com.akimchenko.antony.mediocr.fragments.LanguageFragment
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
@@ -177,7 +179,12 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
                 if (AppSettings.getSelectedLanguageList().size < 3) {
                     AppSettings.addSelectedLanguage(lang)
                 } else {
-                    //TODO select language to replace alertDialog
+                    ReplaceLanguageDialog().also { dialog ->
+                        dialog.arguments = Bundle().apply {
+                            this.putString(ReplaceLanguageDialog.ARG_NEW_LANGUAGE, lang)
+                        }
+                        dialog.show(activity.supportFragmentManager, ReplaceLanguageDialog::javaClass.name)
+                    }
                 }
                 notifyDataSetChanged()
             }
@@ -189,9 +196,7 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
                     AlertDialog.Builder(activity)
                             .setMessage(
                                     "${activity.getString(R.string.do_you_want_to_delete)} ${Utils.getLocalizedLangName(
-                                            lang
-                                    )}"
-                            )
+                                            lang)}")
                             .setPositiveButton(activity.getString(R.string.delete)) { dialog, _ ->
                                 if (file.exists())
                                     file.delete()
