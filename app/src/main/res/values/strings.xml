@@ -38,4 +38,6 @@
     <string name="select_text_blocks_in_desired_order">Select text blocks in desired order</string>
     <string name="chosen_languages">Chosen Languages</string>
     <string name="choose_language_to_replace">Choose language to replace</string>
+    <string name="delete_or_unselect">Do you want to delete language data or remove language from selected?</string>
+    <string name="remove_from_selected">Remove from selected</string>
 </resources>
