@@ -1,10 +1,6 @@
 package com.akimchenko.antony.mediocr.adapters
 
 import android.app.AlertDialog
-import android.app.DownloadManager
-import android.content.Context.DOWNLOAD_SERVICE
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -174,8 +170,8 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
                     activity ?: return@setOnClickListener
                     val lang = getLang(adapterPosition) ?: return@setOnClickListener
 
-                    if (!Utils.isLanguageDownloaded(activity, lang) && lang != "eng")
-                        download(lang, File(activity.getTesseractDataFolder(), "$lang.traineddata"))
+                    if (!Utils.isLanguageDownloaded(activity, lang))
+                        Utils.download(activity, lang, File(activity.getTesseractDataFolder(), "$lang.traineddata"))
 
                     if (AppSettings.getSelectedLanguageList().size < 3) {
                         AppSettings.addSelectedLanguage(lang)
@@ -221,7 +217,7 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
                     }
 
                 } else {
-                    download(lang, file)
+                    Utils.download(activity, lang, file)
                 }
                 notifyItemChanged(adapterPosition)
             }
@@ -270,25 +266,6 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
             if (position < 0 || position >= items.size) return
             title.text = items[position].title
         }
-    }
-
-    private fun download(lang: String, destFile: File) {
-        activity ?: return
-        val request =
-                DownloadManager.Request(Uri.parse("${activity.getString(R.string.tessdata_url)}$lang.traineddata"))
-                        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-                        .setTitle(Utils.getLocalizedLangName(lang))
-                        .setDestinationUri(Uri.fromFile(destFile))
-                        .setAllowedOverRoaming(true)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
-            request.setAllowedOverMetered(true)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-            request.setRequiresCharging(false)
-
-        val downloadManager = activity.getSystemService(DOWNLOAD_SERVICE) as DownloadManager?
-                ?: return
-        activity.downloadIdsLangs[downloadManager.enqueue(request)] = lang
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

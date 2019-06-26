@@ -1,5 +1,6 @@
 package com.akimchenko.antony.mediocr.utils
 
+import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -8,6 +9,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.StateListDrawable
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
+import android.net.Uri
 import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -123,5 +125,24 @@ object Utils {
             }
         }
         return false
+    }
+
+    @JvmStatic
+    fun download(activity: MainActivity, lang: String, destFile: File) {
+        val request =
+                DownloadManager.Request(Uri.parse("${activity.getString(R.string.tessdata_url)}$lang.traineddata"))
+                        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
+                        .setTitle(getLocalizedLangName(lang))
+                        .setDestinationUri(Uri.fromFile(destFile))
+                        .setAllowedOverRoaming(true)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
+            request.setAllowedOverMetered(true)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+            request.setRequiresCharging(false)
+
+        val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager?
+                ?: return
+        activity.downloadIdsLangs[downloadManager.enqueue(request)] = lang
     }
 }

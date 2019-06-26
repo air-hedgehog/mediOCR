@@ -1,5 +1,6 @@
 package com.akimchenko.antony.mediocr.fragments
 
+import android.app.AlertDialog
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
@@ -155,6 +156,18 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
                                 updateProgressVisibility(false)
                             }
                         }
+                    } else {
+                        AlertDialog.Builder(activity).setMessage(R.string.languages_not_downloaded)
+                                .setPositiveButton(R.string.download_languages) { dialog, _ ->
+                                    (activity as MainActivity?)?.let { activity ->
+                                        AppSettings.getSelectedLanguageList().forEach { lang ->
+                                            Utils.download(activity, lang, File(activity.getTesseractDataFolder(), "$lang.traineddata"))
+                                        }
+                                    }
+                                    dialog.dismiss()
+                                }.setNegativeButton(R.string.cancel) { dialog, _ ->
+                                    dialog.dismiss()
+                                }.create().show()
                     }
                 }
 
@@ -217,7 +230,7 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
     private fun isSelectedLangsDownloaded(): Boolean {
         val activity = activity as MainActivity? ?: return false
         for (lang in AppSettings.getSelectedLanguageList()) {
-            if (!activity.getTesseractDataFolder().listFiles()
+            if (lang != "eng" && !activity.getTesseractDataFolder().listFiles()
                             .contains(File(activity.getTesseractDataFolder(), "$lang.traineddata")) ||
                     activity.downloadIdsLangs.containsValue(lang)) {
                 return false
