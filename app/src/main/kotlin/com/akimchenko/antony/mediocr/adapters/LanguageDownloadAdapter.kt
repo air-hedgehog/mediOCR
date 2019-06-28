@@ -55,12 +55,17 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
             if (isForce) {
                 itemsList.clear()
                 try {
-                    Jsoup.connect(activity.getString(R.string.tessdata_url)).timeout(6 * 1000).get().run {
+                    Jsoup.connect(activity.getString(R.string.tessdata_url)).timeout(7 * 1000).get().run {
                         this.select("td.content").forEach { element ->
                             val reference = element.getElementsByClass("js-navigation-open").attr("title")
 
                             if (reference.endsWith(activity.getString(R.string.traineddata_suffix)))
-                                itemsList.add(Item(ITEM_TYPE_LANGUAGE, reference.removeSuffix(activity.getString(R.string.traineddata_suffix))))
+                                itemsList.add(
+                                        Item(
+                                                ITEM_TYPE_LANGUAGE,
+                                                reference.removeSuffix(activity.getString(R.string.traineddata_suffix))
+                                        )
+                                )
                         }
                     }
                 } catch (e: SocketTimeoutException) {
@@ -86,8 +91,16 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
 
     private fun connectionErrorAction() {
         val activity = activity ?: return
-        val downloadedFiles = activity.getTesseractDataFolder().listFiles()?.filter { it.name.endsWith(activity.getString(R.string.traineddata_suffix)) }
-        downloadedFiles?.forEach { itemsList.add(Item(ITEM_TYPE_LANGUAGE, it.name.removeSuffix(activity.getString(R.string.traineddata_suffix)))) }
+        val downloadedFiles = activity.getTesseractDataFolder().listFiles()
+                ?.filter { it.name.endsWith(activity.getString(R.string.traineddata_suffix)) }
+        downloadedFiles?.forEach {
+            itemsList.add(
+                    Item(
+                            ITEM_TYPE_LANGUAGE,
+                            it.name.removeSuffix(activity.getString(R.string.traineddata_suffix))
+                    )
+            )
+        }
 
         activity.runOnUiThread {
             Toast.makeText(activity, activity.getString(R.string.internet_error_occurred), Toast.LENGTH_LONG).show()
@@ -154,6 +167,7 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
                 }
                 updateItems()
             }
+            NotificationCenter.LANGUAGE_REPLACED,
             NotificationCenter.LANG_DOWNLOADED -> updateItems()
         }
     }
@@ -169,7 +183,10 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
                 if (itemViewType == ITEM_TYPE_LANGUAGE) {
                     activity ?: return@setOnClickListener
                     val lang = getLang(adapterPosition) ?: return@setOnClickListener
-
+                    if (AppSettings.getSelectedLanguageList().contains(lang)) {
+                        Toast.makeText(activity, R.string.lang_already_added, Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
                     if (!Utils.isLanguageDownloaded(activity, lang))
                         Utils.download(activity, lang, File(activity.getTesseractDataFolder(), "$lang.traineddata"))
 
@@ -183,12 +200,14 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
                             dialog.show(activity.supportFragmentManager, ReplaceLanguageDialog::javaClass.name)
                         }
                     }
-                    notifyDataSetChanged()
+                    updateItems()
                 }
             }
             downloadDeleteButton.setOnClickListener {
                 activity ?: return@setOnClickListener
-                val lang = getLang(adapterPosition) ?: return@setOnClickListener
+                val lang = getLang(adapterPosition)
+                if (lang.isNullOrEmpty()) return@setOnClickListener
+
                 val file = File(activity.getTesseractDataFolder(), "$lang.traineddata")
                 if (Utils.isLanguageDownloaded(activity, lang)) {
                     if (AppSettings.getSelectedLanguageList().contains(lang)) {
@@ -198,16 +217,21 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
                                     dialog.dismiss()
                                 }.setNeutralButton(R.string.remove_from_selected) { dialog, _ ->
                                     AppSettings.removeSelectedLanguage(lang)
+                                    updateItems()
                                     dialog.dismiss()
-                                }.setPositiveButton(R.string.delete) { dialog, _ ->
+                                }.setPositiveButton(R.string.delete_and_remove_from_selected) { dialog, _ ->
                                     deleteLangData(lang, file)
+                                    AppSettings.removeSelectedLanguage(lang)
+                                    updateItems()
                                     dialog.dismiss()
                                 }.create().show()
                     } else {
                         AlertDialog.Builder(activity)
                                 .setMessage(
                                         "${activity.getString(R.string.do_you_want_to_delete)} ${Utils.getLocalizedLangName(
-                                                lang)}")
+                                                lang
+                                        )}"
+                                )
                                 .setPositiveButton(activity.getString(R.string.delete)) { dialog, _ ->
                                     deleteLangData(lang, file)
                                     dialog.dismiss()
@@ -215,7 +239,6 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
                                     dialog.dismiss()
                                 }.create().show()
                     }
-
                 } else {
                     Utils.download(activity, lang, file)
                 }
@@ -230,25 +253,32 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
 
         override fun updateUI(position: Int) {
             activity ?: return
-            val lang = getLang(position) ?: return
-            val isDownloaded = Utils.isLanguageDownloaded(activity, lang)
-            val isDownloading = activity.downloadIdsLangs.containsValue(lang)
-            downloadDeleteButton.isClickable = !isDownloading
-            downloadDeleteButton.isFocusable = !isDownloading
-            if (isDownloading) {
+            val lang = getLang(position)
+            if (lang.isNullOrEmpty()) {
+                title.text = activity.getString(R.string.empty_language_slot)
                 downloadDeleteButton.visibility = View.GONE
-                progressbar.visibility = View.VISIBLE
+                title.setTextColor(ContextCompat.getColor(activity, R.color.secondary_text))
             } else {
-                downloadDeleteButton.visibility = View.VISIBLE
-                progressbar.visibility = View.GONE
+                val isDownloaded = Utils.isLanguageDownloaded(activity, lang)
+                val isDownloading = activity.downloadIdsLangs.containsValue(lang)
+                downloadDeleteButton.isClickable = !isDownloading
+                downloadDeleteButton.isFocusable = !isDownloading
+                if (isDownloading) {
+                    downloadDeleteButton.visibility = View.GONE
+                    progressbar.visibility = View.VISIBLE
+                } else {
+                    downloadDeleteButton.visibility = View.VISIBLE
+                    progressbar.visibility = View.GONE
+                }
+                downloadDeleteButton.setImageDrawable(
+                        ContextCompat.getDrawable(
+                                activity,
+                                if (isDownloaded) R.drawable.delete else R.drawable.download
+                        )
+                )
+                title.text = Utils.getLocalizedLangName(lang)
+                title.setTextColor(ContextCompat.getColor(activity, R.color.primary_text))
             }
-            downloadDeleteButton.setImageDrawable(
-                    ContextCompat.getDrawable(
-                            activity,
-                            if (isDownloaded) R.drawable.delete else R.drawable.download
-                    )
-            )
-            title.text = Utils.getLocalizedLangName(lang)
         }
     }
 

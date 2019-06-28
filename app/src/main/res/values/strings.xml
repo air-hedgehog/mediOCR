@@ -38,7 +38,10 @@
     <string name="select_text_blocks_in_desired_order">Select text blocks in desired order</string>
     <string name="chosen_languages">Chosen Languages</string>
     <string name="choose_language_to_replace">Choose language to replace</string>
-    <string name="delete_or_unselect">Do you want to delete language data or remove language from selected?</string>
+    <string name="delete_or_unselect">Do you want to delete language data as well?</string>
     <string name="remove_from_selected">Remove from selected</string>
-    <string name="languages_not_downloaded">One or multiple selected languages are not downloaded. Do you want to startdownload now?</string>
+    <string name="languages_not_downloaded">One or multiple selected languages are not downloaded. Do you want to start download now?</string>
+    <string name="empty_language_slot">Empty language slot</string>
+    <string name="lang_already_added">Language already selected</string>
+    <string name="delete_and_remove_from_selected">Delete and remove from selected</string>
 </resources>
