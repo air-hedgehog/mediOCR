@@ -1,9 +1,7 @@
 package com.akimchenko.antony.mediocr.fragments
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -11,16 +9,13 @@ import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.adapters.LanguageDownloadAdapter
 import kotlinx.android.synthetic.main.fragment_recycler.*
-import kotlinx.android.synthetic.main.toobar_progress_bar.*
+import kotlinx.android.synthetic.main.toolbar_progress_bar.*
 import kotlinx.android.synthetic.main.toolbar.*
 
 
-class LanguageFragment : BaseSearchFragment() {
+class LanguageFragment(override val layoutResId: Int = R.layout.fragment_recycler) : BaseSearchFragment() {
 
     private lateinit var adapter: LanguageDownloadAdapter
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
-        inflater.inflate(R.layout.fragment_recycler, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

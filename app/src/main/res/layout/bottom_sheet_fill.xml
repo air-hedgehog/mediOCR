@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
@@ -15,21 +16,24 @@
         android:paddingLeft="@dimen/default_side_margin_small"
         android:paddingRight="@dimen/default_side_margin_small">
 
-        <ImageView
+        <FrameLayout
             android:id="@+id/first_lang_slot"
-            style="@style/EmptyLangStyle" />
+            style="@style/BottomSheetLanguageContainerStyle"
+            tools:background="@drawable/empty_item_background" />
 
-        <ImageView
+        <FrameLayout
             android:id="@+id/second_lang_slot"
-            style="@style/EmptyLangStyle" />
+            style="@style/BottomSheetLanguageContainerStyle"
+            tools:background="@drawable/empty_item_background" />
 
-        <ImageView
+        <FrameLayout
             android:id="@+id/third_lang_slot"
-            style="@style/EmptyLangStyle" />
+            style="@style/BottomSheetLanguageContainerStyle"
+            tools:background="@drawable/empty_item_background" />
 
     </LinearLayout>
 
-    <include layout="@layout/horizontal_separator"/>
+    <include layout="@layout/horizontal_separator" />
 
     <TextView
         style="@style/BottomSheetTextViewStyle"
@@ -42,17 +46,20 @@
         android:paddingLeft="@dimen/default_side_margin_small"
         android:paddingRight="@dimen/default_side_margin_small">
 
-        <ImageView
+        <FrameLayout
             android:id="@+id/first_rect_slot"
-            style="@style/EmptyLangStyle" />
+            style="@style/BottomSheetLanguageContainerStyle"
+            tools:background="@drawable/empty_item_background" />
 
-        <ImageView
+        <FrameLayout
             android:id="@+id/second_rect_slot"
-            style="@style/EmptyLangStyle" />
+            style="@style/BottomSheetLanguageContainerStyle"
+            tools:background="@drawable/empty_item_background" />
 
-        <ImageView
+        <FrameLayout
             android:id="@+id/third_rect_slot"
-            style="@style/EmptyLangStyle" />
+            style="@style/BottomSheetLanguageContainerStyle"
+            tools:background="@drawable/empty_item_background" />
 
     </LinearLayout>
 

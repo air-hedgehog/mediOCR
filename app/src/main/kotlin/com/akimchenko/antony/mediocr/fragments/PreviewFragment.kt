@@ -1,5 +1,6 @@
 package com.akimchenko.antony.mediocr.fragments
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -10,8 +11,9 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.PopupMenu
+import android.widget.FrameLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
@@ -35,7 +37,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 
 
-class PreviewFragment : BaseFragment(), View.OnClickListener {
+class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview) : BaseFragment(), View.OnClickListener {
 
     companion object {
         const val TESSDATA = "tessdata"
@@ -47,10 +49,7 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
     private var recognizingJob: Job? = null
     private lateinit var imageFile: File
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<View>
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_preview, container, false)
-    }
+    private lateinit var visibleLanguagesList: List<FrameLayout>
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -72,6 +71,16 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
                 outputStream.close()
             }
             else -> return
+        }
+
+        visibleLanguagesList = listOf<FrameLayout>(
+                first_lang_slot,
+                second_lang_slot,
+                third_lang_slot
+        )
+
+        visibleLanguagesList.forEach {
+            it.setOnClickListener(this@PreviewFragment)
         }
 
         image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
@@ -117,6 +126,15 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
         rotate_right_button.setOnClickListener(this)
         recognise_button.setOnClickListener(this)
         align_layout.setOnClickListener(this)
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        checkAvailableTessData()
+        activity?.let { activity ->
+            updateChosenLangs(activity.layoutInflater)
+        }
     }
 
     override fun onClick(v: View?) {
@@ -129,8 +147,9 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
             rotate_right_button -> image_view.setImageBitmap(image_view.drawable.toBitmap().rotate(90.0f))
 
             language_layout,
-            align_layout -> bottomSheetBehavior.state = if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_EXPANDED)
-                BottomSheetBehavior.STATE_EXPANDED else BottomSheetBehavior.STATE_COLLAPSED
+            align_layout -> bottomSheetBehavior.state =
+                    if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_EXPANDED)
+                        BottomSheetBehavior.STATE_EXPANDED else BottomSheetBehavior.STATE_COLLAPSED
 
             recognise_button -> {
                 if (isRecognitionStarted()) {
@@ -161,7 +180,11 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
                                 .setPositiveButton(R.string.download_languages) { dialog, _ ->
                                     (activity as MainActivity?)?.let { activity ->
                                         AppSettings.getSelectedLanguageList().forEach { lang ->
-                                            Utils.download(activity, lang, File(activity.getTesseractDataFolder(), "$lang.traineddata"))
+                                            Utils.download(
+                                                    activity,
+                                                    lang,
+                                                    File(activity.getTesseractDataFolder(), "$lang.traineddata")
+                                            )
                                         }
                                     }
                                     dialog.dismiss()
@@ -182,7 +205,7 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
                     second_lang_slot -> 1
                     else -> 2
                 }
-
+                Toast.makeText(activity, "$langNumber slot is clicked", Toast.LENGTH_SHORT).show()
                 //TODO alertDialog with non-selected languages or LanguageFragment with onClick allowance attribute
             }
         }
@@ -232,7 +255,8 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
         for (lang in AppSettings.getSelectedLanguageList()) {
             if (lang != "eng" && !activity.getTesseractDataFolder().listFiles()
                             .contains(File(activity.getTesseractDataFolder(), "$lang.traineddata")) ||
-                    activity.downloadIdsLangs.containsValue(lang)) {
+                    activity.downloadIdsLangs.containsValue(lang)
+            ) {
                 return false
             }
         }
@@ -258,6 +282,7 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
         val activity = activity as MainActivity? ?: return
         var result: String? = null
         recognizingJob = GlobalScope.launch {
+            checkAvailableTessData()
             result = getHOCRString(fileUri)
         }
         recognizingJob?.invokeOnCompletion {
@@ -276,34 +301,56 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
         }
     }
 
-    private fun checkDefaultTessdata() {
-        try {
-            val activity = activity as MainActivity? ?: return
-            val assets = activity.assets ?: return
-            val fileList = assets.list(TESSDATA) ?: return
+    private fun checkAvailableTessData() {
+        AppSettings.getSelectedLanguageList().also { langs ->
+            if (langs.isNullOrEmpty() || langs.contains("eng")) {
+                try {
+                    val activity = activity as MainActivity? ?: return
+                    val assets = activity.assets ?: return
+                    val fileList = assets.list(TESSDATA) ?: return
 
-            val tessDataDir = activity.getTesseractDataFolder()
-            if (!tessDataDir.exists() || !tessDataDir.isDirectory)
-                tessDataDir.mkdir()
+                    val tessDataDir = activity.getTesseractDataFolder()
+                    if (!tessDataDir.exists() || !tessDataDir.isDirectory)
+                        tessDataDir.mkdir()
 
-            for (fileName in fileList) {
+                    for (fileName in fileList) {
 
-                val existingAsset = File(tessDataDir, fileName)
-                if (!existingAsset.exists()) {
-                    val inputStream = assets.open("$TESSDATA/$fileName")
-                    val outputStream = FileOutputStream(existingAsset)
-                    val buffer = ByteArray(1024)
+                        val existingAsset = File(tessDataDir, fileName)
+                        if (!existingAsset.exists()) {
+                            val inputStream = assets.open("$TESSDATA/$fileName")
+                            val outputStream = FileOutputStream(existingAsset)
+                            val buffer = ByteArray(1024)
 
-                    while ((inputStream.read(buffer)) > 0)
-                        outputStream.write(buffer)
+                            while ((inputStream.read(buffer)) > 0)
+                                outputStream.write(buffer)
 
-                    inputStream.close()
-                    outputStream.close()
+                            inputStream.close()
+                            outputStream.close()
 
+                        }
+                    }
+                } catch (e: IOException) {
+                    Log.e(this::class.java.name, e.message)
                 }
+                if (langs.isNullOrEmpty())
+                    AppSettings.addSelectedLanguage("eng")
             }
-        } catch (e: IOException) {
-            Log.e(this::class.java.name, e.message)
+        }
+    }
+
+    @SuppressLint("InflateParams")
+    private fun updateChosenLangs(inflater: LayoutInflater) {
+        val list = AppSettings.getSelectedLanguageList()
+
+        for (i in 0 until visibleLanguagesList.size) {
+            visibleLanguagesList[i].removeAllViews()
+            try {
+                val langView = inflater.inflate(R.layout.item_bottom_sheet_language, null, false) as TextView
+                langView.text = Utils.getLocalizedLangName(list[i])
+                visibleLanguagesList[i].addView(langView)
+            } catch (e: IndexOutOfBoundsException) {
+                visibleLanguagesList[i].addView(inflater.inflate(R.layout.item_bottom_sheet_empty_language, null, false))
+            }
         }
     }
 
@@ -332,9 +379,6 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
         tessBaseApi!!.pageSegMode = TessBaseAPI.PageSegMode.PSM_SINGLE_BLOCK_VERT_TEXT
         val path: String? = Utils.getInternalDirs(activity)[0]?.path ?: return null
 
-        if (AppSettings.getSelectedLanguageList().contains("eng"))
-            checkDefaultTessdata()
-
         val lang = AppSettings.getSelectedLanguageList().joinToString("+")
 
         tessBaseApi!!.init(path, lang)
@@ -343,7 +387,7 @@ class PreviewFragment : BaseFragment(), View.OnClickListener {
         //banned special symbols
         tessBaseApi!!.setVariable(
                 TessBaseAPI.VAR_CHAR_BLACKLIST,
-                "№×⦂‒�–⎯—―~⁓•°%‰‱&⅋§÷‼¡¿⸮⁇⁉⁈‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋≠√�∛∜∞βΦΣ♀♂⚢⚣⌘♲♻☺★↑↓"
+                "⦂�⎯⁓&⅋§‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋�∞♀♂⚢⚣⌘♲♻☺★"
         )
 
         Log.d(this::class.java.name, "Training file loaded")

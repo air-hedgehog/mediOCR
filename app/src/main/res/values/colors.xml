@@ -3,6 +3,7 @@
     <color name="colorPrimary">#E0F7FA</color>
     <color name="colorPrimaryDark">#B2EBF2</color>
     <color name="colorAccent">#0097A7</color>
+    <color name="colorAccent_alpha">#5E0097A7</color>
     <color name="selected_tint">#6D000000</color>
     <color name="primary_color">#333333</color>
     <color name="red">#D32F2F</color>

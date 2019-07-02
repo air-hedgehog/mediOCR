@@ -27,7 +27,7 @@ import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 
 
-class ResultFragment : BaseFragment() {
+class ResultFragment(override val layoutResId: Int = R.layout.fragment_result) : BaseFragment() {
 
     companion object {
         const val ARG_OCR_RESULT = "arg_ocr_result"
@@ -37,10 +37,6 @@ class ResultFragment : BaseFragment() {
     private var counter: Int = 0
     private var enterNameDialog: EnterNameDialog? = null
     private var isFirstBackPressed: Boolean = false
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_result, container, false)
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

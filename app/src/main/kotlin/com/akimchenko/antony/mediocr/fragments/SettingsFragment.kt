@@ -18,15 +18,12 @@ import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_recycler.*
 import kotlinx.android.synthetic.main.toolbar.*
 
-class SettingsFragment : BaseFragment() {
+class SettingsFragment(override val layoutResId: Int = R.layout.fragment_recycler) : BaseFragment() {
 
     companion object {
         private const val ITEM_LANG_SETTINGS = 0
         private const val ITEM_DEFAULT_CAMERA_SWITCH = 1
     }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
-        inflater.inflate(R.layout.fragment_recycler, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

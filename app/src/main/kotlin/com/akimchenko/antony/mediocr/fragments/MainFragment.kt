@@ -3,15 +3,15 @@ package com.akimchenko.antony.mediocr.fragments
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CameraManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.view.*
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -24,20 +24,17 @@ import com.akimchenko.antony.mediocr.adapters.MainFragmentAdapter
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.android.synthetic.main.fragment_main.*
-import kotlinx.android.synthetic.main.toobar_progress_bar.*
 import kotlinx.android.synthetic.main.toolbar.*
+import kotlinx.android.synthetic.main.toolbar_progress_bar.*
 import java.io.File
 
 
 @SuppressLint("InlinedApi")
-class MainFragment : BaseSearchFragment(), View.OnClickListener {
+class MainFragment(override val layoutResId: Int = R.layout.fragment_main) : BaseSearchFragment(), View.OnClickListener {
 
     private var newPhotoFile: File? = null
 
     private var adapter: MainFragmentAdapter? = null
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
-        inflater.inflate(R.layout.fragment_main, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

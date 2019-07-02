@@ -39,7 +39,7 @@ import kotlin.math.absoluteValue
 
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class CameraFragment : BaseFragment(), SensorEventListener {
+class CameraFragment(override val layoutResId: Int = R.layout.fragment_camera) : BaseFragment(), SensorEventListener {
 
     companion object {
 
@@ -113,9 +113,6 @@ class CameraFragment : BaseFragment(), SensorEventListener {
 
             return null
         }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
-        inflater.inflate(R.layout.fragment_camera, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

@@ -1,7 +1,9 @@
 package com.akimchenko.antony.mediocr.fragments
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
@@ -10,12 +12,17 @@ import kotlinx.android.synthetic.main.toolbar.*
 
 abstract class BaseFragment: Fragment(), NotificationCenter.Observer {
 
+    abstract val layoutResId: Int
+
     companion object {
         const val ITEM_SETTINGS = 0
         const val ITEM_SORT_TYPE_DATE = 1
         const val ITEM_SORT_TYPE_TITLE = 2
         const val ITEM_SEARCH = 3
     }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
+        inflater.inflate(layoutResId, container, false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
