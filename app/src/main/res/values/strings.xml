@@ -44,4 +44,5 @@
     <string name="empty_language_slot">Empty language slot</string>
     <string name="lang_already_added">Language already selected</string>
     <string name="delete_and_remove_from_selected">Delete and remove from selected</string>
+    <string name="remove">Remove</string>
 </resources>

@@ -10,6 +10,7 @@
         android:id="@+id/close_button"
         android:layout_width="@dimen/default_button_edge"
         android:layout_height="@dimen/default_button_edge"
+        android:background="?android:attr/selectableItemBackground"
         android:scaleType="center"
         android:src="@drawable/close" />
 
@@ -25,8 +26,7 @@
 
     <RelativeLayout
         android:id="@+id/align_layout"
-        style="@style/PreviewButtonsStyle"
-        android:background="?android:attr/selectableItemBackground">
+        style="@style/PreviewButtonsStyle">
 
         <ImageView
             android:layout_width="match_parent"
@@ -48,8 +48,7 @@
 
     <RelativeLayout
         android:id="@+id/language_layout"
-        style="@style/PreviewButtonsStyle"
-        android:background="?android:attr/selectableItemBackground">
+        style="@style/PreviewButtonsStyle">
 
         <ImageView
             android:layout_width="match_parent"

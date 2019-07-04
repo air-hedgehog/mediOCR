@@ -28,10 +28,12 @@ object AppSettings {
 
     @JvmStatic
     fun getSelectedLanguageList(): ArrayList<String> {
-        sp.getString(TESSERACT_SELECTED_LANGUAGEES, null)?.let {
-            return ArrayList(it.split(","))
+        val rv = sp.getString(TESSERACT_SELECTED_LANGUAGEES, null)?.let {
+            ArrayList(it.split(","))
         }
-        return ArrayList()
+        // "split" method returns one empty string as a legit first element if none of the langs weren't found
+        rv?.forEach { if (it.isEmpty()) rv.remove(it) }
+        return rv ?: ArrayList()
     }
 
     @JvmStatic

@@ -11,9 +11,10 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.PopupMenu
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
@@ -21,7 +22,6 @@ import com.akimchenko.antony.mediocr.BuildConfig
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.AppSettings
-import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.googlecode.tesseract.android.TessBaseAPI
@@ -37,7 +37,8 @@ import java.io.FileOutputStream
 import java.io.IOException
 
 
-class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview) : BaseFragment(), View.OnClickListener {
+class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview) : BaseFragment(),
+    View.OnClickListener {
 
     companion object {
         const val TESSDATA = "tessdata"
@@ -74,9 +75,9 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
         }
 
         visibleLanguagesList = listOf<FrameLayout>(
-                first_lang_slot,
-                second_lang_slot,
-                third_lang_slot
+            first_lang_slot,
+            second_lang_slot,
+            third_lang_slot
         )
 
         visibleLanguagesList.forEach {
@@ -86,26 +87,26 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
         image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
 
         close_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.close)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.close)!!.toBitmap()
+            )
         )
         rotate_left_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.rotate_left)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.rotate_left)!!.toBitmap()
+            )
         )
         rotate_right_button.setImageDrawable(
-                Utils.makeSelector(
-                        activity,
-                        ContextCompat.getDrawable(activity, R.drawable.rotate_right)!!.toBitmap()
-                )
+            Utils.makeSelector(
+                activity,
+                ContextCompat.getDrawable(activity, R.drawable.rotate_right)!!.toBitmap()
+            )
         )
         recognise_button.background = Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(activity, R.drawable.square_button_bg)!!.toBitmap()
+            activity,
+            ContextCompat.getDrawable(activity, R.drawable.square_button_bg)!!.toBitmap()
         )
 
         bottomSheetBehavior = BottomSheetBehavior.from(view.findViewById<View>(R.id.bottom_sheet)).apply {
@@ -148,8 +149,8 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
 
             language_layout,
             align_layout -> bottomSheetBehavior.state =
-                    if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_EXPANDED)
-                        BottomSheetBehavior.STATE_EXPANDED else BottomSheetBehavior.STATE_COLLAPSED
+                if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_EXPANDED)
+                    BottomSheetBehavior.STATE_EXPANDED else BottomSheetBehavior.STATE_COLLAPSED
 
             recognise_button -> {
                 if (isRecognitionStarted()) {
@@ -157,7 +158,7 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
                 } else {
 
                     if (isSelectedLangsDownloaded()) {
-                        updateProgressVisibility(true)
+                        //updateProgressVisibility(true)
                         //TODO refactor to asyncTask due to 'GlobalScope.broadcast()' and 'GlobalScope.produce()' are experimental
                         savingCroppedImageJob = GlobalScope.launch {
                             if (imageFile.exists())
@@ -172,47 +173,75 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
                                 recognise(imageFile.toUri())
                                 savingCroppedImageJob = null
                             } else {
-                                updateProgressVisibility(false)
+                                //updateProgressVisibility(false)
                             }
                         }
                     } else {
                         AlertDialog.Builder(activity).setMessage(R.string.languages_not_downloaded)
-                                .setPositiveButton(R.string.download_languages) { dialog, _ ->
-                                    (activity as MainActivity?)?.let { activity ->
-                                        AppSettings.getSelectedLanguageList().forEach { lang ->
-                                            Utils.download(
-                                                    activity,
-                                                    lang,
-                                                    File(activity.getTesseractDataFolder(), "$lang.traineddata")
-                                            )
-                                        }
+                            .setPositiveButton(R.string.download_languages) { dialog, _ ->
+                                (activity as MainActivity?)?.let { activity ->
+                                    AppSettings.getSelectedLanguageList().forEach { lang ->
+                                        Utils.download(
+                                            activity,
+                                            lang,
+                                            File(activity.getTesseractDataFolder(), "$lang.traineddata")
+                                        )
                                     }
-                                    dialog.dismiss()
-                                }.setNegativeButton(R.string.cancel) { dialog, _ ->
-                                    dialog.dismiss()
-                                }.create().show()
+                                }
+                                dialog.dismiss()
+                            }.setNegativeButton(R.string.cancel) { dialog, _ ->
+                                dialog.dismiss()
+                            }.create().show()
                     }
                 }
-
-                updateProgressVisibility(true)
+                //TODO progress alertDialog
             }
 
             first_lang_slot,
             second_lang_slot,
             third_lang_slot -> {
-                val langNumber = when (v) {
+                val slotNumber = when (v) {
                     first_lang_slot -> 0
                     second_lang_slot -> 1
                     else -> 2
                 }
-                Toast.makeText(activity, "$langNumber slot is clicked", Toast.LENGTH_SHORT).show()
-                //TODO alertDialog with non-selected languages or LanguageFragment with onClick allowance attribute
+
+                val clickedLang = try {
+                    AppSettings.getSelectedLanguageList()[slotNumber]
+                } catch (e: IndexOutOfBoundsException) {
+                    null
+                }
+
+                if (clickedLang == null) {
+                    (activity as MainActivity?)?.let { activity ->
+                        LanguageFragment().also { fragment ->
+                            fragment.arguments = Bundle().also { args ->
+                                args.putInt(LanguageFragment.LANGUAGE_INDEX_ARG, slotNumber)
+                            }
+                            activity.pushFragment(fragment)
+                        }
+                    }
+                } else {
+                    activity?.let {activity ->
+                        PopupMenu(activity, v).also {popup ->
+                            popup.menu.add(0, 0, 0, getString(R.string.remove))
+                            popup.setOnMenuItemClickListener {menuItem ->
+                                if (menuItem.itemId == 0) {
+                                    AppSettings.removeSelectedLanguage(AppSettings.getSelectedLanguageList()[slotNumber])
+                                    updateChosenLangs(activity.layoutInflater)
+                                }
+                                false
+                            }
+                            popup.show()
+                        }
+                    }
+                }
             }
         }
     }
 
     private fun Bitmap.rotate(degrees: Float): Bitmap =
-            Bitmap.createBitmap(this, 0, 0, width, height, Matrix().apply { postRotate(degrees) }, true)
+        Bitmap.createBitmap(this, 0, 0, width, height, Matrix().apply { postRotate(degrees) }, true)
 
     private fun cancelRecognition() {
         tessBaseApi?.stop()
@@ -226,36 +255,24 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
         val activity = activity as MainActivity? ?: return
         val background = ContextCompat.getDrawable(activity, R.drawable.square_button_bg) ?: return
         background.setColorFilter(
-                ContextCompat.getColor(
-                        activity,
-                        if (isRecognitionStarted()) R.color.red else R.color.colorAccent
-                ), PorterDuff.Mode.SRC_ATOP
+            ContextCompat.getColor(
+                activity,
+                if (isRecognitionStarted()) R.color.red else R.color.colorAccent
+            ), PorterDuff.Mode.SRC_ATOP
         )
         recognise_button?.background = Utils.makeSelector(activity, background.toBitmap())
     }
 
-    override fun onPause() {
-        super.onPause()
-        updateProgressVisibility(false)
-    }
-
     private fun isRecognitionStarted(): Boolean =
-            (savingCroppedImageJob != null && savingCroppedImageJob!!.isActive && !savingCroppedImageJob!!.isCancelled) ||
-                    (recognizingJob != null && recognizingJob!!.isActive && !recognizingJob!!.isCancelled)
-
-    private fun updateProgressVisibility(isVisible: Boolean) {
-        activity?.runOnUiThread {
-            progress_bar?.visibility = if (isVisible) View.VISIBLE else View.GONE
-            updateRecognizeButton()
-        }
-    }
+        (savingCroppedImageJob != null && savingCroppedImageJob!!.isActive && !savingCroppedImageJob!!.isCancelled) ||
+                (recognizingJob != null && recognizingJob!!.isActive && !recognizingJob!!.isCancelled)
 
     private fun isSelectedLangsDownloaded(): Boolean {
         val activity = activity as MainActivity? ?: return false
         for (lang in AppSettings.getSelectedLanguageList()) {
             if (lang != "eng" && !activity.getTesseractDataFolder().listFiles()
-                            .contains(File(activity.getTesseractDataFolder(), "$lang.traineddata")) ||
-                    activity.downloadIdsLangs.containsValue(lang)
+                    .contains(File(activity.getTesseractDataFolder(), "$lang.traineddata")) ||
+                activity.downloadIdsLangs.containsValue(lang)
             ) {
                 return false
             }
@@ -266,10 +283,10 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
     override fun onNotification(id: Int, `object`: Any?) {
         super.onNotification(id, `object`)
         when (id) {
-            NotificationCenter.LANG_DOWNLOADED -> {
+            /*NotificationCenter.LANG_DOWNLOADED -> {
                 if (AppSettings.getSelectedLanguageList().contains((`object` as String)))
-                    updateProgressVisibility(!isSelectedLangsDownloaded())
-            }
+                    //updateProgressVisibility(!isSelectedLangsDownloaded())
+            }*/
         }
     }
 
@@ -297,7 +314,7 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
                     })
                 }
             }
-            updateProgressVisibility(false)
+            //updateProgressVisibility(false)
         }
     }
 
@@ -345,11 +362,17 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
         for (i in 0 until visibleLanguagesList.size) {
             visibleLanguagesList[i].removeAllViews()
             try {
-                val langView = inflater.inflate(R.layout.item_bottom_sheet_language, null, false) as TextView
-                langView.text = Utils.getLocalizedLangName(list[i])
+                val langView = inflater.inflate(R.layout.item_bottom_sheet_language, null, false) as ViewGroup
+                (langView.findViewById<TextView>(R.id.text_view)).text = Utils.getLocalizedLangName(list[i])
                 visibleLanguagesList[i].addView(langView)
             } catch (e: IndexOutOfBoundsException) {
-                visibleLanguagesList[i].addView(inflater.inflate(R.layout.item_bottom_sheet_empty_language, null, false))
+                visibleLanguagesList[i].addView(
+                    inflater.inflate(
+                        R.layout.item_bottom_sheet_empty_language,
+                        null,
+                        false
+                    )
+                )
             }
         }
     }
@@ -386,8 +409,8 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
 
         //banned special symbols
         tessBaseApi!!.setVariable(
-                TessBaseAPI.VAR_CHAR_BLACKLIST,
-                "⦂�⎯⁓&⅋§‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋�∞♀♂⚢⚣⌘♲♻☺★"
+            TessBaseAPI.VAR_CHAR_BLACKLIST,
+            "⦂�⎯⁓&⅋§‽⸘¼½¾²³⅕⅙⅛©®™℠℻℅℁⅍¶⁋�∞♀♂⚢⚣⌘♲♻☺★"
         )
 
         Log.d(this::class.java.name, "Training file loaded")
