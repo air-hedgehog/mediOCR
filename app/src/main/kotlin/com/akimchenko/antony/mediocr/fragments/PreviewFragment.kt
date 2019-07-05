@@ -86,24 +86,6 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
 
         image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
 
-        close_button.setImageDrawable(
-            Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(activity, R.drawable.close)!!.toBitmap()
-            )
-        )
-        rotate_left_button.setImageDrawable(
-            Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(activity, R.drawable.rotate_left)!!.toBitmap()
-            )
-        )
-        rotate_right_button.setImageDrawable(
-            Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(activity, R.drawable.rotate_right)!!.toBitmap()
-            )
-        )
         recognise_button.background = Utils.makeSelector(
             activity,
             ContextCompat.getDrawable(activity, R.drawable.square_button_bg)!!.toBitmap()
