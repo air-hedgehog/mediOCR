@@ -213,22 +213,19 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
                 }
 
                 if (clickedLang == null) {
-                    (activity as MainActivity?)?.let { activity ->
-                        LanguageFragment().also { fragment ->
-                            fragment.arguments = Bundle().also { args ->
-                                args.putInt(LanguageFragment.LANGUAGE_INDEX_ARG, slotNumber)
-                            }
-                            activity.pushFragment(fragment)
-                        }
-                    }
+                    showLanguageFragment(slotNumber)
                 } else {
                     activity?.let {activity ->
                         PopupMenu(activity, v).also {popup ->
                             popup.menu.add(0, 0, 0, getString(R.string.remove))
+                            popup.menu.add(0, 1, 1, getString(R.string.replace))
                             popup.setOnMenuItemClickListener {menuItem ->
-                                if (menuItem.itemId == 0) {
-                                    AppSettings.removeSelectedLanguage(AppSettings.getSelectedLanguageList()[slotNumber])
-                                    updateChosenLangs(activity.layoutInflater)
+                                when (menuItem.itemId) {
+                                    0 -> {
+                                        AppSettings.removeSelectedLanguage(AppSettings.getSelectedLanguageList()[slotNumber])
+                                        updateChosenLangs(activity.layoutInflater)
+                                    }
+                                    1 -> showLanguageFragment(slotNumber)
                                 }
                                 false
                             }
@@ -236,6 +233,17 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private fun showLanguageFragment(languageIndex: Int) {
+        (activity as MainActivity?)?.let { activity ->
+            LanguageFragment().also { fragment ->
+                fragment.arguments = Bundle().also { args ->
+                    args.putInt(LanguageFragment.LANGUAGE_INDEX_ARG, languageIndex)
+                }
+                activity.pushFragment(fragment)
             }
         }
     }

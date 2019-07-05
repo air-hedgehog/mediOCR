@@ -41,10 +41,10 @@ object AppSettings {
         val list = getSelectedLanguageList()
         try {
             list[index] = lang
-            sp.edit().putString(TESSERACT_SELECTED_LANGUAGEES, list.joinToString(",")).apply()
         } catch (e: IndexOutOfBoundsException) {
-            e.printStackTrace()
+            list.add(lang)
         }
+        sp.edit().putString(TESSERACT_SELECTED_LANGUAGEES, list.joinToString(",")).apply()
     }
 
     @JvmStatic

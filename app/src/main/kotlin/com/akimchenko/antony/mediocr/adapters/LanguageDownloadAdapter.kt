@@ -177,23 +177,23 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
                     if (!Utils.isLanguageDownloaded(activity, lang))
                         Utils.download(activity, lang, File(activity.getTesseractDataFolder(), "$lang.traineddata"))
 
-                    if (AppSettings.getSelectedLanguageList().size < 3) {
-                        AppSettings.addSelectedLanguage(lang)
+
+                    val slotIndex = fragment.arguments?.getInt(LanguageFragment.LANGUAGE_INDEX_ARG, -1)
+                    if (slotIndex != null && slotIndex >= 0) {
+                        AppSettings.replaceSelectedLanguage(lang, slotIndex)
+                        fragment.onBackPressed()
                     } else {
-                        ReplaceLanguageDialog().also { dialog ->
-                            dialog.arguments = Bundle().apply {
-                                this.putString(ReplaceLanguageDialog.ARG_NEW_LANGUAGE, lang)
+                        if (AppSettings.getSelectedLanguageList().size < 3) {
+                            AppSettings.addSelectedLanguage(lang)
+                        } else {
+                            ReplaceLanguageDialog().also { dialog ->
+                                dialog.arguments = Bundle().apply {
+                                    this.putString(ReplaceLanguageDialog.ARG_NEW_LANGUAGE, lang)
+                                }
+                                dialog.show(activity.supportFragmentManager, ReplaceLanguageDialog::javaClass.name)
                             }
-                            dialog.show(activity.supportFragmentManager, ReplaceLanguageDialog::javaClass.name)
                         }
                     }
-
-                    if (fragment.arguments != null && fragment.arguments!!.getInt(
-                            LanguageFragment.LANGUAGE_INDEX_ARG,
-                            -1
-                        ) >= 0
-                    )
-                        fragment.onBackPressed()
 
                     updateItems()
                 }
