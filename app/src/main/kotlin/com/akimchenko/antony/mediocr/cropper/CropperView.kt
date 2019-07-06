@@ -10,6 +10,7 @@ import android.view.MotionEvent
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import com.akimchenko.antony.mediocr.R
+import kotlin.math.sqrt
 
 
 class CropperView @JvmOverloads constructor(
@@ -31,17 +32,24 @@ class CropperView @JvmOverloads constructor(
 
     init {
         isFocusable = true
-        currentRectangle = CropRectangle(threeColors[0])
+        addRectangle(0)
     }
 
-    fun addRectangle() {
+    fun addRectangle(colorIndex: Int) {
         rectanglesList.forEach { it.setNodesEnabled(false) }
-        rectanglesList.add(CropRectangle(rectanglesList.size - 1))
+        val newRectangle = CropRectangle(threeColors[colorIndex])
+        currentRectangle?.setNodesEnabled(false)
+        currentRectangle = newRectangle
+        rectanglesList.add(newRectangle)
+        invalidate()
     }
 
     fun getRectanglesList(): ArrayList<CropRectangle> = rectanglesList
 
-    fun removeRectangle(rectangle: CropRectangle) = rectanglesList.remove(rectangle)
+    fun removeRectangle(rectangle: CropRectangle) {
+        rectanglesList.remove(rectangle)
+        invalidate()
+    }
 
     override fun onVisibilityAggregated(isVisible: Boolean) {
         super.onVisibilityAggregated(isVisible)
@@ -105,7 +113,7 @@ class CropperView @JvmOverloads constructor(
                     val centerX = node.point.x + node.getWidthOfNode() / 2
                     val centerY = node.point.y + node.getHeightOfNode() / 2
                     val radCircle =
-                        Math.sqrt(((centerX - x) * (centerX - x) + (centerY - y) * (centerY - y)).toDouble())
+                        sqrt(((centerX - x) * (centerX - x) + (centerY - y) * (centerY - y)).toDouble())
                     if (radCircle < node.getWidthOfNode()) {
                         touchedNodeId = node.getId()
                         if (touchedNodeId == 1 || touchedNodeId == 3) {

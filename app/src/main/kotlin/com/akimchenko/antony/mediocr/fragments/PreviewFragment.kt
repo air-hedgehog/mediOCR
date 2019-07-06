@@ -51,6 +51,7 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
     private lateinit var imageFile: File
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<View>
     private lateinit var visibleLanguagesList: List<FrameLayout>
+    private lateinit var rectanglesSlotsList: List<FrameLayout>
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -80,11 +81,21 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
             third_lang_slot
         )
 
+        rectanglesSlotsList = listOf<FrameLayout>(
+            first_rect_slot,
+            second_rect_slot,
+            third_rect_slot
+        )
+
         visibleLanguagesList.forEach {
             it.setOnClickListener(this@PreviewFragment)
         }
 
-        image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
+        rectanglesSlotsList.forEach {
+            it.setOnClickListener(this@PreviewFragment)
+        }
+
+        cropper_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
 
         recognise_button.background = Utils.makeSelector(
             activity,
@@ -116,7 +127,9 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
         super.onResume()
         checkAvailableTessData()
         activity?.let { activity ->
-            updateChosenLangs(activity.layoutInflater)
+            val inflater = activity.layoutInflater
+            updateChosenLangs(inflater)
+            updateRectangles(inflater)
         }
     }
 
@@ -126,8 +139,8 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
                 val activity = activity as MainActivity? ?: return
                 activity.popFragment(MainFragment::class.java.name)
             }
-            rotate_left_button -> image_view.setImageBitmap(image_view.drawable.toBitmap().rotate(-90.0f))
-            rotate_right_button -> image_view.setImageBitmap(image_view.drawable.toBitmap().rotate(90.0f))
+            rotate_left_button -> cropper_view.setImageBitmap(cropper_view.drawable.toBitmap().rotate(-90.0f))
+            rotate_right_button -> cropper_view.setImageBitmap(cropper_view.drawable.toBitmap().rotate(90.0f))
 
             language_layout,
             align_layout -> bottomSheetBehavior.state =
@@ -147,8 +160,8 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
                                 imageFile.delete()
                             imageFile.createNewFile()
                             //TODO own custom cropper
-                            //Utils.writeBitmapToFile(crop_image_view.croppedImage, imageFile)
-                            Utils.writeBitmapToFile(image_view.drawable.toBitmap(), imageFile)
+                            //Utils.writeBitmapToFile(crop_cropper_view.croppedImage, imageFile)
+                            Utils.writeBitmapToFile(cropper_view.drawable.toBitmap(), imageFile)
                         }
                         savingCroppedImageJob?.invokeOnCompletion {
                             if (savingCroppedImageJob != null && !savingCroppedImageJob!!.isCancelled) {
@@ -197,11 +210,11 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
                 if (clickedLang == null) {
                     showLanguageFragment(slotNumber)
                 } else {
-                    activity?.let {activity ->
-                        PopupMenu(activity, v).also {popup ->
+                    activity?.let { activity ->
+                        PopupMenu(activity, v).also { popup ->
                             popup.menu.add(0, 0, 0, getString(R.string.remove))
                             popup.menu.add(0, 1, 1, getString(R.string.replace))
-                            popup.setOnMenuItemClickListener {menuItem ->
+                            popup.setOnMenuItemClickListener { menuItem ->
                                 when (menuItem.itemId) {
                                     0 -> {
                                         AppSettings.removeSelectedLanguage(AppSettings.getSelectedLanguageList()[slotNumber])
@@ -215,6 +228,53 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
                         }
                     }
                 }
+            }
+            first_rect_slot,
+            second_rect_slot,
+            third_rect_slot -> {
+                v ?: return
+
+                val rectSlotIndex = when (v) {
+                    first_rect_slot -> 0
+                    second_rect_slot -> 1
+                    else -> 2
+                }
+
+                val clickedRect = try {
+                    cropper_view.getRectanglesList()[rectSlotIndex]
+                } catch (e: IndexOutOfBoundsException) {
+                    null
+                }
+
+                if (clickedRect == null) {
+                    showSingleItemPopup(R.string.add_rect, Runnable {
+                        cropper_view.addRectangle(rectSlotIndex)
+                        activity?.let { activity ->
+                            updateRectangles(activity.layoutInflater)
+                        }
+                    }, v)
+                } else {
+                    showSingleItemPopup(R.string.remove, Runnable {
+                        cropper_view.removeRectangle(cropper_view.getRectanglesList()[rectSlotIndex])
+                        activity?.let { activity ->
+                            updateRectangles(activity.layoutInflater)
+                        }
+                    }, v)
+                }
+            }
+        }
+    }
+
+    private fun showSingleItemPopup(actionNameRes: Int, action: Runnable, anchor: View) {
+        activity?.let { activity ->
+            PopupMenu(activity, anchor).also { popup ->
+                popup.menu.add(0, 0, 0, actionNameRes)
+                popup.setOnMenuItemClickListener { menuItem ->
+                    if (menuItem.itemId == 0)
+                        action.run()
+                    false
+                }
+                popup.show()
             }
         }
     }
@@ -352,13 +412,37 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
         for (i in 0 until visibleLanguagesList.size) {
             visibleLanguagesList[i].removeAllViews()
             try {
+                val lang = list[i]
                 val langView = inflater.inflate(R.layout.item_bottom_sheet_language, null, false) as ViewGroup
-                (langView.findViewById<TextView>(R.id.text_view)).text = Utils.getLocalizedLangName(list[i])
+                (langView.findViewById<TextView>(R.id.text_view)).text = Utils.getLocalizedLangName(lang)
                 visibleLanguagesList[i].addView(langView)
             } catch (e: IndexOutOfBoundsException) {
                 visibleLanguagesList[i].addView(
                     inflater.inflate(
-                        R.layout.item_bottom_sheet_empty_language,
+                        R.layout.item_bottom_sheet_empty_item,
+                        null,
+                        false
+                    )
+                )
+            }
+        }
+    }
+
+    @SuppressLint("InflateParams")
+    private fun updateRectangles(inflater: LayoutInflater) {
+        val rects = cropper_view.getRectanglesList()
+
+        for (i in 0 until rectanglesSlotsList.size) {
+            rectanglesSlotsList[i].removeAllViews()
+            try {
+                val rect = rects[i]
+                val rectView = inflater.inflate(R.layout.item_bottom_sheet_rect, null, false)
+                (rectView.findViewById<FrameLayout>(R.id.color_frame)).setBackgroundColor(rect.getColor())
+                rectanglesSlotsList[i].addView(rectView)
+            } catch (e: IndexOutOfBoundsException) {
+                rectanglesSlotsList[i].addView(
+                    inflater.inflate(
+                        R.layout.item_bottom_sheet_empty_item,
                         null,
                         false
                     )

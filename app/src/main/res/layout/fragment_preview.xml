@@ -10,12 +10,8 @@
         android:layout_height="match_parent"
         android:layout_marginBottom="@dimen/toolbar_height">
 
-        <ImageView
-            android:id="@+id/image_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
         <com.akimchenko.antony.mediocr.cropper.CropperView
+            android:id="@+id/cropper_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
