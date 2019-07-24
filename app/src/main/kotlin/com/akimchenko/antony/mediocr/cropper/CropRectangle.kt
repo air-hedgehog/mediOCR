@@ -4,7 +4,7 @@ import android.content.Context
 import android.graphics.Point
 import androidx.core.content.ContextCompat
 
-class CropRectangle(val context: Context, var colorResId: Int) {
+class CropRectangle(val context: Context, colorResId: Int) {
 
     val point1: Point = Point(50, 20)
     val point2: Point = Point(150, 20)
@@ -13,10 +13,6 @@ class CropRectangle(val context: Context, var colorResId: Int) {
     private var color = ContextCompat.getColor(context, colorResId)
 
     fun getColor() = color
-    fun setColorId(colorId: Int) {
-        colorResId = colorId
-        color = ContextCompat.getColor(context, colorResId)
-    }
 
     private var isNodesEnabled: Boolean = true
 

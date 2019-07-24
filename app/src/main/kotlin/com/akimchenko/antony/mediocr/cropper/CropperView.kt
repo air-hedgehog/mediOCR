@@ -3,7 +3,6 @@ package com.akimchenko.antony.mediocr.cropper
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -27,7 +26,7 @@ class CropperView @JvmOverloads constructor(
     private var touchedNodeId: Int = -1
     private var currentRectangle: CropRectangle? = null
 
-    private val inactiveRectangles = arrayOfNulls<CropRectangle?>(3)
+    private val rectangles = arrayOfNulls<CropRectangle?>(3)
 
     init {
         isFocusable = true
@@ -35,22 +34,22 @@ class CropperView @JvmOverloads constructor(
     }
 
     fun addRectangle(slotIndex: Int) {
-        currentRectangle?.setColorId(threeColors[slotIndex])
-
-        if (currentRectangle != null) {
-            currentRectangle!!.setNodesEnabled(false)
-            inactiveRectangles[slotIndex] = currentRectangle
-        }
-
         currentRectangle = CropRectangle(context, threeColors[slotIndex])
-        currentRectangle?.setNodesEnabled(true)
+        groupId = -1
+        touchedNodeId = -1
+
+        rectangles[slotIndex] = currentRectangle
+        rectangles.forEach {
+            if (it != currentRectangle)
+                it?.setNodesEnabled(false)
+        }
         invalidate()
     }
 
-    fun getRectanglesList(): Array<CropRectangle?> = inactiveRectangles
+    fun getRectanglesList(): Array<CropRectangle?> = rectangles
 
     fun removeRectangle(slotIndex: Int) {
-        inactiveRectangles[slotIndex] = null
+        rectangles[slotIndex] = null
         invalidate()
     }
 
@@ -81,17 +80,19 @@ class CropperView @JvmOverloads constructor(
         val nodesList = currentRectangle!!.nodesList
         setPaintParametersForRectangle(paint, currentRectangle!!.getColor())
 
-        inactiveRectangles.forEach { rectangle ->
-            if (rectangle != null) {
+      /*  rectangles.forEach { rectangle ->
+            if (rectangle != null && rectangle != currentRectangle) {
+                val oldNodes = rectangle.nodesList
                 val oldPaint = setPaintParametersForRectangle(Paint(), rectangle.getColor())
-                val oldNodesList = rectangle.nodesList
-                canvas.drawRect(rectangle.point1.x + oldNodesList[0].getWidthOfNode() / 2.0f,
-                        rectangle.point3.y + oldNodesList[2].getWidthOfNode() / 2.0f,
-                        rectangle.point3.x + oldNodesList[2].getWidthOfNode() / 2.0f,
-                        rectangle.point1.y + oldNodesList[0].getWidthOfNode() / 2.0f, oldPaint)
+                canvas.drawRect(
+                    rectangle.point1.x + oldNodes[0].getWidthOfNode() / 2.0f,
+                    rectangle.point3.y + oldNodes[2].getWidthOfNode() / 2.0f,
+                    rectangle.point3.x + oldNodes[2].getWidthOfNode() / 2.0f,
+                    rectangle.point1.y + oldNodes[0].getWidthOfNode() / 2.0f, oldPaint
+                )
             }
         }
-
+*/
         if (groupId == 1) {
             canvas.drawRect(
                 currentRectangle!!.point1.x + nodesList[0].getWidthOfNode() / 2.0f,
