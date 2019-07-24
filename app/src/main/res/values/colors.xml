@@ -7,9 +7,13 @@
     <color name="selected_tint">#6D000000</color>
     <color name="primary_color">#333333</color>
     <color name="red">#D32F2F</color>
-    <color name="cropper_fill1">#2B00E4FF</color>
-    <color name="cropper_fill2">#2BFF7700</color>
-    <color name="cropper_fill3">#2BD900FF</color>
+
+    <color name="cropper_fill1">#00E4FF</color>
+    <color name="cropper_fill2">#FF7700</color>
+    <color name="cropper_fill3">#D900FF</color>
+    <color name="cropper_fill1_alpha">#2B00E4FF</color>
+    <color name="cropper_fill2_alpha">#2BFF7700</color>
+    <color name="cropper_fill3_alpha">#2BD900FF</color>
 
     <color name="primary_text">#000000</color>
     <color name="secondary_text">#5A5A5A</color>

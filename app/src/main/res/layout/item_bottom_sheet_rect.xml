@@ -15,7 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="@dimen/default_side_margin"
-        tools:background="@color/cropper_fill3" />
+        tools:background="@color/cropper_fill3_alpha" />
 
 </FrameLayout>
 

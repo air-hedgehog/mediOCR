@@ -3,12 +3,11 @@ package com.akimchenko.antony.mediocr.cropper
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.Point
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.widget.ImageView
-import androidx.core.content.ContextCompat
 import com.akimchenko.antony.mediocr.R
 import kotlin.math.sqrt
 
@@ -20,34 +19,38 @@ class CropperView @JvmOverloads constructor(
     private val canvas = Canvas()
     private val paint = Paint()
     private val threeColors = arrayOf(
-        R.color.cropper_fill1,
-        R.color.cropper_fill2,
-        R.color.cropper_fill3
+        R.color.cropper_fill1_alpha,
+        R.color.cropper_fill2_alpha,
+        R.color.cropper_fill3_alpha
     )
     private var groupId: Int = -1
     private var touchedNodeId: Int = -1
     private var currentRectangle: CropRectangle? = null
 
-    private val rectanglesList = ArrayList<CropRectangle>()
+    private val inactiveRectangles = arrayOfNulls<CropRectangle?>(3)
 
     init {
         isFocusable = true
         addRectangle(0)
     }
 
-    fun addRectangle(colorIndex: Int) {
-        rectanglesList.forEach { it.setNodesEnabled(false) }
-        val newRectangle = CropRectangle(threeColors[colorIndex])
-        currentRectangle?.setNodesEnabled(false)
-        currentRectangle = newRectangle
-        rectanglesList.add(newRectangle)
+    fun addRectangle(slotIndex: Int) {
+        currentRectangle?.setColorId(threeColors[slotIndex])
+
+        if (currentRectangle != null) {
+            currentRectangle!!.setNodesEnabled(false)
+            inactiveRectangles[slotIndex] = currentRectangle
+        }
+
+        currentRectangle = CropRectangle(context, threeColors[slotIndex])
+        currentRectangle?.setNodesEnabled(true)
         invalidate()
     }
 
-    fun getRectanglesList(): ArrayList<CropRectangle> = rectanglesList
+    fun getRectanglesList(): Array<CropRectangle?> = inactiveRectangles
 
-    fun removeRectangle(rectangle: CropRectangle) {
-        rectanglesList.remove(rectangle)
+    fun removeRectangle(slotIndex: Int) {
+        inactiveRectangles[slotIndex] = null
         invalidate()
     }
 
@@ -58,19 +61,37 @@ class CropperView @JvmOverloads constructor(
         }
     }
 
-    @SuppressLint("DrawAllocation")
-    override fun onDraw(canvas: Canvas?) {
-        super.onDraw(canvas)
-        canvas ?: return
-        val nodesList = currentRectangle?.nodesList ?: return
+    private fun setPaintParametersForRectangle(paint: Paint, color: Int): Paint {
         paint.isAntiAlias = true
         paint.isDither = true
-        paint.color = ContextCompat.getColor(context, R.color.cropper_fill1)
+        paint.color = color
         paint.style = Paint.Style.FILL
         paint.strokeJoin = Paint.Join.ROUND
         paint.strokeCap = Paint.Cap.ROUND
         paint.strokeWidth = 1.0f
-        //canvas.drawPaint(paint)
+        return paint
+    }
+
+    @SuppressLint("DrawAllocation")
+    override fun onDraw(canvas: Canvas?) {
+        super.onDraw(canvas)
+        canvas ?: return
+        currentRectangle ?: return
+
+        val nodesList = currentRectangle!!.nodesList
+        setPaintParametersForRectangle(paint, currentRectangle!!.getColor())
+
+        inactiveRectangles.forEach { rectangle ->
+            if (rectangle != null) {
+                val oldPaint = setPaintParametersForRectangle(Paint(), rectangle.getColor())
+                val oldNodesList = rectangle.nodesList
+                canvas.drawRect(rectangle.point1.x + oldNodesList[0].getWidthOfNode() / 2.0f,
+                        rectangle.point3.y + oldNodesList[2].getWidthOfNode() / 2.0f,
+                        rectangle.point3.x + oldNodesList[2].getWidthOfNode() / 2.0f,
+                        rectangle.point1.y + oldNodesList[0].getWidthOfNode() / 2.0f, oldPaint)
+            }
+        }
+
         if (groupId == 1) {
             canvas.drawRect(
                 currentRectangle!!.point1.x + nodesList[0].getWidthOfNode() / 2.0f,
@@ -177,39 +198,8 @@ class CropperView @JvmOverloads constructor(
                     invalidate()
                 }
             }
-
-            MotionEvent.ACTION_UP -> {
-            }
         }
         invalidate()
         return true
     }
-
-    inner class CropRectangle(colorResId: Int) {
-
-        val point1: Point = Point(50, 20)
-        val point2: Point = Point(150, 20)
-        val point3: Point = Point(150, 120)
-        val point4: Point = Point(50, 120)
-        private val color = ContextCompat.getColor(context, colorResId)
-
-        fun getColor() = color
-
-        private var isNodesEnabled: Boolean = true
-
-        val nodesList = arrayListOf(
-            DraggableNode(context, R.drawable.node_cross, point1),
-            DraggableNode(context, R.drawable.node_cross, point2),
-            DraggableNode(context, R.drawable.node_cross, point3),
-            DraggableNode(context, R.drawable.node_cross, point4)
-        )
-
-        fun setNodesEnabled(isEnabled: Boolean) {
-            this.isNodesEnabled = isEnabled
-            nodesList.forEach { if (isEnabled) it.show() else it.hide() }
-        }
-
-        fun isNodesEnabled(): Boolean = isNodesEnabled
-    }
-
 }

@@ -2,13 +2,13 @@ package com.akimchenko.antony.mediocr.cropper
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Point
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
+import com.akimchenko.antony.mediocr.R
 
 
-class DraggableNode(val context: Context, val resourceId: Int, val point: Point) {
+class DraggableNode(val context: Context, val point: Point) {
 
     companion object {
         private var count = 0
@@ -23,11 +23,11 @@ class DraggableNode(val context: Context, val resourceId: Int, val point: Point)
     }
 
     fun show() {
-        bitmap = ContextCompat.getDrawable(context, resourceId)!!.toBitmap()
+        bitmap = ContextCompat.getDrawable(context, R.drawable.node_cross)!!.toBitmap()
     }
 
     fun hide() {
-        bitmap = null
+        bitmap = ContextCompat.getDrawable(context, R.drawable.empty_placeholder)!!.toBitmap()
     }
 
     fun getWidthOfNode(): Int = bitmap?.width ?: 0

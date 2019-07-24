@@ -46,5 +46,4 @@
     <string name="delete_and_remove_from_selected">Delete and remove from selected</string>
     <string name="remove">Remove</string>
     <string name="replace">Replace</string>
-    <string name="add_rect">Add text selector</string>
 </resources>

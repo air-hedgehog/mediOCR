@@ -51,7 +51,7 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
     private lateinit var imageFile: File
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<View>
     private lateinit var visibleLanguagesList: List<FrameLayout>
-    private lateinit var rectanglesSlotsList: List<FrameLayout>
+    private lateinit var rectanglesSlotsList: Array<FrameLayout>
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -81,11 +81,10 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
             third_lang_slot
         )
 
-        rectanglesSlotsList = listOf<FrameLayout>(
-            first_rect_slot,
-            second_rect_slot,
-            third_rect_slot
-        )
+        rectanglesSlotsList = arrayOf(
+                first_rect_slot,
+                second_rect_slot,
+                third_rect_slot)
 
         visibleLanguagesList.forEach {
             it.setOnClickListener(this@PreviewFragment)
@@ -134,9 +133,9 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
     }
 
     override fun onClick(v: View?) {
+        val activity = activity as MainActivity? ?: return
         when (v) {
             close_button -> {
-                val activity = activity as MainActivity? ?: return
                 activity.popFragment(MainFragment::class.java.name)
             }
             rotate_left_button -> cropper_view.setImageBitmap(cropper_view.drawable.toBitmap().rotate(-90.0f))
@@ -208,24 +207,22 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
                 }
 
                 if (clickedLang == null) {
-                    showLanguageFragment(slotNumber)
+                    showLanguageFragment(activity, slotNumber)
                 } else {
-                    activity?.let { activity ->
-                        PopupMenu(activity, v).also { popup ->
-                            popup.menu.add(0, 0, 0, getString(R.string.remove))
-                            popup.menu.add(0, 1, 1, getString(R.string.replace))
-                            popup.setOnMenuItemClickListener { menuItem ->
-                                when (menuItem.itemId) {
-                                    0 -> {
-                                        AppSettings.removeSelectedLanguage(AppSettings.getSelectedLanguageList()[slotNumber])
-                                        updateChosenLangs(activity.layoutInflater)
-                                    }
-                                    1 -> showLanguageFragment(slotNumber)
+                    PopupMenu(activity, v).also { popup ->
+                        popup.menu.add(0, 0, 0, getString(R.string.remove))
+                        popup.menu.add(0, 1, 1, getString(R.string.replace))
+                        popup.setOnMenuItemClickListener { menuItem ->
+                            when (menuItem.itemId) {
+                                0 -> {
+                                    AppSettings.removeSelectedLanguage(AppSettings.getSelectedLanguageList()[slotNumber])
+                                    updateChosenLangs(activity.layoutInflater)
                                 }
-                                false
+                                1 -> showLanguageFragment(activity, slotNumber)
                             }
-                            popup.show()
+                            false
                         }
+                        popup.show()
                     }
                 }
             }
@@ -240,53 +237,26 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
                     else -> 2
                 }
 
-                val clickedRect = try {
-                    cropper_view.getRectanglesList()[rectSlotIndex]
-                } catch (e: IndexOutOfBoundsException) {
-                    null
-                }
+                val clickedRect = cropper_view.getRectanglesList()[rectSlotIndex]
 
                 if (clickedRect == null) {
-                    showSingleItemPopup(R.string.add_rect, Runnable {
-                        cropper_view.addRectangle(rectSlotIndex)
-                        activity?.let { activity ->
-                            updateRectangles(activity.layoutInflater)
-                        }
-                    }, v)
+                    cropper_view.addRectangle(rectSlotIndex)
+                    updateRectangles(activity.layoutInflater)
                 } else {
-                    showSingleItemPopup(R.string.remove, Runnable {
-                        cropper_view.removeRectangle(cropper_view.getRectanglesList()[rectSlotIndex])
-                        activity?.let { activity ->
-                            updateRectangles(activity.layoutInflater)
-                        }
-                    }, v)
+                    //TODO popup with 'remove' and 'replace' actions
+                    cropper_view.removeRectangle(rectSlotIndex)
+                    updateRectangles(activity.layoutInflater)
                 }
             }
         }
     }
 
-    private fun showSingleItemPopup(actionNameRes: Int, action: Runnable, anchor: View) {
-        activity?.let { activity ->
-            PopupMenu(activity, anchor).also { popup ->
-                popup.menu.add(0, 0, 0, actionNameRes)
-                popup.setOnMenuItemClickListener { menuItem ->
-                    if (menuItem.itemId == 0)
-                        action.run()
-                    false
-                }
-                popup.show()
+    private fun showLanguageFragment(activity: MainActivity, languageIndex: Int) {
+        LanguageFragment().also { fragment ->
+            fragment.arguments = Bundle().also { args ->
+                args.putInt(LanguageFragment.LANGUAGE_INDEX_ARG, languageIndex)
             }
-        }
-    }
-
-    private fun showLanguageFragment(languageIndex: Int) {
-        (activity as MainActivity?)?.let { activity ->
-            LanguageFragment().also { fragment ->
-                fragment.arguments = Bundle().also { args ->
-                    args.putInt(LanguageFragment.LANGUAGE_INDEX_ARG, languageIndex)
-                }
-                activity.pushFragment(fragment)
-            }
+            activity.pushFragment(fragment)
         }
     }
 
@@ -434,18 +404,19 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
 
         for (i in 0 until rectanglesSlotsList.size) {
             rectanglesSlotsList[i].removeAllViews()
-            try {
-                val rect = rects[i]
+
+            val rect = rects[i]
+            if (rect != null) {
                 val rectView = inflater.inflate(R.layout.item_bottom_sheet_rect, null, false)
                 (rectView.findViewById<FrameLayout>(R.id.color_frame)).setBackgroundColor(rect.getColor())
                 rectanglesSlotsList[i].addView(rectView)
-            } catch (e: IndexOutOfBoundsException) {
+            } else {
                 rectanglesSlotsList[i].addView(
-                    inflater.inflate(
-                        R.layout.item_bottom_sheet_empty_item,
-                        null,
-                        false
-                    )
+                        inflater.inflate(
+                                R.layout.item_bottom_sheet_empty_item,
+                                null,
+                                false
+                        )
                 )
             }
         }
