@@ -12,6 +12,7 @@ class DraggableNode(val context: Context, val point: Point) {
 
     companion object {
         private var count = 0
+        fun startNewRectangle() = run { count = 0 }
     }
 
     private var id: Int = 0
