@@ -2,10 +2,9 @@ package com.akimchenko.antony.mediocr.fragments
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Matrix
-import android.graphics.PorterDuff
+import android.content.Context
+import android.graphics.*
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -43,6 +42,15 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
     companion object {
         const val TESSDATA = "tessdata"
         const val ARG_IMAGE_FILE_URI = "arg_image_file"
+
+        @JvmStatic
+        fun getBottomSheetItemBackground(context: Context, color: Int, topToBottom: Boolean): GradientDrawable {
+            val colors = intArrayOf(ContextCompat.getColor(context, R.color.colorPrimary), color)
+            return GradientDrawable(if (topToBottom) GradientDrawable.Orientation.TOP_BOTTOM else
+				GradientDrawable.Orientation.BOTTOM_TOP, colors).apply {
+                this.cornerRadius = context.resources.getDimension(R.dimen.bottom_sheet_element_radius)
+            }
+        }
     }
 
     private var tessBaseApi: TessBaseAPI? = null
@@ -126,9 +134,8 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
         super.onResume()
         checkAvailableTessData()
         activity?.let { activity ->
-            val inflater = activity.layoutInflater
-            updateChosenLangs(inflater)
-            updateRectangles(inflater)
+            updateChosenLangs(activity)
+            updateRectangles(activity)
         }
     }
 
@@ -216,7 +223,7 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
                             when (menuItem.itemId) {
                                 0 -> {
                                     AppSettings.removeSelectedLanguage(AppSettings.getSelectedLanguageList()[slotNumber])
-                                    updateChosenLangs(activity.layoutInflater)
+                                    updateChosenLangs(activity)
                                 }
                                 1 -> showLanguageFragment(activity, slotNumber)
                             }
@@ -241,12 +248,11 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
 
                 if (clickedRect == null) {
                     cropper_view.addRectangle(rectSlotIndex)
-                    updateRectangles(activity.layoutInflater)
                 } else {
                     //TODO popup with 'remove' and 'replace' actions
                     cropper_view.removeRectangle(rectSlotIndex)
-                    updateRectangles(activity.layoutInflater)
                 }
+                updateRectangles(activity)
             }
         }
     }
@@ -376,30 +382,31 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
     }
 
     @SuppressLint("InflateParams")
-    private fun updateChosenLangs(inflater: LayoutInflater) {
+    private fun updateChosenLangs(context: Context) {
         val list = AppSettings.getSelectedLanguageList()
-
+		val inflater = LayoutInflater.from(context)
         for (i in 0 until visibleLanguagesList.size) {
             visibleLanguagesList[i].removeAllViews()
             try {
                 val lang = list[i]
                 val langView = inflater.inflate(R.layout.item_bottom_sheet_language, null, false) as ViewGroup
+				langView.background = getBottomSheetItemBackground(context, ContextCompat.getColor(context, R.color.colorPrimaryDark), true)
                 (langView.findViewById<TextView>(R.id.text_view)).text = Utils.getLocalizedLangName(lang)
                 visibleLanguagesList[i].addView(langView)
             } catch (e: IndexOutOfBoundsException) {
-                visibleLanguagesList[i].addView(
-                    inflater.inflate(
-                        R.layout.item_bottom_sheet_empty_item,
-                        null,
-                        false
-                    )
-                )
+                visibleLanguagesList[i].addView(getEmptyItem(context))
             }
         }
     }
 
-    @SuppressLint("InflateParams")
-    private fun updateRectangles(inflater: LayoutInflater) {
+	@SuppressLint("InflateParams")
+	private fun getEmptyItem(context: Context): View = LayoutInflater.from(context).inflate(
+			R.layout.item_bottom_sheet_empty_item, null, false)
+			.apply { this.background = getBottomSheetItemBackground(context,
+					ContextCompat.getColor(context, R.color.colorPrimaryDark), false)
+			}
+
+    private fun updateRectangles(context: Context) {
         val rects = cropper_view.getRectanglesList()
 
         for (i in 0 until rectanglesSlotsList.size) {
@@ -407,17 +414,15 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
 
             val rect = rects[i]
             if (rect != null) {
-                val rectView = inflater.inflate(R.layout.item_bottom_sheet_rect, null, false)
-                (rectView.findViewById<FrameLayout>(R.id.color_frame)).setBackgroundColor(rect.getColor())
-                rectanglesSlotsList[i].addView(rectView)
+
+                val gradientRect = FrameLayout(context).apply {
+                    this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                    this.background = getBottomSheetItemBackground(context, rect.getColor(), true)
+                }
+
+                rectanglesSlotsList[i].addView(gradientRect)
             } else {
-                rectanglesSlotsList[i].addView(
-                        inflater.inflate(
-                                R.layout.item_bottom_sheet_empty_item,
-                                null,
-                                false
-                        )
-                )
+                rectanglesSlotsList[i].addView(getEmptyItem(context))
             }
         }
     }

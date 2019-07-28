@@ -15,4 +15,5 @@
 
     <dimen name="primary_text">16sp</dimen>
     <dimen name="secondary_text">14sp</dimen>
+    <dimen name="bottom_sheet_element_radius">9dp</dimen>
 </resources>

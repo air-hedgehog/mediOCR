@@ -26,7 +26,7 @@ class LanguageFragment(override val layoutResId: Int = R.layout.fragment_recycle
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity? ?: return
-        toolbar.title = activity.getString(R.string.download_languages)
+        toolbar.title = activity.getString(R.string.languages)
         toolbar.navigationIcon = ContextCompat.getDrawable(activity, R.drawable.arrow_back)
         toolbar.setNavigationOnClickListener { activity.onBackPressed() }
         recycler_view.layoutManager = LinearLayoutManager(activity)

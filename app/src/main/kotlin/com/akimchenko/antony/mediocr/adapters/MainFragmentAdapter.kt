@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.fragments.MainFragment
+import com.akimchenko.antony.mediocr.fragments.PreviewFragment
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.coroutines.GlobalScope
@@ -136,7 +137,10 @@ class MainFragmentAdapter(private val fragment: MainFragment) : RecyclerView.Ada
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
-        ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_main_file, parent, false))
+        ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_main_file, parent, false).apply {
+            this.background = PreviewFragment.getBottomSheetItemBackground(parent.context,
+                    ContextCompat.getColor(parent.context, R.color.colorPrimaryDark), true)
+        })
 
     override fun getItemCount() = items.size
 
