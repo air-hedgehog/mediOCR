@@ -159,6 +159,7 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
                 } else {
 
                     if (isSelectedLangsDownloaded()) {
+                        var croppedBitmap: Bitmap? = null
                         //updateProgressVisibility(true)
                         //TODO refactor to asyncTask due to 'GlobalScope.broadcast()' and 'GlobalScope.produce()' are experimental
                         savingCroppedImageJob = GlobalScope.launch {
@@ -166,16 +167,29 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
                                 imageFile.delete()
                             imageFile.createNewFile()
                             //TODO own custom cropper
-                            //Utils.writeBitmapToFile(crop_cropper_view.croppedImage, imageFile)
-                            Utils.writeBitmapToFile(cropper_view.drawable.toBitmap(), imageFile)
+                            val cropRectangle = cropper_view.getRectanglesList()[0]!!
+                            val rectangle = cropRectangle.getRectangle()
+                            val x = cropRectangle.getX()
+                            val y = cropRectangle.getY()
+                            val bitmapHeight = cropper_view.drawable.toBitmap().height
+                            val bitmapWidth = cropper_view.drawable.toBitmap().width
+                            val rectHeight = rectangle.height()
+                            val rectWidth = rectangle.width()
+                            croppedBitmap = Bitmap.createBitmap(cropper_view.drawable.toBitmap(), x,
+                                y, rectangle.width(), rectangle.height())
+                            Utils.writeBitmapToFile(croppedBitmap!!, imageFile)
                         }
                         savingCroppedImageJob?.invokeOnCompletion {
-                            if (savingCroppedImageJob != null && !savingCroppedImageJob!!.isCancelled) {
+                            /*if (savingCroppedImageJob != null && !savingCroppedImageJob!!.isCancelled) {
                                 recognise(imageFile.toUri())
                                 savingCroppedImageJob = null
                             } else {
                                 //updateProgressVisibility(false)
+                            }*/
+                            activity.runOnUiThread {
+                                cropper_view.setImageBitmap(croppedBitmap!!)
                             }
+
                         }
                     } else {
                         AlertDialog.Builder(activity).setMessage(R.string.languages_not_downloaded)
