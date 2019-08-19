@@ -3,7 +3,10 @@ package com.akimchenko.antony.mediocr.fragments
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.graphics.PorterDuff
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
@@ -16,7 +19,6 @@ import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
-import androidx.core.net.toUri
 import com.akimchenko.antony.mediocr.BuildConfig
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
@@ -46,8 +48,10 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
         @JvmStatic
         fun getBottomSheetItemBackground(context: Context, color: Int, topToBottom: Boolean): GradientDrawable {
             val colors = intArrayOf(ContextCompat.getColor(context, R.color.colorPrimary), color)
-            return GradientDrawable(if (topToBottom) GradientDrawable.Orientation.TOP_BOTTOM else
-				GradientDrawable.Orientation.BOTTOM_TOP, colors).apply {
+            return GradientDrawable(
+                if (topToBottom) GradientDrawable.Orientation.TOP_BOTTOM else
+                    GradientDrawable.Orientation.BOTTOM_TOP, colors
+            ).apply {
                 this.cornerRadius = context.resources.getDimension(R.dimen.bottom_sheet_element_radius)
             }
         }
@@ -90,9 +94,10 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
         )
 
         rectanglesSlotsList = arrayOf(
-                first_rect_slot,
-                second_rect_slot,
-                third_rect_slot)
+            first_rect_slot,
+            second_rect_slot,
+            third_rect_slot
+        )
 
         visibleLanguagesList.forEach {
             it.setOnClickListener(this@PreviewFragment)
@@ -163,34 +168,39 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
                         //updateProgressVisibility(true)
                         //TODO refactor to asyncTask due to 'GlobalScope.broadcast()' and 'GlobalScope.produce()' are experimental
                         savingCroppedImageJob = GlobalScope.launch {
-                            if (imageFile.exists())
+                            /*if (imageFile.exists())
                                 imageFile.delete()
-                            imageFile.createNewFile()
-                            //TODO own custom cropper
+                            imageFile.createNewFile()*/
+
                             val cropRectangle = cropper_view.getRectanglesList()[0]!!
                             val rectangle = cropRectangle.getRectangle()
                             val x = cropRectangle.getX()
                             val y = cropRectangle.getY()
-                            val bitmapHeight = cropper_view.drawable.toBitmap().height
-                            val bitmapWidth = cropper_view.drawable.toBitmap().width
-                            val rectHeight = rectangle.height()
-                            val rectWidth = rectangle.width()
-                            croppedBitmap = Bitmap.createBitmap(cropper_view.drawable.toBitmap(), x,
-                                y, rectangle.width(), rectangle.height())
-                            Utils.writeBitmapToFile(croppedBitmap!!, imageFile)
+                            println("cropper x y : $x $y")
+                            val bitmap = cropper_view.drawable.toBitmap()
+                            println("bitmap width and height : ${bitmap.width} ${bitmap.height}")
+                            val cropWidth = rectangle.width()
+                            val cropHeight = rectangle.height()
+                            println("cropper width and height : $cropWidth $cropHeight")
+
+                            croppedBitmap = Bitmap.createBitmap(cropper_view.drawable.toBitmap(), x, y, cropWidth, cropHeight)
+                            //Utils.writeBitmapToFile(croppedBitmap!!, imageFile)
                         }
-                        savingCroppedImageJob?.invokeOnCompletion {
-                            /*if (savingCroppedImageJob != null && !savingCroppedImageJob!!.isCancelled) {
+                        /* savingCroppedImageJob?.invokeOnCompletion {
+                            if (savingCroppedImageJob != null && !savingCroppedImageJob!!.isCancelled) {
                                 recognise(imageFile.toUri())
                                 savingCroppedImageJob = null
                             } else {
                                 //updateProgressVisibility(false)
-                            }*/
-                            activity.runOnUiThread {
-                                cropper_view.setImageBitmap(croppedBitmap!!)
                             }
+                        }*/
 
-                        }
+                        //TODO fix logic
+                        /*cropper x y : 364 607
+                        bitmap width and height : 504 506
+                        cropper width and height : 345 355
+                        x + width must be <= bitmap.width()*/
+
                     } else {
                         AlertDialog.Builder(activity).setMessage(R.string.languages_not_downloaded)
                             .setPositiveButton(R.string.download_languages) { dialog, _ ->
@@ -398,13 +408,17 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
     @SuppressLint("InflateParams")
     private fun updateChosenLangs(context: Context) {
         val list = AppSettings.getSelectedLanguageList()
-		val inflater = LayoutInflater.from(context)
+        val inflater = LayoutInflater.from(context)
         for (i in 0 until visibleLanguagesList.size) {
             visibleLanguagesList[i].removeAllViews()
             try {
                 val lang = list[i]
                 val langView = inflater.inflate(R.layout.item_bottom_sheet_language, null, false) as ViewGroup
-				langView.background = getBottomSheetItemBackground(context, ContextCompat.getColor(context, R.color.colorPrimaryDark), true)
+                langView.background = getBottomSheetItemBackground(
+                    context,
+                    ContextCompat.getColor(context, R.color.colorPrimaryDark),
+                    true
+                )
                 (langView.findViewById<TextView>(R.id.text_view)).text = Utils.getLocalizedLangName(lang)
                 visibleLanguagesList[i].addView(langView)
             } catch (e: IndexOutOfBoundsException) {
@@ -413,12 +427,16 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
         }
     }
 
-	@SuppressLint("InflateParams")
-	private fun getEmptyItem(context: Context): View = LayoutInflater.from(context).inflate(
-			R.layout.item_bottom_sheet_empty_item, null, false)
-			.apply { this.background = getBottomSheetItemBackground(context,
-					ContextCompat.getColor(context, R.color.colorPrimaryDark), false)
-			}
+    @SuppressLint("InflateParams")
+    private fun getEmptyItem(context: Context): View = LayoutInflater.from(context).inflate(
+        R.layout.item_bottom_sheet_empty_item, null, false
+    )
+        .apply {
+            this.background = getBottomSheetItemBackground(
+                context,
+                ContextCompat.getColor(context, R.color.colorPrimaryDark), false
+            )
+        }
 
     private fun updateRectangles(context: Context) {
         val rects = cropper_view.getRectanglesList()
@@ -430,7 +448,8 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
             if (rect != null) {
 
                 val gradientRect = FrameLayout(context).apply {
-                    this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                    this.layoutParams =
+                        ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                     this.background = getBottomSheetItemBackground(context, rect.getColor(), true)
                 }
 

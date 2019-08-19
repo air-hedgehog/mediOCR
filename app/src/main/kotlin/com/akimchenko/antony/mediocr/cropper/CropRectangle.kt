@@ -20,10 +20,10 @@ class CropRectangle(val context: Context, colorResId: Int) {
     private var isNodesEnabled: Boolean = true
 
     val nodesList = arrayListOf(
-            DraggableNode(context, point1),
-            DraggableNode(context, point2),
-            DraggableNode(context, point3),
-            DraggableNode(context, point4)
+        DraggableNode(context, point1),
+        DraggableNode(context, point2),
+        DraggableNode(context, point3),
+        DraggableNode(context, point4)
     )
 
     fun setNodesEnabled(isEnabled: Boolean) {
@@ -34,20 +34,20 @@ class CropRectangle(val context: Context, colorResId: Int) {
     fun isNodesEnabled(): Boolean = isNodesEnabled
 
     fun getRectangle(): Rect {
-        val nodeWidth = nodesList[0].getWidthOfNode()
+        val nodeWidth = getNodeWidth()
         val left = point1.x + nodeWidth / 2
         val top = point3.y + nodeWidth / 2
         val right = point3.x + nodeWidth / 2
         val bottom = point1.y + nodeWidth / 2
-        
-        //return Rect(left, top, right, bottom)
-        
-        return Rect(min(left, right), min(top, bottom),
+
+        return Rect(
+            min(left, right), min(top, bottom),
             max(left, right), max(top, bottom)
         )
     }
 
-    fun getX() = min(min(point1.x, point2.x), min(point3.x, point4.x))
+    private fun getNodeWidth() = nodesList[0].getWidthOfNode()
 
-    fun getY() = min(min(point1.y, point2.y), min(point3.y, point4.y))
+    fun getX() = min(min(point1.x, point2.x), min(point3.x, point4.x)) + getNodeWidth() / 2
+    fun getY() = min(min(point1.y, point2.y), min(point3.y, point4.y)) + getNodeWidth() / 2
 }

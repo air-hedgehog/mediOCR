@@ -86,6 +86,18 @@ class CropperView @JvmOverloads constructor(
         return paint
     }
 
+    private fun drawRectangle(rectangle: CropRectangle, isLeftNodes: Boolean, nodesList: ArrayList<DraggableNode>, canvas: Canvas, paint: Paint) {
+        val firstNode = if (isLeftNodes) 0 else 1
+        val lastNode = if (isLeftNodes) 2 else 3
+
+        canvas.drawRect(
+            rectangle.point1.x + nodesList[firstNode].getWidthOfNode() / 2.0f,
+            rectangle.point3.y + nodesList[lastNode].getWidthOfNode() / 2.0f,
+            rectangle.point3.x + nodesList[lastNode].getWidthOfNode() / 2.0f,
+            rectangle.point1.y + nodesList[firstNode].getWidthOfNode() / 2.0f, paint
+        )
+    }
+
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
@@ -99,30 +111,12 @@ class CropperView @JvmOverloads constructor(
             if (rectangle != null && rectangle != currentRectangle) {
                 val oldNodes = rectangle.nodesList
                 val oldPaint = setPaintParametersForRectangle(Paint(), rectangle.getColor())
-                canvas.drawRect(
-                    rectangle.point1.x + oldNodes[0].getWidthOfNode() / 2.0f,
-                    rectangle.point3.y + oldNodes[2].getWidthOfNode() / 2.0f,
-                    rectangle.point3.x + oldNodes[2].getWidthOfNode() / 2.0f,
-                    rectangle.point1.y + oldNodes[0].getWidthOfNode() / 2.0f, oldPaint
-                )
+                drawRectangle(rectangle, true, oldNodes, canvas, oldPaint)
             }
         }
 
-        if (groupId == 1) {
-            canvas.drawRect(
-                currentRectangle.point1.x + nodesList[0].getWidthOfNode() / 2.0f,
-                currentRectangle.point3.y + nodesList[2].getWidthOfNode() / 2.0f,
-                currentRectangle.point3.x + nodesList[2].getWidthOfNode() / 2.0f,
-                currentRectangle.point1.y + nodesList[0].getWidthOfNode() / 2.0f, paint
-            )
-        } else {
-            canvas.drawRect(
-                currentRectangle.point2.x + nodesList[1].getWidthOfNode() / 2.0f,
-                currentRectangle.point4.y + nodesList[3].getWidthOfNode() / 2.0f,
-                currentRectangle.point4.x + nodesList[3].getWidthOfNode() / 2.0f,
-                currentRectangle.point2.y + nodesList[1].getWidthOfNode() / 2.0f, paint
-            )
-        }
+        drawRectangle(currentRectangle, groupId == 1, nodesList, canvas, paint)
+
         nodesList.forEach {
             it.bitmap?.let { bitmap ->
                 canvas.drawBitmap(bitmap, it.point.x.toFloat(), it.point.y.toFloat(), Paint())
