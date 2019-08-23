@@ -36,6 +36,9 @@ import org.jsoup.Jsoup
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.lang.Long.min
+import kotlin.math.absoluteValue
+import kotlin.math.roundToInt
 
 
 class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview) : BaseFragment(),
@@ -173,19 +176,38 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
                             imageFile.createNewFile()*/
 
                             val cropRectangle = cropper_view.getRectanglesList()[0]!!
-                            val rectangle = cropRectangle.getRectangle()
-                            val x = cropRectangle.getX()
-                            val y = cropRectangle.getY()
-                            println("cropper x y : $x $y")
-                            val bitmap = cropper_view.drawable.toBitmap()
-                            println("bitmap width and height : ${bitmap.width} ${bitmap.height}")
-                            val cropWidth = rectangle.width()
-                            val cropHeight = rectangle.height()
-                            println("cropper width and height : $cropWidth $cropHeight")
+                            val matrixValues = FloatArray(9)
+                            cropper_view.imageMatrix.getValues(matrixValues)
+                            val originalBitmap = cropper_view.drawable.toBitmap()
+                            val scaleX = matrixValues[Matrix.MSCALE_X]
+                            val scaleY = matrixValues[Matrix.MSCALE_Y]
+                            val bitmapLeft = matrixValues[Matrix.MTRANS_X].absoluteValue
+                            val bitmapTop = matrixValues[Matrix.MTRANS_Y].absoluteValue
+                            println("originalbitmap height and width : ${originalBitmap.height} ${originalBitmap.width}")
 
-                            croppedBitmap = Bitmap.createBitmap(cropper_view.drawable.toBitmap(), x, y, cropWidth, cropHeight)
+                            val cropX = ((cropRectangle.getX() - bitmapLeft) / scaleX)
+                                .coerceIn(bitmapLeft, bitmapLeft + originalBitmap.width / scaleX)
+                            val cropY = ((cropRectangle.getY() - bitmapTop) / scaleY)
+                                .coerceIn(bitmapTop, bitmapTop + originalBitmap.height / scaleY)
+
+                            val cropWidth = (cropRectangle.getRectangle().width() / scaleX)
+                            val cropHeight = (cropRectangle.getRectangle().height() / scaleY)
+
+
+                            println("crop x y : $cropX $cropY")
+                            println("bitmap width and height : ${originalBitmap.width} ${originalBitmap.height}")
+                            println("bitmap left and top : $bitmapLeft $bitmapTop")
+
+                            croppedBitmap = Bitmap.createBitmap(originalBitmap, cropX.roundToInt(),
+                                cropY.roundToInt(), cropWidth.roundToInt(), cropHeight.roundToInt())
                             //Utils.writeBitmapToFile(croppedBitmap!!, imageFile)
                         }
+                        savingCroppedImageJob?.invokeOnCompletion {
+                            activity.runOnUiThread {
+                                cropper_view.setImageBitmap(croppedBitmap)
+                            }
+                        }
+
                         /* savingCroppedImageJob?.invokeOnCompletion {
                             if (savingCroppedImageJob != null && !savingCroppedImageJob!!.isCancelled) {
                                 recognise(imageFile.toUri())
