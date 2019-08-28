@@ -183,10 +183,10 @@ class MainFragment(override val layoutResId: Int = R.layout.fragment_main) : Bas
         }
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration?) {
+    override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         recycler_view.layoutManager =
-            GridLayoutManager(activity, if (newConfig?.orientation == Configuration.ORIENTATION_PORTRAIT) 2 else 3)
+            GridLayoutManager(activity, if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) 2 else 3)
     }
 
     private fun sendGalleryChooserIntent() {

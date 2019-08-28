@@ -20,7 +20,6 @@ import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.io.File
 

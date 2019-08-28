@@ -17,6 +17,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.PopupMenu
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.akimchenko.antony.mediocr.BuildConfig
@@ -36,7 +37,6 @@ import org.jsoup.Jsoup
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.lang.Long.min
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 
@@ -63,7 +63,7 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
     private var tessBaseApi: TessBaseAPI? = null
     private var savingCroppedImageJob: Job? = null
     private var recognizingJob: Job? = null
-    private lateinit var imageFile: File
+    private var imageFile: File? = null
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<View>
     private lateinit var visibleLanguagesList: List<FrameLayout>
     private lateinit var rectanglesSlotsList: Array<FrameLayout>
@@ -74,11 +74,11 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
         val uriString = arguments?.getString(ARG_IMAGE_FILE_URI) ?: return
         val uri: Uri = Uri.parse(uriString)
         when {
-            uri.scheme == "file" -> imageFile = File(uri.path)
+            uri.scheme == "file" -> uri.path?.let { imageFile = File(it) }
             uri.scheme == "content" -> {
                 val inputStream = activity.contentResolver.openInputStream(uri) ?: return
                 imageFile = activity.getFileForBitmap()
-                val outputStream = FileOutputStream(imageFile)
+                val outputStream = FileOutputStream(imageFile!!)
                 val buffer = ByteArray(1024)
 
                 while ((inputStream.read(buffer)) > 0)
@@ -110,7 +110,10 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
             it.setOnClickListener(this@PreviewFragment)
         }
 
-        cropper_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
+        if (imageFile != null)
+            cropper_view.setImageBitmap(BitmapFactory.decodeFile(imageFile?.absolutePath))
+        else
+            Toast.makeText(activity, activity.getString(R.string.error_reading_image), Toast.LENGTH_LONG).show()
 
         recognise_button.background = Utils.makeSelector(
             activity,
@@ -341,13 +344,16 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
 
     private fun isSelectedLangsDownloaded(): Boolean {
         val activity = activity as MainActivity? ?: return false
+        val downloadedLangFiles = activity.getTesseractDataFolder().listFiles()
         for (lang in AppSettings.getSelectedLanguageList()) {
-            if (lang != "eng" && !activity.getTesseractDataFolder().listFiles()
-                    .contains(File(activity.getTesseractDataFolder(), "$lang.traineddata")) ||
-                activity.downloadIdsLangs.containsValue(lang)
-            ) {
-                return false
-            }
+            if (lang == "eng") continue
+
+            if (downloadedLangFiles.isNullOrEmpty()) return false
+
+            if (downloadedLangFiles.contains(
+                    File(activity.getTesseractDataFolder(), "$lang.traineddata"))) return false
+
+            if (activity.downloadIdsLangs.containsValue(lang)) return false
         }
         return true
     }
@@ -375,16 +381,19 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
             result = getHOCRString(fileUri)
         }
         recognizingJob?.invokeOnCompletion {
-            if (recognizingJob != null && !recognizingJob!!.isCancelled) {
-                if (result != null) {
-                    if (BuildConfig.DEBUG)
-                        Log.d(PreviewFragment::class.java.name, "OCR_result:\n$result")
+            if (recognizingJob != null && !recognizingJob!!.isCancelled && result != null) {
+                if (BuildConfig.DEBUG)
+                    Log.d(PreviewFragment::class.java.name, "OCR_result:\n$result")
 
-                    val text = Jsoup.parse(result).wholeText()
-                    activity.pushFragment(ResultFragment().also {
-                        it.arguments = Bundle().also { args -> args.putString(ResultFragment.ARG_OCR_RESULT, text) }
-                    })
-                }
+                val text = Jsoup.parse(result).wholeText()
+                activity.pushFragment(ResultFragment().also {
+                    it.arguments = Bundle().also { args ->
+                        args.putString(
+                            ResultFragment.ARG_OCR_RESULT,
+                            text
+                        )
+                    }
+                })
             }
             //updateProgressVisibility(false)
         }
@@ -419,7 +428,7 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
                         }
                     }
                 } catch (e: IOException) {
-                    Log.e(this::class.java.name, e.message)
+                    e.message?.let { Log.e(this::class.java.name, it) }
                 }
                 if (langs.isNullOrEmpty())
                     AppSettings.addSelectedLanguage("eng")
@@ -431,7 +440,7 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
     private fun updateChosenLangs(context: Context) {
         val list = AppSettings.getSelectedLanguageList()
         val inflater = LayoutInflater.from(context)
-        for (i in 0 until visibleLanguagesList.size) {
+        for (i in visibleLanguagesList.indices) {
             visibleLanguagesList[i].removeAllViews()
             try {
                 val lang = list[i]
@@ -463,7 +472,7 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
     private fun updateRectangles(context: Context) {
         val rects = cropper_view.getRectanglesList()
 
-        for (i in 0 until rectanglesSlotsList.size) {
+        for (i in rectanglesSlotsList.indices) {
             rectanglesSlotsList[i].removeAllViews()
 
             val rect = rects[i]
@@ -489,7 +498,7 @@ class PreviewFragment(override val layoutResId: Int = R.layout.fragment_preview)
             val bitmap = BitmapFactory.decodeFile(fileUri.path, options)
             return extractText(bitmap)
         } catch (e: Exception) {
-            Log.e(this::class.java.name, e.message)
+            e.message?.let { Log.e(this::class.java.name, it) }
         }
         return null
     }

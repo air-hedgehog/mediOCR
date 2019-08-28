@@ -182,7 +182,7 @@ class ResultFragment(override val layoutResId: Int = R.layout.fragment_result) :
     }
 
     private fun getIncrementForNameRecursive(directory: File, name: String, suffix: String): Int {
-        val existingFile: File? = directory.listFiles().find {
+        val existingFile: File? = directory.listFiles()?.find {
             val countedName: String = if (counter > 0) "$name($counter)" else name
             it.name.removeSuffix(suffix) == countedName
         }

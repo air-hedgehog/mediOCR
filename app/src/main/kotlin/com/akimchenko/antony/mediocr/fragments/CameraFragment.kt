@@ -108,7 +108,8 @@ class CameraFragment(override val layoutResId: Int = R.layout.fragment_camera) :
                 if (jpegSizes != null && jpegSizes.isNotEmpty())
                     return Pair(jpegSizes[0].width, jpegSizes[0].height)
             } catch (e: CameraAccessException) {
-                Log.e(CameraFragment::class.java.name, e.message)
+                e.message?.let { Log.e(CameraFragment::class.java.name, it) }
+
             }
 
             return null
@@ -178,7 +179,7 @@ class CameraFragment(override val layoutResId: Int = R.layout.fragment_camera) :
             mBackgroundThread = null
             mBackgroundHandler = null
         } catch (e: InterruptedException) {
-            Log.e(CameraFragment::class.java.name, e.message)
+            e.message?.let { Log.e(CameraFragment::class.java.name, it) }
         }
     }
 
@@ -216,9 +217,9 @@ class CameraFragment(override val layoutResId: Int = R.layout.fragment_camera) :
                         buffer.get(bytes)
                         save(bytes)
                     } catch (e: FileNotFoundException) {
-                        Log.e(CameraFragment::class.java.name, e.message)
+                        e.message?.let { Log.e(CameraFragment::class.java.name, it) }
                     } catch (e: IOException) {
-                        Log.e(CameraFragment::class.java.name, e.message)
+                        e.message?.let { Log.e(CameraFragment::class.java.name, it) }
                     } finally {
                         image?.close()
                     }
@@ -259,7 +260,7 @@ class CameraFragment(override val layoutResId: Int = R.layout.fragment_camera) :
                     try {
                         session.capture(captureBuilder.build(), captureListener, mBackgroundHandler)
                     } catch (e: CameraAccessException) {
-                        Log.e(CameraFragment::class.java.name, e.message)
+                        e.message?.let { Log.e(CameraFragment::class.java.name, it) }
                     }
 
                 }
@@ -267,7 +268,7 @@ class CameraFragment(override val layoutResId: Int = R.layout.fragment_camera) :
                 override fun onConfigureFailed(session: CameraCaptureSession) {}
             }, mBackgroundHandler)
         } catch (e: CameraAccessException) {
-            Log.e(CameraFragment::class.java.name, e.message)
+            e.message?.let { Log.e(CameraFragment::class.java.name, it) }
         }
     }
 
@@ -299,7 +300,7 @@ class CameraFragment(override val layoutResId: Int = R.layout.fragment_camera) :
                 }
             }, null)
         } catch (e: CameraAccessException) {
-            Log.e(CameraFragment::class.java.name, e.message)
+            e.message?.let { Log.e(CameraFragment::class.java.name, it) }
         }
 
     }
@@ -315,7 +316,7 @@ class CameraFragment(override val layoutResId: Int = R.layout.fragment_camera) :
             imageDimension = map.getOutputSizes(SurfaceTexture::class.java)[0]
             manager.openCamera(cameraId, stateCallback, null)
         } catch (e: CameraAccessException) {
-            Log.e(CameraFragment::class.java.name, e.message)
+            e.message?.let { Log.e(CameraFragment::class.java.name, it) }
         }
     }
 
@@ -325,7 +326,7 @@ class CameraFragment(override val layoutResId: Int = R.layout.fragment_camera) :
         try {
             cameraCaptureSessions!!.setRepeatingRequest(captureRequestBuilder!!.build(), null, mBackgroundHandler)
         } catch (e: CameraAccessException) {
-            Log.e(CameraFragment::class.java.name, e.message)
+            e.message?.let { Log.e(CameraFragment::class.java.name, it) }
         }
     }
 
