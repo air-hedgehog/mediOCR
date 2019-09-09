@@ -79,7 +79,9 @@ class EnterNameDialog : DialogFragment() {
 
     fun getTitle(): String = editText.text.toString().trim()
 
-    override fun onDismiss(dialog: DialogInterface?) {
+
+
+    override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         val imm = editText.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager? ?: return
         imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS)

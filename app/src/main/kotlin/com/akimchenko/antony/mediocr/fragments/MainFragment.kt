@@ -75,7 +75,7 @@ class MainFragment(override val layoutResId: Int = R.layout.fragment_main) : Bas
         hint.visibility = if (adapter != null && adapter!!.itemCount > 0) View.GONE else View.VISIBLE
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         menu?.add(0, ITEM_SETTINGS, menu.size(), R.string.settings)?.setIcon(R.drawable.settings)
             ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
@@ -94,9 +94,9 @@ class MainFragment(override val layoutResId: Int = R.layout.fragment_main) : Bas
         return false
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val activity = activity as MainActivity? ?: return false
-        when (item?.itemId) {
+        when (item.itemId) {
             ITEM_SETTINGS -> activity.pushFragment(SettingsFragment())
             ITEM_SORT_TYPE_TITLE -> AppSettings.savedFilesSortedAlphabetically = true
             ITEM_SORT_TYPE_DATE -> AppSettings.savedFilesSortedAlphabetically = false
@@ -168,8 +168,6 @@ class MainFragment(override val layoutResId: Int = R.layout.fragment_main) : Bas
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
             takePictureIntent.resolveActivity(activity.packageManager)?.apply {
                 newPhotoFile = activity.getFileForBitmap()
-                if (!newPhotoFile!!.exists())
-                    newPhotoFile!!.createNewFile()
                 newPhotoFile!!.apply {
                     val uri = FileProvider.getUriForFile(
                         activity,

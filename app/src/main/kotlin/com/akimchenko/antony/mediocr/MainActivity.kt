@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.util.SparseArray
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -179,7 +180,13 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.popBackStackImmediate(fragmentName, 0)
     }
 
-    fun getFileForBitmap() = File("${getDefaultCroppedImagesDirectory()}/${Calendar.getInstance().timeInMillis}.jpg")
+    fun getFileForBitmap(): File {
+        val file = File("${getDefaultCroppedImagesDirectory()}/${Calendar.getInstance().timeInMillis}.jpg")
+        if (!file.exists())
+            file.createNewFile()
+        Log.d("file", "isFileFirBitmap exists == ${file.exists()}")
+        return file
+    }
 
     fun getTesseractDataFolder(): File {
         val dir = File(Utils.getInternalDirs(this)[0], PreviewFragment.TESSDATA)
@@ -192,6 +199,7 @@ class MainActivity : AppCompatActivity() {
         val savedFilesDirectory = File(getDefaultDirectory(), getString(R.string.saved_files))
         if (!savedFilesDirectory.exists() || !savedFilesDirectory.isDirectory)
             savedFilesDirectory.mkdirs()
+        Log.d("file", "isSavedFilesDirectory exists == ${savedFilesDirectory.exists()}")
         return savedFilesDirectory
     }
 
@@ -199,13 +207,18 @@ class MainActivity : AppCompatActivity() {
         val croppedImageDirectory = File(getDefaultDirectory(), getString(R.string.cropped_images))
         if (!croppedImageDirectory.exists() || !croppedImageDirectory.isDirectory)
             croppedImageDirectory.mkdirs()
+        Log.d("file", "isCroppedImageDirectory exists == ${croppedImageDirectory.exists()}")
         return croppedImageDirectory
     }
 
     private fun getDefaultDirectory(): File {
+        Log.d("file", "isExternalDirectory isNull == ${Environment.getExternalStorageDirectory() == null}")
+        Log.d("file", "isExternalDirectory exists == ${Environment.getExternalStorageDirectory().exists()}")
         val defaultDirectory = File(Environment.getExternalStorageDirectory(), getString(R.string.default_folder_name))
-        if (!defaultDirectory.exists() || !defaultDirectory.isDirectory)
-            defaultDirectory.mkdirs()
+        if (!defaultDirectory.exists() || !defaultDirectory.isDirectory) {
+            val isExists = defaultDirectory.mkdirs()
+            Log.d("file", "isDefaultDirectory exists == ${isExists}")
+        }
         return defaultDirectory
     }
 }

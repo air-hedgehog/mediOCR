@@ -25,11 +25,9 @@ abstract class BaseSearchFragment: BaseFragment(), SearchView.OnQueryTextListene
         searchQuery = savedInstanceState?.getString(SEARCH_INSTANCE_STATE, null)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         val activity = activity as MainActivity? ?: return
-        menu ?: return
-        inflater ?: return
 
         inflater.inflate(R.menu.search_menu, menu)
         val searchItem = menu.findItem(R.id.search_view)

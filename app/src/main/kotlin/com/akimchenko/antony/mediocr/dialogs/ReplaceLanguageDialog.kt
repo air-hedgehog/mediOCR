@@ -71,7 +71,7 @@ class ReplaceLanguageDialog : DialogFragment() {
 
     }
 
-    override fun onDismiss(dialog: DialogInterface?) {
+    override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         NotificationCenter.notify(NotificationCenter.LANGUAGE_REPLACED)
     }
