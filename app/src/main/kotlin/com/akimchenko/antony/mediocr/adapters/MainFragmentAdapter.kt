@@ -105,12 +105,14 @@ class MainFragmentAdapter(private val fragment: MainFragment) : RecyclerView.Ada
         activity ?: return
         fragment.updateProgressBar(true)
         fileLoadJob = GlobalScope.launch {
-            val files = activity.getDefaultSavedFilesDirectory().listFiles()
+            activity.getDefaultSavedFilesDirectory().listFiles() ?.let {files ->
+                if (searchQuery.isNullOrBlank())
+                    items.addAll(files)
+                else
+                    items.addAll(files.filter { it.name.contains(searchQuery!!, true) })
+            }
             items.clear()
-            if (searchQuery.isNullOrBlank())
-                items.addAll(files)
-            else
-                items.addAll(files.filter { it.name.contains(searchQuery!!, true) })
+
             if (AppSettings.savedFilesSortedAlphabetically)
                 items.sortBy { it.name }
             else
