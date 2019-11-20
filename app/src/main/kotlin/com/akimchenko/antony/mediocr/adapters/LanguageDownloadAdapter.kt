@@ -1,6 +1,5 @@
 package com.akimchenko.antony.mediocr.adapters
 
-import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.Context.DOWNLOAD_SERVICE
 import android.net.Uri
@@ -11,27 +10,24 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.akimchenko.antony.mediocr.MainActivity
 import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.fragments.LanguageFragment
 import com.akimchenko.antony.mediocr.utils.AppSettings
+import com.akimchenko.antony.mediocr.utils.MyDownloadManager
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import org.jsoup.Jsoup
 import java.io.File
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
 import java.util.*
 
 
-class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
-        RecyclerView.Adapter<LanguageDownloadAdapter.ViewHolder>(), NotificationCenter.Observer {
+class LanguageDownloadAdapter(fragment: LanguageFragment) :
+    RecyclerView.Adapter<LanguageDownloadAdapter.ViewHolder>(), NotificationCenter.Observer {
 
     companion object {
         private const val ITEM_TYPE_LANGUAGE = 0
@@ -40,9 +36,8 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
 
     private var items = ArrayList<Item>()
     private var searchQuery: String? = null
-    private val activity: MainActivity? = fragment.activity as MainActivity?
+    private val activity = fragment.activity as MainActivity?
     private var downloadJob: Job? = null
-    private val itemsList = ArrayList<Item>()
 
     init {
         updateItems(true)
@@ -50,56 +45,43 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
 
     private fun updateItems(isForce: Boolean = false) {
         activity ?: return
-        downloadJob = GlobalScope.launch {
-            activity.runOnUiThread {
-                fragment.updateProgressBar(true)
-            }
-            if (isForce) {
-                itemsList.clear()
-                try {
-                    Jsoup.connect(activity.getString(R.string.tessdata_url)).timeout(6 * 1000).get().run {
-                        this.select("td.content").forEach { element ->
-                            val reference = element.getElementsByClass("js-navigation-open").attr("title")
-
-                            if (reference.endsWith(activity.getString(R.string.traineddata_suffix)))
-                                itemsList.add(Item(ITEM_TYPE_LANGUAGE, reference.removeSuffix(activity.getString(R.string.traineddata_suffix))))
+        items.clear()
+        if (isForce) {
+            downloadJob = GlobalScope.launch {
+                MyDownloadManager.getInitialDownloadList(activity).let { list ->
+                    if (list.isNotEmpty() && list != AppSettings.initialDownloadsList) {
+                        //getting list of downloadable tessdata o cube data
+                        AppSettings.initialDownloadsList = list.filter {
+                            it.contains(activity.getString(R.string.traineddata_suffix)) || it.contains("cube")
                         }
                     }
-                } catch (e: SocketTimeoutException) {
-                    connectionErrorAction()
-                } catch (e: UnknownHostException) {
-                    connectionErrorAction()
                 }
             }
-
-            items = if (searchQuery.isNullOrBlank())
-                separateList(activity, itemsList)
-            else
-                separateList(activity, itemsList.filter { it.title != null && it.title.contains(searchQuery!!, true) })
-        }
-        downloadJob?.invokeOnCompletion {
-            activity.runOnUiThread {
-                notifyDataSetChanged()
-                fragment.updateProgressBar(false)
+            downloadJob?.invokeOnCompletion {
+                convertDownloadsToItems(activity)?.let { items.addAll(it) }
+                activity.runOnUiThread { notifyDataSetChanged() }
             }
-            downloadJob = null
+        } else {
+            convertDownloadsToItems(activity)?.let { items.addAll(it) }
+            notifyDataSetChanged()
         }
     }
 
-    private fun connectionErrorAction() {
-        val activity = activity ?: return
-        val downloadedFiles = activity.getTesseractDataFolder().listFiles()?.filter { it.name.endsWith(activity.getString(R.string.traineddata_suffix)) }
-        downloadedFiles?.forEach { itemsList.add(Item(ITEM_TYPE_LANGUAGE, it.name.removeSuffix(activity.getString(R.string.traineddata_suffix)))) }
+    private fun convertDownloadsToItems(activity: MainActivity): List<Item>? {
+        AppSettings.initialDownloadsList?.let { list ->
 
-        activity.runOnUiThread {
-            Toast.makeText(activity, activity.getString(R.string.internet_error_occurred), Toast.LENGTH_LONG).show()
+            return separateList(activity, ArrayList<Item>().apply {
+                list.filter { it.endsWith(activity.getString(R.string.traineddata_suffix)) }
+                    .forEach { this.add(Item(ITEM_TYPE_LANGUAGE, it)) }
+            })
         }
+        return null
     }
 
     private fun separateList(activity: MainActivity, list: List<Item>): ArrayList<Item> {
         return ArrayList<Item>().also { rv ->
             list.partition { item ->
-                Utils.isLanguageDownloaded(activity, item.title!!)
+                Utils.isLanguageDownloaded(activity, item.title)
             }.also { pair ->
                 if (pair.first.isNotEmpty()) {
                     rv.add(Item(ITEM_TYPE_SEPARATOR, activity.getString(R.string.downloaded)))
@@ -128,10 +110,11 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
     }
 
     override fun onNotification(id: Int, `object`: Any?) {
+        val activity = activity ?: return
         when (id) {
             NotificationCenter.LANG_DELETED -> {
-                if (`object` == AppSettings.getSelectedLanguage())
-                    AppSettings.setSelectedLanguage(null)
+                if (`object` == AppSettings.selectedLanguage)
+                    AppSettings.selectedLanguage = "eng${activity.getString(R.string.traineddata_suffix)}"
                 updateItems()
             }
             NotificationCenter.LANG_DOWNLOADED -> updateItems()
@@ -147,44 +130,46 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
 
         init {
             itemView.setOnClickListener {
-                activity ?: return@setOnClickListener
+                //TODO
+                /*activity ?: return@setOnClickListener
                 val lang = getLang(adapterPosition) ?: return@setOnClickListener
 
                 if (!Utils.isLanguageDownloaded(activity, lang) && lang != "eng")
                     download(lang, File(activity.getTesseractDataFolder(), "$lang.traineddata"))
 
                 AppSettings.setSelectedLanguage(lang)
-                notifyDataSetChanged()
+                notifyDataSetChanged()*/
             }
             downloadDeleteButton.setOnClickListener {
-                activity ?: return@setOnClickListener
+                //TODO download with cube data if presented in initialDownloadList
+               /* activity ?: return@setOnClickListener
                 val lang = getLang(adapterPosition) ?: return@setOnClickListener
                 val file = File(activity.getTesseractDataFolder(), "$lang.traineddata")
                 if (Utils.isLanguageDownloaded(activity, lang)) {
                     AlertDialog.Builder(activity)
-                            .setMessage(
-                                    "${activity.getString(R.string.do_you_want_to_delete)} ${Utils.getLocalizedLangName(
-                                            lang
-                                    )}"
-                            )
-                            .setPositiveButton(activity.getString(R.string.delete)) { dialog, _ ->
-                                if (file.exists())
-                                    file.delete()
-                                NotificationCenter.notify(NotificationCenter.LANG_DELETED, lang)
-                                dialog.dismiss()
-                            }.setNegativeButton(activity.getString(R.string.cancel)) { dialog, _ ->
-                                dialog.dismiss()
-                            }.create().show()
+                        .setMessage(
+                            "${activity.getString(R.string.do_you_want_to_delete)} ${Utils.getLocalizedLangName(
+                                lang
+                            )}"
+                        )
+                        .setPositiveButton(activity.getString(R.string.delete)) { dialog, _ ->
+                            if (file.exists())
+                                file.delete()
+                            NotificationCenter.notify(NotificationCenter.LANG_DELETED, lang)
+                            dialog.dismiss()
+                        }.setNegativeButton(activity.getString(R.string.cancel)) { dialog, _ ->
+                            dialog.dismiss()
+                        }.create().show()
 
                 } else {
                     download(lang, file)
                 }
-                notifyItemChanged(adapterPosition)
+                notifyItemChanged(adapterPosition)*/
             }
         }
 
         private fun getLang(position: Int): String? {
-            if (position < 0 || position >= items.size) return null
+            if (position !in 0 until itemCount) return null
             return items[position].title
         }
 
@@ -205,22 +190,19 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
                     progressbar.visibility = View.GONE
                 }
                 downloadDeleteButton.setImageDrawable(
-                        ContextCompat.getDrawable(
-                                activity,
-                                if (isDownloaded) R.drawable.delete else R.drawable.download
-                        )
+                    ContextCompat.getDrawable(
+                        activity,
+                        if (isDownloaded) R.drawable.delete else R.drawable.download
+                    )
                 )
             } else {
                 downloadDeleteButton.visibility = View.GONE
                 progressbar.visibility = View.GONE
             }
-            title.text = Utils.getLocalizedLangName(lang)
-            val isSelected = AppSettings.getSelectedLanguage() == lang
+            title.text = Utils.getLocalizedLangName(lang.removeSuffix(activity.getString(R.string.traineddata_suffix)))
+            val isSelected = AppSettings.selectedLanguage == lang
             checkMark.visibility = if (isSelected) View.VISIBLE else View.GONE
-            title.setPadding(
-                    if (isSelected) 0 else activity.resources.getDimensionPixelSize(R.dimen.default_side_margin),
-                    0, 0, 0
-            )
+            title.setPadding(if (isSelected) 0 else activity.resources.getDimensionPixelSize(R.dimen.default_side_margin), 0, 0, 0)
         }
     }
 
@@ -237,11 +219,11 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
     private fun download(lang: String, destFile: File) {
         activity ?: return
         val request =
-                DownloadManager.Request(Uri.parse("${activity.getString(R.string.tessdata_url)}$lang.traineddata"))
-                        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-                        .setTitle(Utils.getLocalizedLangName(lang))
-                        .setDestinationUri(Uri.fromFile(destFile))
-                        .setAllowedOverRoaming(true)
+            DownloadManager.Request(Uri.parse("${activity.getString(R.string.tessdata_url)}$lang.traineddata"))
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
+                .setTitle(Utils.getLocalizedLangName(lang))
+                .setDestinationUri(Uri.fromFile(destFile))
+                .setAllowedOverRoaming(true)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
             request.setAllowedOverMetered(true)
 
@@ -249,26 +231,36 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
             request.setRequiresCharging(false)
 
         val downloadManager = activity.getSystemService(DOWNLOAD_SERVICE) as DownloadManager?
-                ?: return
+            ?: return
         activity.downloadIdsLangs[downloadManager.enqueue(request)] = lang
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return when (viewType) {
             ITEM_TYPE_SEPARATOR ->
-                SeparatorViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_separator, parent, false))
+                SeparatorViewHolder(
+                    LayoutInflater.from(parent.context).inflate(
+                        R.layout.item_separator,
+                        parent,
+                        false
+                    )
+                )
 
             ITEM_TYPE_LANGUAGE ->
                 AvailableLangViewHolder(
-                        LayoutInflater.from(parent.context).inflate(R.layout.item_language, parent, false)
+                    LayoutInflater.from(parent.context).inflate(
+                        R.layout.item_language,
+                        parent,
+                        false
+                    )
                 )
 
             else -> SeparatorViewHolder(
-                    LayoutInflater.from(parent.context).inflate(
-                            R.layout.item_separator,
-                            parent,
-                            false
-                    )
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.item_separator,
+                    parent,
+                    false
+                )
             )
         }
     }
@@ -286,5 +278,5 @@ class LanguageDownloadAdapter(private val fragment: LanguageFragment) :
         updateItems()
     }
 
-    private inner class Item(val type: Int, val title: String?)
+    private inner class Item(val type: Int, val title: String)
 }

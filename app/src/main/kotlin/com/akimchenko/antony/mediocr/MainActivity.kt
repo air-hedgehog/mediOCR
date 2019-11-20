@@ -21,8 +21,12 @@ import com.akimchenko.antony.mediocr.dialogs.ProgressDialog
 import com.akimchenko.antony.mediocr.fragments.BaseFragment
 import com.akimchenko.antony.mediocr.fragments.MainFragment
 import com.akimchenko.antony.mediocr.fragments.PreviewFragment
+import com.akimchenko.antony.mediocr.utils.AppSettings
+import com.akimchenko.antony.mediocr.utils.MyDownloadManager
 import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
 
@@ -38,6 +42,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        GlobalScope.launch {
+            MyDownloadManager.getInitialDownloadList(this@MainActivity).let { list ->
+                if (list.isNotEmpty() && list != AppSettings.initialDownloadsList) {
+                    //getting list of downloadable tessdata o cube data
+                    AppSettings.initialDownloadsList = list.filter {
+                        it.contains(getString(R.string.traineddata_suffix)) || it.contains("cube")
+                    }
+                }
+            }
+        }
+
         setContentView(R.layout.activity_main)
 
         if (supportFragmentManager.backStackEntryCount == 0)
@@ -69,7 +84,10 @@ class MainActivity : AppCompatActivity() {
                             "file" -> {
                                 pushFragment(PreviewFragment().also { fragment ->
                                     fragment.arguments = Bundle().also { args ->
-                                        args.putString(PreviewFragment.ARG_IMAGE_FILE_URI, uriString)
+                                        args.putString(
+                                            PreviewFragment.ARG_IMAGE_FILE_URI,
+                                            uriString
+                                        )
                                     }
                                 })
                                 setIntent(null)
@@ -96,8 +114,10 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         downloadIdsLangs.keys.forEach { key ->
-            if (Utils.isLanguageDownloaded(this, downloadIdsLangs[key]!!))
-                downloadIdsLangs.remove(key)
+            downloadIdsLangs[key]?.let {
+                if (Utils.isLanguageDownloaded(this, it))
+                    downloadIdsLangs.remove(key)
+            }
         }
         registerReceiver(onDownloadComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
     }
@@ -121,23 +141,33 @@ class MainActivity : AppCompatActivity() {
         override fun onReceive(context: Context, intent: Intent) {
             val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
             if (downloadIdsLangs.containsKey(id)) {
-                val language = downloadIdsLangs[id]!!
+                val language = downloadIdsLangs[id] ?: return
                 NotificationCenter.notify(NotificationCenter.LANG_DOWNLOADED, language)
                 downloadIdsLangs.remove(id)
                 Toast.makeText(
                     this@MainActivity,
-                    "${getString(R.string.download_completed)}: ${Utils.getLocalizedLangName(language)}",
+                    "${getString(R.string.download_completed)}: ${Utils.getLocalizedLangName(
+                        language
+                    )}",
                     Toast.LENGTH_SHORT
                 ).show()
             }
         }
     }
 
-    fun requestPermissions(strings: Array<String>, requestCode: Int, callback: OnRequestPermissionCallback) {
+    fun requestPermissions(
+        strings: Array<String>,
+        requestCode: Int,
+        callback: OnRequestPermissionCallback
+    ) {
         var allGranted = true
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             strings.forEach {
-                if (ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(
+                        this,
+                        it
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
                     allGranted = false
                     return@forEach
                 }
@@ -152,7 +182,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         var allGranted = true
         grantResults.forEach {
@@ -184,16 +218,19 @@ class MainActivity : AppCompatActivity() {
 
     fun showProgress(message: String? = getString(R.string.please_wait)) {
         runOnUiThread {
-            if (progressDialog == null || progressDialog!!.dialog == null || !progressDialog!!.dialog.isShowing) {
+            if (progressDialog?.dialog == null || progressDialog?.dialog?.isShowing == false) {
                 progressDialog = ProgressDialog().also { dialog ->
                     dialog.arguments = Bundle().apply {
                         this.putString(ProgressDialog.INITIAL_TEXT_ARG, message)
-                        dialog.show(this@MainActivity.supportFragmentManager, ProgressDialog::class.java.name)
+                        dialog.show(
+                            this@MainActivity.supportFragmentManager,
+                            ProgressDialog::class.java.name
+                        )
                     }
                 }
             }
-            if (message != progressDialog!!.getMessage())
-                progressDialog!!.setMessage(message)
+            if (message != progressDialog?.getMessage())
+                progressDialog?.setMessage(message)
         }
     }
 
@@ -204,7 +241,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun getFileForBitmap() = File("${getDefaultCroppedImagesDirectory()}/${Calendar.getInstance().timeInMillis}.jpg")
+    fun getFileForBitmap() =
+        File("${getDefaultCroppedImagesDirectory()}/${Calendar.getInstance().timeInMillis}.jpg")
 
     fun getTesseractDataFolder(): File {
         val dir = File(Utils.getInternalDirs(this)[0], PreviewFragment.TESSDATA)
@@ -228,7 +266,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getDefaultDirectory(): File {
-        val defaultDirectory = File(Environment.getExternalStorageDirectory(), getString(R.string.default_folder_name))
+        val defaultDirectory =
+            File(Environment.getExternalStorageDirectory(), getString(R.string.default_folder_name))
         if (!defaultDirectory.exists() || !defaultDirectory.isDirectory)
             defaultDirectory.mkdirs()
         return defaultDirectory

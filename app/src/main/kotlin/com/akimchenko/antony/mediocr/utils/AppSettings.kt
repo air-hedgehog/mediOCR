@@ -10,7 +10,10 @@ object AppSettings {
     private const val TESSERACT_SELECTED_LANGUAGE = "tesseract_selected_language"
     private const val USE_APPLICATION_CAMERA = "use_application_camera"
     private const val DEFAULT_RESULT_FORMATTING = "default_result_formatting"
+    private const val INITIAL_DOWNLOADS_LIST = "initial_downloads_list"
     const val SAVED_FILES_SORT_TYPE = "saved_files_sort_type"
+
+    private const val traineddata = ".traineddata"
 
     @JvmStatic
     private lateinit var sp: SharedPreferences
@@ -27,10 +30,14 @@ object AppSettings {
     fun unregisterListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) = sp.unregisterOnSharedPreferenceChangeListener(listener)
 
     @JvmStatic
-    fun getSelectedLanguage(): String = sp.getString(TESSERACT_SELECTED_LANGUAGE, "eng")!!
-
-    @JvmStatic
-    fun setSelectedLanguage(lang: String?) = sp.edit().putString(TESSERACT_SELECTED_LANGUAGE, lang).apply()
+    var selectedLanguage: String
+        get() {
+            val lang = sp.getString(TESSERACT_SELECTED_LANGUAGE, "eng") ?: "eng"
+            return if (lang.endsWith(traineddata)) lang else "$lang$traineddata"
+        }
+        set(lang) {
+            sp.edit().putString(TESSERACT_SELECTED_LANGUAGE, lang).apply()
+        }
 
     @JvmStatic
     var useApplicationCamera: Boolean
@@ -46,4 +53,18 @@ object AppSettings {
     var savedFilesSortedAlphabetically: Boolean
         get() = sp.getBoolean(SAVED_FILES_SORT_TYPE, true)
         set(isSortedAlphabetically) = sp.edit().putBoolean(SAVED_FILES_SORT_TYPE, isSortedAlphabetically).apply()
+
+    @JvmStatic
+    var initialDownloadsList: List<String>?
+        get() {
+            sp.getString(INITIAL_DOWNLOADS_LIST, null)?.let {
+                return it.split(",")
+            }
+            return null
+        }
+        set(list) {
+            list?.let {
+                sp.edit().putString(INITIAL_DOWNLOADS_LIST, it.joinToString(",")).apply()
+            }
+        }
 }

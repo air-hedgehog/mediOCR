@@ -3,11 +3,8 @@ package com.akimchenko.antony.mediocr.fragments
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CameraManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -85,13 +82,13 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
         hint.visibility = if (adapter != null && adapter!!.itemCount > 0) View.GONE else View.VISIBLE
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        menu?.add(0, ITEM_SETTINGS, menu.size(), R.string.settings)?.setIcon(R.drawable.settings)
+        menu.add(0, ITEM_SETTINGS, menu.size(), R.string.settings)?.setIcon(R.drawable.settings)
             ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
-        menu?.add(0, ITEM_SORT_TYPE_TITLE, menu.size(), R.string.sort_by_name)?.setIcon(R.drawable.sort_alphabetically)
+        menu.add(0, ITEM_SORT_TYPE_TITLE, menu.size(), R.string.sort_by_name)?.setIcon(R.drawable.sort_alphabetically)
             ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
-        menu?.add(0, ITEM_SORT_TYPE_DATE, menu.size(), R.string.sort_by_date)?.setIcon(R.drawable.sort_by_date)
+        menu.add(0, ITEM_SORT_TYPE_DATE, menu.size(), R.string.sort_by_date)?.setIcon(R.drawable.sort_by_date)
             ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
     }
 
@@ -104,9 +101,9 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
         return false
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val activity = activity as MainActivity? ?: return false
-        when (item?.itemId) {
+        when (item.itemId) {
             ITEM_SETTINGS -> activity.pushFragment(SettingsFragment())
             ITEM_SORT_TYPE_TITLE -> AppSettings.savedFilesSortedAlphabetically = true
             ITEM_SORT_TYPE_DATE -> AppSettings.savedFilesSortedAlphabetically = false
@@ -193,10 +190,10 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
         }
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration?) {
+    override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         recycler_view.layoutManager =
-            GridLayoutManager(activity, if (newConfig?.orientation == Configuration.ORIENTATION_PORTRAIT) 2 else 3)
+            GridLayoutManager(activity, if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) 2 else 3)
     }
 
     private fun sendGalleryChooserIntent() {

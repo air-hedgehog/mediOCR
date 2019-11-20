@@ -36,7 +36,7 @@ class ProgressDialog : DialogFragment() {
         return dialog
     }
 
-    override fun onDismiss(dialog: DialogInterface?) {
+    override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         NotificationCenter.notify(NotificationCenter.RECOGNITION_PROCESS_CANCELLED, null)
     }

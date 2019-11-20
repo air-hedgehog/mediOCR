@@ -93,7 +93,7 @@ class PreviewFragment : BaseFragment() {
                 ContextCompat.getDrawable(activity, R.drawable.recognition_button)!!.toBitmap()
             )
         )
-        language_button.text = Utils.getLocalizedLangName(AppSettings.getSelectedLanguage())
+        language_button.text = Utils.getLocalizedLangName(AppSettings.selectedLanguage)
         language_button.setOnClickListener { activity.pushFragment(LanguageFragment()) }
 
         close_button.setOnClickListener { activity.popFragment(MainFragment::class.java.name) }
@@ -123,7 +123,7 @@ class PreviewFragment : BaseFragment() {
                 }
             }
             updateProgressVisibility(true)
-            if (activity.downloadIdsLangs.containsValue(AppSettings.getSelectedLanguage()))
+            if (activity.downloadIdsLangs.containsValue(AppSettings.selectedLanguage))
                 doWhenDownloaded = runnable
             else
                 runnable.run()
@@ -138,12 +138,12 @@ class PreviewFragment : BaseFragment() {
     override fun onResume() {
         super.onResume()
         val activity = activity as MainActivity? ?: return
-        updateProgressVisibility(activity.downloadIdsLangs.containsValue(AppSettings.getSelectedLanguage()))
+        updateProgressVisibility(activity.downloadIdsLangs.containsValue(AppSettings.selectedLanguage))
     }
 
     private fun updateProgressVisibility(isVisible: Boolean) {
         val activity = activity as MainActivity? ?: return
-        if (isVisible && AppSettings.getSelectedLanguage() != "eng") {
+        if (isVisible && AppSettings.selectedLanguage != "eng") {
             recognise_button.setColorFilter(ContextCompat.getColor(activity, R.color.selected_tint))
             progress_bar.visibility = View.VISIBLE
             recognise_button.isClickable = false
@@ -157,13 +157,13 @@ class PreviewFragment : BaseFragment() {
     }
 
     private fun isLangDownloaded(activity: MainActivity): Boolean = activity.getTesseractDataFolder().listFiles()
-        .contains(File(activity.getTesseractDataFolder(), "${AppSettings.getSelectedLanguage()}.traineddata"))
+        .contains(File(activity.getTesseractDataFolder(), "${AppSettings.selectedLanguage}.traineddata"))
 
     override fun onNotification(id: Int, `object`: Any?) {
         super.onNotification(id, `object`)
         when (id) {
             NotificationCenter.LANG_DOWNLOADED -> {
-                if ((`object` as String) == AppSettings.getSelectedLanguage()) {
+                if ((`object` as String) == AppSettings.selectedLanguage) {
                     val activity = activity as MainActivity? ?: return
                     updateProgressVisibility(!isLangDownloaded(activity))
                     doWhenDownloaded?.run()
@@ -254,7 +254,7 @@ class PreviewFragment : BaseFragment() {
         tessBaseApi ?: return null
         //tessBaseApi.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_COLUMN)
         val path: String? = Utils.getInternalDirs(activity)[0]?.path ?: return null
-        val lang = AppSettings.getSelectedLanguage()
+        val lang = AppSettings.selectedLanguage
         if (lang == "eng")
             checkDefaultTessdata()
 

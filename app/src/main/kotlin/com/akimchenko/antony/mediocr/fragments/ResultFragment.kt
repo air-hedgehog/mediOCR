@@ -81,20 +81,20 @@ class ResultFragment : BaseFragment() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        menu?.add(0, SHARE_BUTTON_ID, 0, R.string.share)?.setIcon(R.drawable.share)
+        menu.add(0, SHARE_BUTTON_ID, 0, R.string.share)?.setIcon(R.drawable.share)
             ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
-        menu?.add(0, NotificationCenter.SAVE_AS_TXT_ID, 1, R.string.save_as_txt)?.setIcon(R.drawable.save_as_txt)
+        menu.add(0, NotificationCenter.SAVE_AS_TXT_ID, 1, R.string.save_as_txt)?.setIcon(R.drawable.save_as_txt)
             ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-            menu?.add(0, NotificationCenter.SAVE_AS_PDF_ID, 1, R.string.save_as_pdf)?.setIcon(R.drawable.save_as_pdf)
+            menu.add(0, NotificationCenter.SAVE_AS_PDF_ID, 1, R.string.save_as_pdf)?.setIcon(R.drawable.save_as_pdf)
                 ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        return when (item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
             SHARE_BUTTON_ID -> {
                 startActivity(Intent(Intent.ACTION_SEND).apply {
                     this.type = "text/plain"
