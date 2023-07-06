@@ -12,8 +12,8 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
+import com.akimchenko.anton.mediocr.R
 import com.akimchenko.antony.mediocr.MainActivity
-import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.fragments.MainFragment
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.Utils
@@ -23,13 +23,8 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 
-class MainFragmentAdapter(private val fragment: MainFragment) : RecyclerView.Adapter<MainFragmentAdapter.ViewHolder>(),
+class MainFragmentAdapter : RecyclerView.Adapter<MainFragmentAdapter.ViewHolder>(),
     SharedPreferences.OnSharedPreferenceChangeListener {
-
-    private val items: ArrayList<File> = ArrayList()
-    private var searchQuery: String? = null
-    private var fileLoadJob: Job? = null
-    private val activity = fragment.activity as MainActivity?
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
@@ -43,7 +38,6 @@ class MainFragmentAdapter(private val fragment: MainFragment) : RecyclerView.Ada
 
             itemView.setOnClickListener {
                 Intent(Intent.ACTION_VIEW).apply {
-                    activity ?: return@apply
                     val position = adapterPosition
                     if (position < 0 || position >= items.size) return@setOnClickListener
                     val file = items[position] as File? ?: return@setOnClickListener
@@ -103,7 +97,7 @@ class MainFragmentAdapter(private val fragment: MainFragment) : RecyclerView.Ada
 
     private fun updateItems() {
         activity ?: return
-        fragment.updateProgressBar(true)
+        //fragment.updateProgressBar(true)
         fileLoadJob = GlobalScope.launch {
             activity.getDefaultSavedFilesDirectory().listFiles() ?.let {files ->
                 if (searchQuery.isNullOrBlank())
@@ -121,7 +115,7 @@ class MainFragmentAdapter(private val fragment: MainFragment) : RecyclerView.Ada
         fileLoadJob?.invokeOnCompletion {
             activity.runOnUiThread {
                 notifyDataSetChanged()
-                fragment.updateProgressBar(false)
+                //fragment.updateProgressBar(false)
             }
         }
     }
@@ -131,7 +125,7 @@ class MainFragmentAdapter(private val fragment: MainFragment) : RecyclerView.Ada
         file.delete()
         notifyItemRemoved(items.indexOf(file))
         items.remove(file)
-        fragment.updateProgressBar(false)
+        //fragment.updateProgressBar(false)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =

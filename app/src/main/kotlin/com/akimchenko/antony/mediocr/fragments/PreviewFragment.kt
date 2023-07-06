@@ -8,17 +8,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.toBitmap
-import androidx.core.net.toUri
+import com.akimchenko.anton.mediocr.R
+import com.akimchenko.anton.mediocr.databinding.FragmentPreviewBinding
 import com.akimchenko.antony.mediocr.MainActivity
-import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.AppSettings
-import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
-import com.edmodo.cropper.CropImageView
 import com.googlecode.tesseract.android.TessBaseAPI
-import kotlinx.android.synthetic.main.fragment_preview.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -27,7 +22,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 
 
-class PreviewFragment : BaseFragment() {
+class PreviewFragment : BaseFragment<FragmentPreviewBinding>() {
 
     companion object {
         const val TESSDATA = "tessdata"
@@ -39,9 +34,10 @@ class PreviewFragment : BaseFragment() {
     private var savingCroppedImageJob: Job? = null
     private var recognizingJob: Job? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_preview, container, false)
-    }
+    override fun provideBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentPreviewBinding  = FragmentPreviewBinding.inflate(inflater, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -66,7 +62,7 @@ class PreviewFragment : BaseFragment() {
             else -> return
         }
 
-        crop_image_view.setGuidelines(CropImageView.DEFAULT_GUIDELINES)
+       /* crop_image_view.setGuidelines(CropImageView.DEFAULT_GUIDELINES)
         crop_image_view.setImageBitmap(BitmapFactory.decodeFile(imageFile.absolutePath))
 
         close_button.setImageDrawable(
@@ -127,7 +123,7 @@ class PreviewFragment : BaseFragment() {
                 doWhenDownloaded = runnable
             else
                 runnable.run()
-        }
+        }*/
     }
 
     override fun onPause() {
@@ -143,7 +139,7 @@ class PreviewFragment : BaseFragment() {
 
     private fun updateProgressVisibility(isVisible: Boolean) {
         val activity = activity as MainActivity? ?: return
-        if (isVisible && AppSettings.getSelectedLanguage() != "eng") {
+       /* if (isVisible && AppSettings.getSelectedLanguage() != "eng") {
             recognise_button.setColorFilter(ContextCompat.getColor(activity, R.color.selected_tint))
             progress_bar.visibility = View.VISIBLE
             recognise_button.isClickable = false
@@ -153,7 +149,7 @@ class PreviewFragment : BaseFragment() {
             progress_bar.visibility = View.GONE
             recognise_button.isClickable = true
             recognise_button.isFocusable = true
-        }
+        }*/
     }
 
     private fun isLangDownloaded(activity: MainActivity): Boolean = activity.getTesseractDataFolder().listFiles()
@@ -226,7 +222,7 @@ class PreviewFragment : BaseFragment() {
                 }
             }
         } catch (e: IOException) {
-            Log.e(this::class.java.name, e.message)
+            //Log.e(this::class.java.name, e.message)
         }
     }
 
@@ -237,13 +233,13 @@ class PreviewFragment : BaseFragment() {
             val bitmap = BitmapFactory.decodeFile(fileUri.path, options)
             return extractText(bitmap)
         } catch (e: Exception) {
-            Log.e(this::class.java.name, e.message)
+           // Log.e(this::class.java.name, e.message)
         }
         return null
     }
 
     private fun extractText(bitmap: Bitmap): String? {
-        val activity = activity as MainActivity? ?: return null
+        val activity = getAc as MainActivity? ?: return null
         tessBaseApi = TessBaseAPI(TessBaseAPI.ProgressNotifier { progressValues ->
             //TODO
             /*it.currentRect
@@ -253,7 +249,6 @@ class PreviewFragment : BaseFragment() {
         })
         tessBaseApi ?: return null
         //tessBaseApi.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_COLUMN)
-        val path: String? = Utils.getInternalDirs(activity)[0]?.path ?: return null
         val lang = AppSettings.getSelectedLanguage()
         if (lang == "eng")
             checkDefaultTessdata()

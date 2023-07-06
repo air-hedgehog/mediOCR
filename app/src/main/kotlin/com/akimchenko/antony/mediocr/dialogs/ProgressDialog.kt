@@ -8,9 +8,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
-import com.akimchenko.antony.mediocr.MainActivity
-import com.akimchenko.antony.mediocr.R
-import com.akimchenko.antony.mediocr.utils.NotificationCenter
+import com.akimchenko.anton.mediocr.R
 
 class ProgressDialog : DialogFragment() {
 
@@ -36,7 +34,7 @@ class ProgressDialog : DialogFragment() {
         return dialog
     }
 
-    override fun onDismiss(dialog: DialogInterface?) {
+    override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         NotificationCenter.notify(NotificationCenter.RECOGNITION_PROCESS_CANCELLED, null)
     }

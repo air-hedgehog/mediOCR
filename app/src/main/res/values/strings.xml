@@ -1,8 +1,8 @@
 <resources>
     <string translatable="false" name="app_name">MediOCR</string>
     <string translatable="false" name="default_folder_name">MediOCR_data</string>
-    <string translatable="false" name="tessdata_url">https://github.com/tesseract-ocr/tessdata/tree/3.04.00/</string>
-    <string translatable="false" name="traineddata_suffix">.traineddata</string>
+    <string name="cropped_images" translatable="false">Cropped_images</string>
+    <string name="saved_files" translatable="false">Saved_files</string>
 
     <string name="you_need_to_allow_permissions_read_write_camera">You need to grant READ/WRITE and CAMERA permissions to use camera feature </string>
     <string name="you_need_to_allow_permissions_read_write">You need to grant READ/WRITE permissions to use gallery feature </string>
@@ -13,8 +13,6 @@
     <string name="save_as_pdf">Save as .pdf file</string>
     <string name="saving_cropped_image">Saving cropped image…</string>
     <string name="recognising">Recognising…</string>
-    <string name="cropped_images">Cropped_images</string>
-    <string name="saved_files">Saved_files</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="download_languages">Download Languages</string>

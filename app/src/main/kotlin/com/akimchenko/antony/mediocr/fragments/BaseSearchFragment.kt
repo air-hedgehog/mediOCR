@@ -7,11 +7,12 @@ import android.view.View
 import android.widget.ImageView
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
+import androidx.viewbinding.ViewBinding
+import com.akimchenko.anton.mediocr.R
 import com.akimchenko.antony.mediocr.MainActivity
-import com.akimchenko.antony.mediocr.R
-import kotlinx.android.synthetic.main.toolbar.*
 
-abstract class BaseSearchFragment: BaseFragment(), SearchView.OnQueryTextListener {
+abstract class BaseSearchFragment<out T : ViewBinding> : BaseFragment<T>(),
+    SearchView.OnQueryTextListener {
 
     companion object {
         private const val SEARCH_INSTANCE_STATE = "search_instance_state"
@@ -25,11 +26,9 @@ abstract class BaseSearchFragment: BaseFragment(), SearchView.OnQueryTextListene
         searchQuery = savedInstanceState?.getString(SEARCH_INSTANCE_STATE, null)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         val activity = activity as MainActivity? ?: return
-        menu ?: return
-        inflater ?: return
 
         inflater.inflate(R.menu.search_menu, menu)
         val searchItem = menu.findItem(R.id.search_view)
@@ -46,9 +45,10 @@ abstract class BaseSearchFragment: BaseFragment(), SearchView.OnQueryTextListene
         }
     }
 
+    protected abstract val searchView: SearchView?
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        val searchView: SearchView? = toolbar?.menu?.findItem(R.id.search_view)?.actionView as SearchView? ?: return
-        outState.putString(SEARCH_INSTANCE_STATE, searchView?.query.toString())
+        outState.putString(SEARCH_INSTANCE_STATE, searchView?.query?.toString())
     }
 }

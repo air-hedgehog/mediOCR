@@ -3,34 +3,30 @@ package com.akimchenko.antony.mediocr.fragments
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CameraManager
-import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.*
-import android.widget.Toast
+import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
+import androidx.core.view.isGone
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
+import com.akimchenko.anton.mediocr.R
+import com.akimchenko.anton.mediocr.databinding.FragmentMainBinding
 import com.akimchenko.antony.mediocr.MainActivity
-import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.adapters.MainFragmentAdapter
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.Utils
-import kotlinx.android.synthetic.main.fragment_main.*
-import kotlinx.android.synthetic.main.toobar_progress_bar.*
-import kotlinx.android.synthetic.main.toolbar.*
 import java.io.File
 
 
 @SuppressLint("InlinedApi")
-class MainFragment : BaseSearchFragment(), View.OnClickListener {
+class MainFragment : BaseSearchFragment<FragmentMainBinding>(), View.OnClickListener {
 
     private var newPhotoFile: File? = null
 
@@ -41,57 +37,59 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
     }
 
     private var adapter: MainFragmentAdapter? = null
+    override val searchView: SearchView?
+        get() = binding.toolbar.root.menu?.findItem(R.id.search_view)?.actionView as SearchView?
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_main, container, false)
-    }
+    override fun provideBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentMainBinding = FragmentMainBinding.inflate(inflater, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity? ?: return
-        toolbar.title = activity.getString(R.string.app_name)
-        recycler_view.layoutManager = GridLayoutManager(
-            activity, if (activity.resources.configuration.orientation ==
-                Configuration.ORIENTATION_PORTRAIT
-            ) 2 else 3
-        )
-        adapter = MainFragmentAdapter(this)
-        recycler_view.adapter = adapter
-        camera_button.setImageDrawable(
-            Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(activity, R.drawable.camera_button)!!.toBitmap()
+        binding.run {
+            toolbar.root.title = activity.getString(R.string.app_name)
+            recyclerView.layoutManager = GridLayoutManager(
+                activity, if (activity.resources.configuration.orientation ==
+                    Configuration.ORIENTATION_PORTRAIT
+                ) 2 else 3
             )
-        )
-        gallery_button.setImageDrawable(
-            Utils.makeSelector(
-                activity,
-                ContextCompat.getDrawable(
+            adapter = MainFragmentAdapter()
+            recyclerView.adapter = adapter
+            cameraButton.setImageDrawable(
+                Utils.makeSelector(
                     activity,
-                    R.drawable.gallery_button
-                )!!.toBitmap()
+                    ContextCompat.getDrawable(activity, R.drawable.camera_button)!!.toBitmap()
+                )
             )
-        )
-        camera_button.setOnClickListener(this)
-        gallery_button.setOnClickListener(this)
+            galleryButton.setImageDrawable(
+                Utils.makeSelector(
+                    activity,
+                    ContextCompat.getDrawable(
+                        activity,
+                        R.drawable.gallery_button
+                    )!!.toBitmap()
+                )
+            )
+            cameraButton.setOnClickListener(this@MainFragment)
+            galleryButton.setOnClickListener(this@MainFragment)
+        }
     }
+     fun updateProgressBar(isVisible: Boolean) {
+         binding.progressBar.root.isVisible = isVisible
+         binding.hint.isGone = (adapter?.itemCount ?: 0) > 0
+     }
 
-    override fun onBackPressed() {
-        activity?.finish()
-    }
-
-    fun updateProgressBar(isVisible: Boolean) {
-        progress_bar.visibility = if (isVisible) View.VISIBLE else View.GONE
-        hint.visibility = if (adapter != null && adapter!!.itemCount > 0) View.GONE else View.VISIBLE
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        menu?.add(0, ITEM_SETTINGS, menu.size(), R.string.settings)?.setIcon(R.drawable.settings)
+        menu.add(0, ITEM_SETTINGS, menu.size(), R.string.settings)?.setIcon(R.drawable.settings)
             ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
-        menu?.add(0, ITEM_SORT_TYPE_TITLE, menu.size(), R.string.sort_by_name)?.setIcon(R.drawable.sort_alphabetically)
+        menu.add(0, ITEM_SORT_TYPE_TITLE, menu.size(), R.string.sort_by_name)
+            ?.setIcon(R.drawable.sort_alphabetically)
             ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
-        menu?.add(0, ITEM_SORT_TYPE_DATE, menu.size(), R.string.sort_by_date)?.setIcon(R.drawable.sort_by_date)
+        menu.add(0, ITEM_SORT_TYPE_DATE, menu.size(), R.string.sort_by_date)
+            ?.setIcon(R.drawable.sort_by_date)
             ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
     }
 
@@ -104,9 +102,9 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
         return false
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val activity = activity as MainActivity? ?: return false
-        when (item?.itemId) {
+        when (item.itemId) {
             ITEM_SETTINGS -> activity.pushFragment(SettingsFragment())
             ITEM_SORT_TYPE_TITLE -> AppSettings.savedFilesSortedAlphabetically = true
             ITEM_SORT_TYPE_DATE -> AppSettings.savedFilesSortedAlphabetically = false
@@ -126,51 +124,54 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
 
     override fun onClick(v: View?) {
         val activity = activity as MainActivity? ?: return
-        when (v) {
-            camera_button -> {
-                activity.requestPermissions(arrayOf(
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.CAMERA
-                ),
-                    Utils.READ_WRITE_CAMERA_REQUEST_CODE,
-                    object : MainActivity.OnRequestPermissionCallback {
+        binding.run {
+            when (v) {
+                cameraButton -> {
+                    activity.requestPermissions(arrayOf(
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.CAMERA
+                    ),
+                        Utils.READ_WRITE_CAMERA_REQUEST_CODE,
+                        object : MainActivity.OnRequestPermissionCallback {
+                            override fun onPermissionReturned(isGranted: Boolean) {
+                                if (isGranted)
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && AppSettings.useApplicationCamera) {
+                                        if (Utils.isCamera2APISupported(activity))
+                                            activity.pushFragment(CameraFragment())
+                                        else
+                                            sendCameraIntent()
+                                    } else
+                                        sendCameraIntent()
+                                else
+                                    Toast.makeText(
+                                        activity,
+                                        activity.getString(R.string.you_need_to_allow_permissions_read_write_camera),
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                            }
+                        })
+                }
+                galleryButton -> {
+                    activity.requestPermissions(arrayOf(
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    ), Utils.READ_WRITE_GALLERY_REQUEST_CODE, object : MainActivity.OnRequestPermissionCallback {
                         override fun onPermissionReturned(isGranted: Boolean) {
                             if (isGranted)
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && AppSettings.useApplicationCamera) {
-                                    if (Utils.isCamera2APISupported(activity))
-                                        activity.pushFragment(CameraFragment())
-                                    else
-                                        sendCameraIntent()
-                                } else
-                                    sendCameraIntent()
+                                sendGalleryChooserIntent()
                             else
                                 Toast.makeText(
                                     activity,
-                                    activity.getString(R.string.you_need_to_allow_permissions_read_write_camera),
+                                    activity.getString(R.string.you_need_to_allow_permissions_read_write),
                                     Toast.LENGTH_LONG
                                 ).show()
                         }
                     })
-            }
-            gallery_button -> {
-                activity.requestPermissions(arrayOf(
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                ), Utils.READ_WRITE_GALLERY_REQUEST_CODE, object : MainActivity.OnRequestPermissionCallback {
-                    override fun onPermissionReturned(isGranted: Boolean) {
-                        if (isGranted)
-                            sendGalleryChooserIntent()
-                        else
-                            Toast.makeText(
-                                activity,
-                                activity.getString(R.string.you_need_to_allow_permissions_read_write),
-                                Toast.LENGTH_LONG
-                            ).show()
-                    }
-                })
+                }
             }
         }
+
     }
 
     private fun sendCameraIntent() {
@@ -193,17 +194,19 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
         }
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration?) {
+    override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        recycler_view.layoutManager =
-            GridLayoutManager(activity, if (newConfig?.orientation == Configuration.ORIENTATION_PORTRAIT) 2 else 3)
+        binding.recyclerView.layoutManager = GridLayoutManager(activity, if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) 2 else 3)
     }
 
     private fun sendGalleryChooserIntent() {
         Intent().apply {
             this.type = "image/*"
             this.action = Intent.ACTION_GET_CONTENT
-            startActivityForResult(Intent.createChooser(this, null), Utils.GALLERY_CHOOSER_REQUEST_CODE)
+            startActivityForResult(
+                Intent.createChooser(this, null),
+                Utils.GALLERY_CHOOSER_REQUEST_CODE
+            )
         }
     }
 
@@ -222,6 +225,7 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
                     })
                 }
             }
+
             Utils.GALLERY_CHOOSER_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK) {
                     val uri = data?.data ?: return
@@ -235,6 +239,7 @@ class MainFragment : BaseSearchFragment(), View.OnClickListener {
                     })
                 }
             }
+
             else -> super.onActivityResult(requestCode, resultCode, data)
         }
     }

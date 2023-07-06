@@ -3,6 +3,8 @@ package com.akimchenko.antony.mediocr.utils
 import android.content.Context
 import android.content.SharedPreferences
 import com.akimchenko.antony.mediocr.MediocrApp
+import com.akimchenko.antony.mediocr.adapters.LanguageItem
+import com.itextpdf.text.ListItem
 
 object AppSettings {
 
@@ -27,10 +29,10 @@ object AppSettings {
     fun unregisterListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) = sp.unregisterOnSharedPreferenceChangeListener(listener)
 
     @JvmStatic
-    fun getSelectedLanguage(): String = sp.getString(TESSERACT_SELECTED_LANGUAGE, "eng")!!
+    fun getSelectedLanguage(): String = sp.getString(TESSERACT_SELECTED_LANGUAGE, PREINSTALLED_LANGUAGE)!!
 
     @JvmStatic
-    fun setSelectedLanguage(lang: String?) = sp.edit().putString(TESSERACT_SELECTED_LANGUAGE, lang).apply()
+    fun setSelectedLanguage(lang: LanguageItem) = sp.edit().putString(TESSERACT_SELECTED_LANGUAGE, lang.title).apply()
 
     @JvmStatic
     var useApplicationCamera: Boolean

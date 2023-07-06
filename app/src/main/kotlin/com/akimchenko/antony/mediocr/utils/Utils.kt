@@ -11,8 +11,10 @@ import android.hardware.camera2.CameraManager
 import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.akimchenko.anton.mediocr.R
 import com.akimchenko.antony.mediocr.MainActivity
-import com.akimchenko.antony.mediocr.R
+import com.akimchenko.antony.mediocr.adapters.LanguageItem
+import com.akimchenko.antony.mediocr.fragments.PreviewFragment
 import java.io.*
 import java.text.DateFormat
 import java.util.*
@@ -49,10 +51,9 @@ object Utils {
     )
 
     @JvmStatic
-    fun getLocalizedLangName(item: String): String = customLanguageTags[item]
-            ?: Locale(item).displayLanguage
+    fun getLocalizedLangName(item: LanguageItem): String = customLanguageTags[item.title]
+            ?: Locale(item.title).displayLanguage
 
-    @JvmStatic
     fun makeSelector(context: Context, bitmap: Bitmap): StateListDrawable =
             StateListDrawable().apply {
                 val resources = context.resources
@@ -87,15 +88,8 @@ object Utils {
     }
 
     @JvmStatic
-    fun isLanguageDownloaded(activity: MainActivity, item: String): Boolean =
-            activity.getTesseractDataFolder().listFiles()?.find { it.name == "$item.traineddata" } != null
-
-    @JvmStatic
     fun getInternalDirs(context: Context): Array<File?> {
-        /*return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-            context.getExternalFilesDirs(null)
-        else
-            arrayOf(context.getExternalFilesDir(null))*/
+
         return arrayOf(context.getExternalFilesDir(null))
     }
 

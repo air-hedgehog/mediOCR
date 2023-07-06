@@ -12,7 +12,6 @@ import android.hardware.SensorManager
 import android.hardware.camera2.*
 import android.media.Image
 import android.media.ImageReader
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
@@ -21,15 +20,14 @@ import android.util.Pair
 import android.util.Size
 import android.util.SparseIntArray
 import android.view.*
-import android.widget.ImageView
-import androidx.annotation.RequiresApi
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
+import com.akimchenko.anton.mediocr.R
+import com.akimchenko.anton.mediocr.databinding.FragmentCameraBinding
 import com.akimchenko.antony.mediocr.MainActivity
-import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.Utils
-import kotlinx.android.synthetic.main.fragment_camera.*
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
@@ -38,8 +36,7 @@ import java.util.*
 import kotlin.math.absoluteValue
 
 
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class CameraFragment : BaseFragment(), SensorEventListener {
+class CameraFragment : BaseFragment<FragmentCameraBinding>(), SensorEventListener {
 
     companion object {
 
@@ -105,45 +102,50 @@ class CameraFragment : BaseFragment(), SensorEventListener {
                     characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)?.getOutputSizes(
                         ImageFormat.JPEG
                     )
-                if (jpegSizes != null && jpegSizes.isNotEmpty())
+                if (!jpegSizes.isNullOrEmpty())
                     return Pair(jpegSizes[0].width, jpegSizes[0].height)
             } catch (e: CameraAccessException) {
-                Log.e(CameraFragment::class.java.name, e.message)
+                Log.e(CameraFragment::class.java.name, e.message ?: "")
             }
 
             return null
         }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
-        inflater.inflate(R.layout.fragment_camera, container, false)
+    override fun provideBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentCameraBinding = FragmentCameraBinding.inflate(inflater, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity?
         activity ?: return
-        texture_view.surfaceTextureListener = textureListener
-        (capture_button as ImageView).setImageDrawable(
-            Utils.makeSelector(
-                activity,
+        binding.run {
+            textureView.surfaceTextureListener = textureListener
+            captureButton.root.setImageDrawable(
+                Utils.makeSelector(
+                    activity,
+                    AppCompatResources.getDrawable(
+                        activity,
+                        R.drawable.capture_button
+                    )!!.toBitmap()
+                )
+            )
+            captureButton.root.setOnClickListener { takePicture() }
+
+            flashButton.root.setImageDrawable(
                 ContextCompat.getDrawable(
                     activity,
-                    R.drawable.capture_button
-                )!!.toBitmap()
+                    when (flashMode) {
+                        CameraMetadata.FLASH_MODE_OFF -> R.drawable.flash_off
+                        CameraMetadata.FLASH_MODE_TORCH -> R.drawable.flash
+                        else -> R.drawable.flash_off
+                    }
+                )
             )
-        )
-        (capture_button as ImageView).setOnClickListener { takePicture() }
+            flashButton.root.setOnClickListener { setFlashMode() }
+        }
 
-        (flash_button as ImageView).setImageDrawable(
-            ContextCompat.getDrawable(
-                activity,
-                when (flashMode) {
-                    CameraMetadata.FLASH_MODE_OFF -> R.drawable.flash_off
-                    CameraMetadata.FLASH_MODE_TORCH -> R.drawable.flash
-                    else -> R.drawable.flash_off
-                }
-            )
-        )
-        (flash_button as ImageView).setOnClickListener { setFlashMode() }
     }
 
     private fun setFlashMode() {
@@ -160,7 +162,7 @@ class CameraFragment : BaseFragment(), SensorEventListener {
             }
         }
         if (drawableId != null)
-            (flash_button as ImageView).setImageDrawable(
+            binding.flashButton.root.setImageDrawable(
                 Utils.makeSelector(
                     activity,
                     ContextCompat.getDrawable(activity, drawableId)!!.toBitmap()
@@ -181,7 +183,7 @@ class CameraFragment : BaseFragment(), SensorEventListener {
             mBackgroundThread = null
             mBackgroundHandler = null
         } catch (e: InterruptedException) {
-            Log.e(CameraFragment::class.java.name, e.message)
+            Log.e(CameraFragment::class.java.name, e.message ?: "")
         }
     }
 
@@ -202,7 +204,7 @@ class CameraFragment : BaseFragment(), SensorEventListener {
             val reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1)
             val outputSurfaces = ArrayList<Surface>(2)
             outputSurfaces.add(reader.surface)
-            outputSurfaces.add(Surface(texture_view.surfaceTexture))
+            outputSurfaces.add(Surface(binding.textureView.surfaceTexture))
             val captureBuilder = cameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
             captureBuilder.addTarget(reader.surface)
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
@@ -219,9 +221,9 @@ class CameraFragment : BaseFragment(), SensorEventListener {
                         buffer.get(bytes)
                         save(bytes)
                     } catch (e: FileNotFoundException) {
-                        Log.e(CameraFragment::class.java.name, e.message)
+                       Log.e(CameraFragment::class.java.name, e.message ?: "")
                     } catch (e: IOException) {
-                        Log.e(CameraFragment::class.java.name, e.message)
+                        Log.e(CameraFragment::class.java.name, e.message ?: "")
                     } finally {
                         image?.close()
                     }
@@ -257,12 +259,13 @@ class CameraFragment : BaseFragment(), SensorEventListener {
                     })
                 }
             }
+            //object : SessionConfiguration()
             cameraDevice!!.createCaptureSession(outputSurfaces, object : CameraCaptureSession.StateCallback() {
                 override fun onConfigured(session: CameraCaptureSession) {
                     try {
                         session.capture(captureBuilder.build(), captureListener, mBackgroundHandler)
                     } catch (e: CameraAccessException) {
-                        Log.e(CameraFragment::class.java.name, e.message)
+                        Log.e(CameraFragment::class.java.name, e.message ?: "")
                     }
 
                 }
@@ -270,15 +273,14 @@ class CameraFragment : BaseFragment(), SensorEventListener {
                 override fun onConfigureFailed(session: CameraCaptureSession) {}
             }, mBackgroundHandler)
         } catch (e: CameraAccessException) {
-            Log.e(CameraFragment::class.java.name, e.message)
+            Log.e(CameraFragment::class.java.name, e.message ?: "")
         }
     }
 
     private fun createCameraPreview() {
         cameraDevice ?: return
-        texture_view ?: return
         try {
-            val texture = texture_view.surfaceTexture!!
+            val texture = binding.textureView.surfaceTexture!!
             texture.setDefaultBufferSize(imageDimension!!.width, imageDimension!!.height)
             val surface = Surface(texture)
             captureRequestBuilder = cameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
@@ -293,7 +295,7 @@ class CameraFragment : BaseFragment(), SensorEventListener {
                     cameraCaptureSessions = cameraCaptureSession
                     val widthHeight = pictureWidthHeight
                     if (widthHeight != null)
-                        texture_view.setAspectRatio(widthHeight.second, widthHeight.first)
+                        binding.textureView.setAspectRatio(widthHeight.second, widthHeight.first)
                     updatePreview()
                 }
 
@@ -302,7 +304,7 @@ class CameraFragment : BaseFragment(), SensorEventListener {
                 }
             }, null)
         } catch (e: CameraAccessException) {
-            Log.e(CameraFragment::class.java.name, e.message)
+            Log.e(CameraFragment::class.java.name, e.message ?: "")
         }
 
     }
@@ -318,7 +320,7 @@ class CameraFragment : BaseFragment(), SensorEventListener {
             imageDimension = map.getOutputSizes(SurfaceTexture::class.java)[0]
             manager.openCamera(cameraId, stateCallback, null)
         } catch (e: CameraAccessException) {
-            Log.e(CameraFragment::class.java.name, e.message)
+           Log.e(CameraFragment::class.java.name, e.message ?: "")
         }
     }
 
@@ -328,7 +330,7 @@ class CameraFragment : BaseFragment(), SensorEventListener {
         try {
             cameraCaptureSessions!!.setRepeatingRequest(captureRequestBuilder!!.build(), null, mBackgroundHandler)
         } catch (e: CameraAccessException) {
-            Log.e(CameraFragment::class.java.name, e.message)
+           // Log.e(CameraFragment::class.java.name, e.message)
         }
     }
 
@@ -351,10 +353,10 @@ class CameraFragment : BaseFragment(), SensorEventListener {
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         sensorManager?.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
         startBackgroundThread()
-        if (texture_view.isAvailable)
+        if (binding.textureView.isAvailable)
             openCamera()
         else
-            texture_view.surfaceTextureListener = textureListener
+            binding.textureView.surfaceTextureListener = textureListener
     }
 
     override fun onPause() {

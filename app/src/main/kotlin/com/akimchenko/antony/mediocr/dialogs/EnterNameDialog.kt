@@ -10,9 +10,8 @@ import android.view.LayoutInflater
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.fragment.app.DialogFragment
+import com.akimchenko.anton.mediocr.R
 import com.akimchenko.antony.mediocr.MainActivity
-import com.akimchenko.antony.mediocr.R
-import com.akimchenko.antony.mediocr.utils.NotificationCenter
 import com.akimchenko.antony.mediocr.utils.Utils
 import java.util.*
 
@@ -79,7 +78,7 @@ class EnterNameDialog : DialogFragment() {
 
     fun getTitle(): String = editText.text.toString().trim()
 
-    override fun onDismiss(dialog: DialogInterface?) {
+    override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         val imm = editText.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager? ?: return
         imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS)

@@ -8,35 +8,34 @@ import android.widget.ImageView
 import android.widget.Switch
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.akimchenko.anton.mediocr.R
+import com.akimchenko.anton.mediocr.databinding.FragmentRecyclerBinding
 import com.akimchenko.antony.mediocr.MainActivity
-import com.akimchenko.antony.mediocr.R
 import com.akimchenko.antony.mediocr.utils.AppSettings
 import com.akimchenko.antony.mediocr.utils.Utils
-import kotlinx.android.synthetic.main.fragment_recycler.*
-import kotlinx.android.synthetic.main.toolbar.*
 
-class SettingsFragment : BaseFragment() {
+class SettingsFragment : BaseFragment<FragmentRecyclerBinding>() {
 
     companion object {
         private const val ITEM_LANG_SETTINGS = 0
         private const val ITEM_DEFAULT_CAMERA_SWITCH = 1
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
-        inflater.inflate(R.layout.fragment_recycler, container, false)
+    override fun provideBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentRecyclerBinding = FragmentRecyclerBinding.inflate(inflater, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity as MainActivity? ?: return
-        toolbar.title = activity.getString(R.string.settings)
+        /*toolbar.title = activity.getString(R.string.settings)
         toolbar.navigationIcon = ContextCompat.getDrawable(activity, R.drawable.arrow_back)
         toolbar.setNavigationOnClickListener { activity.onBackPressed() }
         recycler_view.layoutManager = LinearLayoutManager(activity)
         recycler_view.adapter = SettingsAdapter(activity)
-        recycler_view.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))
+        recycler_view.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))*/
     }
 
     private inner class SettingsAdapter(activity: MainActivity) : RecyclerView.Adapter<SettingsAdapter.ViewHolder>() {
